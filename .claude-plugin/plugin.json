@@ -1,0 +1,17 @@
+{
+  "name": "scb-creator-kit",
+  "version": "0.1.0",
+  "description": "Das Creator-Toolkit der SCB Community: KI-Reels generieren (Kling 3.0, Seedance, Higgsfield), Videos automatisch schneiden, Hook-Formeln & Safe-Zone-Wissen, Auto-Posting mit Airtable + Make und ein Obsidian-Gehirn — inklusive Setup-Assistent (scb-setup).",
+  "author": {
+    "name": "Julian Ranglack"
+  },
+  "keywords": [
+    "instagram",
+    "reels",
+    "ki-video",
+    "kling",
+    "higgsfield",
+    "content-creation",
+    "automation"
+  ]
+}

@@ -1,0 +1,63 @@
+# 🎬 SCB Creator Kit
+
+Das Creator-Toolkit der SCB Community für Claude: KI-Reels erstellen,
+Videos automatisch schneiden, mit erprobten Hook-Formeln texten und
+Instagram-Posting automatisieren — alles in einem Plugin, geführt von
+einem Setup-Assistenten.
+
+## Was steckt drin?
+
+| Skill | Was er kann | So startest du ihn |
+|---|---|---|
+| **scb-setup** | Setup-Assistent: fragt ab, was du hast (Higgsfield, Make, Airtable, Obsidian …) und richtet alles ein | „Richte das SCB Kit ein" |
+| **kling-prompt-builder** | Führt dich zu einem perfekten Kling-3.0-Prompt (spart Credits) | „Bau mir einen Kling-Prompt" |
+| **seedance-prompt-builder** | Shot-für-Shot-Prompts für Seedance 2.0 | „Schreib mir einen Seedance-Prompt" |
+| **video-schneiden** | Schneidet Versprecher, Ähs und Pausen automatisch raus | „Schneide mein Video" |
+| **untertitel-und-text** | Brennt sprach-synchrone Untertitel & Hook-Texte ein — automatisch in der Safe-Zone | „Mach Untertitel drauf" |
+| **higgsfield-generate** (+ Soul ID, Photoshoot, Marketplace-Cards) | Bilder & Videos direkt über deinen Higgsfield-Account generieren | „Generier mir ein Bild/Video" |
+| **instagram-audit** | Profil-Audit & Nischen-Recherche über Apify (mit Kosten-Check vor jedem Lauf) | „Mach ein Audit von meinem Profil" |
+| **reel-hooks** | Erprobte Hook-Formeln & Reel-Strukturen (Humor + Sales), fragt nach deinem Funnel-Keyword | „Schreib mir ein Reel" |
+| **reel-layout** | Safe-Zones: wo Text in Reels & Stories sitzen darf | läuft automatisch beim Bearbeiten |
+| **reel-posting** | Auto-Posting-System mit Airtable + Make bauen | „Richte mein Auto-Posting ein" |
+| **obsidian-gehirn** | Claude merkt sich alles über dich in deinem Obsidian-Vault | „Verbinde Obsidian" |
+
+Zusätzlich empfiehlt und installiert der Setup-Assistent auf Wunsch das
+kostenlose Community-Plugin **/watch** ([bradautomates/claude-video](https://github.com/bradautomates/claude-video)) —
+damit kann Claude Videos „ansehen" und z. B. virale Reels analysieren.
+
+## Installation
+
+### Claude Desktop-App (empfohlen)
+
+1. Lade die Datei **`scb-creator-kit.plugin`** herunter:
+   **[⬇️ Direkt-Download (neueste Version)](https://github.com/jranglack-bot/scb-creator-kit/releases/latest/download/scb-creator-kit.plugin)**
+2. Ziehe sie in ein Claude-Gespräch und bestätige die Installation.
+3. Sag: **„Richte das SCB Kit ein"** — der Assistent übernimmt den Rest.
+
+### Claude Code (Terminal)
+
+```
+/plugin marketplace add jranglack-bot/scb-creator-kit
+/plugin install scb-creator-kit@scb-creator-kit
+```
+
+## Was du brauchst (je nach Funktion)
+
+- **KI-Videos:** Higgsfield-Account (higgsfield.ai) — Free-Plan zum Testen
+- **Video-Schnitt & Untertitel:** kostenloser ElevenLabs-API-Key + ffmpeg (installiert der Assistent)
+- **Auto-Posting:** Airtable- + Make.com-Account, Instagram Business-/Creator-Konto
+- **Audit & Recherche:** kostenloses Apify-Konto (apify.com)
+- **Obsidian-Gehirn:** Obsidian (kostenlos, obsidian.md)
+
+Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen willst.
+
+## Sicherheit
+
+- Das Plugin enthält **keine** Zugangsdaten. Jeder verbindet seine eigenen Konten.
+- API-Keys werden nur lokal gespeichert, nie in Cloud-Notizen oder im Chat.
+- Logins (Higgsfield, Airtable, Make) machst du immer selbst im Browser —
+  Claude fragt nie nach Passwörtern.
+
+---
+
+Made with ❤️ für die SCB Community · v0.1.0
