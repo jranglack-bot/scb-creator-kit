@@ -23,11 +23,12 @@ account-neutral — jedes Community-Mitglied verbindet seine eigenen Konten.
 | Instagram | Ziel-Plattform | Business-/Creator-Konto, in Make verbunden |
 | Obsidian | Zweites Gehirn / Notizen | lokale App, Vault-Pfad wird beim Setup abgefragt |
 
-## Empfohlenes Zusatz-Plugin (Drittanbieter)
+## Empfohlene Zusatz-Tools (Drittanbieter)
 
-| Plugin | Wofür | Quelle |
+| Tool | Wofür | Quelle |
 |---|---|---|
 | `/watch` (watch@claude-video) | Claude kann Videos „ansehen": virale Reels analysieren, Transkripte ziehen | https://github.com/bradautomates/claude-video — der Setup-Assistent installiert es auf Wunsch |
+| RTK (CLI-Proxy) | Komprimiert Terminal-Ausgaben, 60–90 % Token-Ersparnis; nach Installation `rtk init -g` ausführen | https://github.com/rtk-ai/rtk — der Setup-Assistent installiert und initialisiert es auf Wunsch |
 
 Der Skill `scb-setup` fragt alles der Reihe nach ab — starte einfach mit:
 **„Richte das SCB Kit ein."**

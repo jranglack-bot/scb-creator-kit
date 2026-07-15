@@ -32,6 +32,7 @@ Begrüße den User und zeige kurz, was das Kit kann:
 > 5. **Instagram-Audit & Recherche** — Profil-Analyse und Nischen-Recherche über Apify
 > 6. **Video-Analyse** — Claude kann Videos „ansehen" (virale Reels analysieren, Transkripte ziehen)
 > 7. **Obsidian-Gehirn** — Claude merkt sich alles über dich in deinem eigenen Vault
+> 8. **Token-Sparer (RTK)** — komprimiert Claudes Terminal-Ausgaben, dein Kontingent hält deutlich länger
 >
 > Ich richte jetzt mit dir ein, was du davon nutzen willst — du brauchst
 > nichts vorzubereiten.
@@ -54,6 +55,34 @@ ffmpeg -version; ffprobe -version
 - Fehlt **Node.js**: nur nötig, wenn Higgsfield gewählt wurde → `winget install OpenJS.NodeJS.LTS`, danach Terminal-Neustart erklären.
 - Fehlt **ffmpeg**: nur nötig für Video-Schnitt/Posting → `winget install Gyan.FFmpeg`, danach Terminal-Neustart erklären.
 - Führe Installationen erst nach kurzer Rückfrage aus („Darf ich ffmpeg installieren? Ist kostenlos und offiziell.").
+
+### Schritt 2b: RTK — Token-Sparer (optional, empfohlen)
+
+Frage: „Willst du RTK installieren? Ein kostenloses Open-Source-Tool, das
+Claudes Terminal-Ausgaben filtert und komprimiert, bevor sie deinen Kontext
+erreichen — spart laut Projekt 60–90 % Tokens bei typischen Befehlen. Dein
+Claude-Kontingent hält damit spürbar länger."
+
+Quelle: **https://github.com/rtk-ai/rtk** (offizielle Releases).
+
+Installation für den User übernehmen (nach kurzer Ankündigung des Downloads):
+
+**Windows:**
+1. Offizielles Windows-Paket laden:
+   `https://github.com/rtk-ai/rtk/releases/latest/download/rtk-x86_64-pc-windows-msvc.zip`
+2. Entpacken und die `rtk.exe` in einen PATH-Ordner legen — bewährt:
+   `%LOCALAPPDATA%\Microsoft\WinGet\Links\` (derselbe Ordner wie ffmpeg/yt-dlp).
+3. **WICHTIG — direkt nach der Installation ausführen: `rtk init -g`**
+   Das installiert den automatischen Rewrite-Hook (Befehle wie `git status`
+   werden ab dann transparent zu `rtk git status` umgeschrieben) und legt die
+   RTK-Dokumentation an. Ohne diesen Schritt bleibt RTK wirkungslos!
+4. Prüfen: `rtk --version` und `rtk gain` (zeigt die Token-Ersparnis).
+
+**macOS/Linux:** `brew install rtk` (oder das Quick-Install-Script von der
+Projektseite), danach ebenfalls **`rtk init -g`**.
+
+Hinweis bei Problemen: Schlägt `rtk gain` fehl, ist evtl. ein anderes
+Programm namens „rtk" (Rust Type Kit) installiert — Namenskollision prüfen.
 
 ### Schritt 3: Higgsfield (KI-Bilder & -Videos)
 
@@ -214,6 +243,7 @@ Fasse zusammen, was eingerichtet wurde und was der User jetzt sagen kann:
 > - „/watch <Link> — warum ist das Reel viral?" → Video-Analyse
 > - „Richte mein Auto-Posting ein" → Airtable + Make Aufbau
 > - „Merk dir: …" → landet in deinem Obsidian-Gehirn
+> - „Wie viel hat RTK gespart?" → Claude zeigt deine Token-Ersparnis (`rtk gain`)
 
 Wenn etwas übersprungen wurde: erwähnen, dass `scb-setup` jederzeit erneut
 gestartet werden kann.

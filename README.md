@@ -21,9 +21,13 @@ einem Setup-Assistenten.
 | **reel-posting** | Auto-Posting-System mit Airtable + Make bauen | „Richte mein Auto-Posting ein" |
 | **obsidian-gehirn** | Claude merkt sich alles über dich in deinem Obsidian-Vault | „Verbinde Obsidian" |
 
-Zusätzlich empfiehlt und installiert der Setup-Assistent auf Wunsch das
-kostenlose Community-Plugin **/watch** ([bradautomates/claude-video](https://github.com/bradautomates/claude-video)) —
-damit kann Claude Videos „ansehen" und z. B. virale Reels analysieren.
+Zusätzlich empfiehlt und installiert der Setup-Assistent auf Wunsch zwei
+kostenlose Community-Tools:
+- **/watch** ([bradautomates/claude-video](https://github.com/bradautomates/claude-video)) —
+  Claude kann Videos „ansehen" und z. B. virale Reels analysieren.
+- **RTK** ([rtk-ai/rtk](https://github.com/rtk-ai/rtk)) — komprimiert Claudes
+  Terminal-Ausgaben (60–90 % Token-Ersparnis), dein Kontingent hält länger.
+  Nach der Installation richtet der Assistent es mit `rtk init -g` direkt ein.
 
 ## Installation
 
@@ -60,4 +64,4 @@ Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen 
 
 ---
 
-Made with ❤️ für die SCB Community · v0.1.0
+Made with ❤️ für die SCB Community · v0.2.0
