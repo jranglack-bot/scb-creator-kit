@@ -13,8 +13,8 @@ einem Setup-Assistenten.
 | **kling-prompt-builder** | Führt dich zu einem perfekten Kling-3.0-Prompt (spart Credits) | „Bau mir einen Kling-Prompt" |
 | **seedance-prompt-builder** | Shot-für-Shot-Prompts für Seedance 2.0 | „Schreib mir einen Seedance-Prompt" |
 | **video-schneiden** | Schneidet Versprecher, Ähs und Pausen automatisch raus | „Schneide mein Video" |
-| **untertitel-und-text** | Brennt sprach-synchrone Untertitel & Hook-Texte ein — automatisch in der Safe-Zone | „Mach Untertitel drauf" |
-| **higgsfield-generate** (+ Soul ID, Photoshoot, Marketplace-Cards) | Bilder & Videos direkt über deinen Higgsfield-Account generieren | „Generier mir ein Bild/Video" |
+| **untertitel-und-text** | Untertitel, Hook-Texte & B-Roll-Overlays einbrennen — Schriftart, Farbe & Hintergrund frei wählbar, automatisch in der Safe-Zone | „Mach Untertitel drauf" / „Text auf mein B-Roll" |
+| **higgsfield-generate** (+ Soul ID, Photoshoot, Marketplace-Cards) | Eigene Fotos hochladen, Bilder & Videos generieren, Bild-zu-Video, Soul-Charakter für dein Gesicht — alles direkt über deinen Higgsfield-Account | „Generier mir ein Bild/Video" |
 | **instagram-audit** | Profil-Audit & Nischen-Recherche über Apify (mit Kosten-Check vor jedem Lauf) | „Mach ein Audit von meinem Profil" |
 | **reel-hooks** | Erprobte Hook-Formeln & Reel-Strukturen (Humor + Sales), fragt nach deinem Funnel-Keyword | „Schreib mir ein Reel" |
 | **reel-layout** | Safe-Zones: wo Text in Reels & Stories sitzen darf | läuft automatisch beim Bearbeiten |
@@ -64,4 +64,4 @@ Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen 
 
 ---
 
-Made with ❤️ für die SCB Community · v0.2.0
+Made with ❤️ für die SCB Community · v0.3.0

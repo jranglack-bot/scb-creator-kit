@@ -1,13 +1,15 @@
 ---
 name: untertitel-und-text
 description: >
-  Brennt Untertitel und Hook-Texte in 9:16-Videos ein (Reels & Stories):
-  transkribiert die Tonspur wortgenau, erzeugt sprach-synchrone Untertitel
-  im richtigen Stil und platziert alles automatisch in der Instagram
-  Safe-Zone. Verwende diesen Skill bei: "mach Untertitel drauf",
-  "Untertitel einbrennen", "Captions ins Video", "Text ins Reel", "Hook-Text
-  einfügen", "untertitel mein Video", "subtitles", oder nach dem
-  Video-Schnitt, wenn das Video Untertitel bekommen soll.
+  Brennt Untertitel, Hook-Texte und frei gestaltbare Text-Overlays in
+  9:16-Videos ein (Reels, Stories, B-Roll): transkribiert die Tonspur
+  wortgenau, erzeugt sprach-synchrone Untertitel, gestaltet Texte nach
+  Wunsch (Schriftart, Größe, Farbe, Hintergrund-Box) und platziert alles
+  automatisch in der Instagram Safe-Zone. Verwende diesen Skill bei:
+  "mach Untertitel drauf", "Untertitel einbrennen", "Captions ins Video",
+  "Text ins Reel", "Text auf mein B-Roll", "Hook-Text einfügen",
+  "Textfarbe/Schriftart ändern", "Text mit Hintergrund", "subtitles",
+  oder nach dem Video-Schnitt, wenn das Video Text bekommen soll.
 ---
 
 # Untertitel & Text einbrennen (9:16)
@@ -68,6 +70,36 @@ Hook-Text als eigener ASS-Style mit Alignment 8 (oben zentriert) und
 Instagrams „Reels"-Überschrift). Kurz halten (1–2 Zeilen), gleicher
 Kontrast-Stil. Bei Stories reicht MarginV ≥ 280 (oberhalb liegt der
 Fortschrittsbalken-Bereich bis ~14 %).
+
+## Schritt 3b: Text-Overlays für B-Roll-Reels (frei gestaltbar)
+
+Für B-Roll-Content (Stock-/Stimmungs-Video mit Botschaft als Text) ist der
+Text das Hauptelement — Gestaltung aktiv mit dem User klären, statt Standard
+zu nehmen:
+
+1. **Stil erfragen oder aus Obsidian ziehen:** Liegt im Vault unter
+   `00 Kontext/Branding.md` ein definierter Look (Schriftart, Farben)?
+   → verwenden. Sonst kurz fragen: „Welcher Stil — cleaner weißer Text,
+   Text mit farbiger Box dahinter, oder was Eigenes?"
+2. **Frei wählbar sind:**
+   - **Schriftart** — jede auf dem System installierte Schrift (z. B.
+     Segoe UI, Arial Black, Impact, Georgia; `fc-list`/Fonts-Ordner prüfen)
+   - **Größe & Zeilenumbruch** — Botschaft groß (80–110 px), Nebentext kleiner
+   - **Schriftfarbe** — beliebiger Hex-Wert (`&H00FFFFFF&`-Schema in ASS:
+     Blau-Grün-Rot gedreht!)
+   - **Kontur/Schatten** — Stärke und Farbe
+   - **Hintergrund** — keine Box, halbtransparente Box (`BorderStyle=3` +
+     `BackColour`), oder deckender Balken/Banner (per `drawbox`-Filter
+     hinter dem Text)
+   - **Position** — überall innerhalb der Safe-Zone (siehe `reel-layout`);
+     bei B-Roll bewährt: mittig im oberen Drittel (unterhalb der 15 %-Grenze)
+3. **Timing:** Text kann stehen bleiben (ganzes Video), in Phasen wechseln
+   (mehrere ASS-Events) oder wort-/zeilenweise erscheinen.
+4. **Vorher eine Stil-Vorschau zeigen:** einen Beispiel-Frame mit dem
+   gestalteten Text rendern und dem User zur Freigabe zeigen, BEVOR das
+   ganze Video gerendert wird.
+5. Gewählten Stil in Obsidian (`00 Kontext/Branding.md`) notieren, damit er
+   beim nächsten Mal ohne Nachfragen wiederverwendet wird.
 
 ## Schritt 4: Einbrennen
 
