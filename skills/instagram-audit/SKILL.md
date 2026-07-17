@@ -3,11 +3,13 @@ name: instagram-audit
 description: >
   Instagram-Profil-Audit und Account-Recherche mit Apify: holt Profildaten
   (Bio, Follower, Posts, Engagement) strukturiert und ohne Login über
-  Apify-Actors und kombiniert sie mit einem visuellen Eindruck des Profils.
-  Verwende diesen Skill bei: "Instagram Audit", "analysiere mein Profil",
-  "Profil-Audit", "such starke Accounts in meiner Nische",
+  Apify-Actors, prüft per Social-Blade-Actor ob ein Account echt wächst
+  (15-Tage-Verlauf), und kombiniert alles mit einem visuellen Eindruck des
+  Profils. Verwende diesen Skill bei: "Instagram Audit", "analysiere mein
+  Profil", "Profil-Audit", "such starke Accounts in meiner Nische",
   "Konkurrenz-Analyse Instagram", "welche Accounts funktionieren in
-  [Nische]", "analysiere diesen Account".
+  [Nische]", "analysiere diesen Account", "ist der Account gewachsen",
+  "wie ist die Engagement-Rate", "wächst mein Profil".
 ---
 
 # Instagram-Audit & Recherche (Apify)
@@ -41,6 +43,33 @@ Apify-Actors kosten Geld pro Lauf. Vor JEDEM Actor-Start:
    („Das kostet ungefähr X Cent").
 3. **Auf Bestätigung warten** — erst dann starten. Ziel: im Monats-Guthaben
    des Free-Plans bleiben.
+
+## Wachstums-Check: Ist der Account gewachsen? (Social Blade)
+
+Ein einzelner Profil-Abruf zeigt nur den **aktuellen Stand** — keine Aussage
+über Wachstum. Für "Hat der Account letzten Monat Follower dazugewonnen oder
+stagniert er?" den Actor **`memo23/socialblade-scraper`** nutzen: Er liest
+Social Blades eigene, seit Längerem laufende Historie aus und liefert in
+einem Abruf einen **15-Tage-Verlauf + Wachstum** (absolut, prozentual,
+Tagesdurchschnitt) — ganz ohne dass Claude selbst über Zeit Schnappschüsse
+sammeln muss.
+
+**Aufruf:** `profiles: ["<handle>"]`, `platform: "instagram"`,
+`includeHistory: true`. Kosten ~0,006 $ pro Profil (+ minimale Start-Gebühr)
+— Budget-Regel trotzdem einhalten (Kosten nennen, Okay abwarten).
+
+**Ergebnis auswerten:**
+- Ist `historyAvailable: true` → `growth.percent`/`growth.absolute`/
+  `growth.avgDaily` mitteilen: "Der Account ist in den letzten 15 Tagen um
+  X Follower (Y %) gewachsen" bzw. "stagniert" bei ~0.
+- Ist `historyAvailable: false` → **ehrlich sagen**, dass Social Blade für
+  diesen Account keinen Verlauf freigibt (kommt bei kleineren/neueren
+  Accounts vor) — dann nur der aktuelle Stand aus dem normalen Profil-Audit
+  gilt. Niemals Wachstum erfinden oder schätzen, wenn die Daten fehlen.
+
+**Nutzen:** Beim Vorbild-Vergleich (Nischen-Recherche) zeigt das, welche
+Accounts gerade wirklich im Aufwind sind statt nur groß zu sein — das ist der
+Unterschied zwischen "hat viele Follower" und "wächst gerade".
 
 ## Ablauf: Eigenes Profil-Audit
 

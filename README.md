@@ -15,7 +15,7 @@ einem Setup-Assistenten.
 | **video-schneiden** | Schneidet Versprecher, Ähs und Pausen automatisch raus | „Schneide mein Video" |
 | **untertitel-und-text** | Untertitel, Hook-Texte & B-Roll-Overlays einbrennen — Schriftart, Farbe & Hintergrund frei wählbar, automatisch in der Safe-Zone | „Mach Untertitel drauf" / „Text auf mein B-Roll" |
 | **higgsfield-generate** (+ Soul ID, Photoshoot, Marketplace-Cards) | Eigene Fotos hochladen, Bilder & Videos generieren, Bild-zu-Video, Soul-Charakter für dein Gesicht — alles direkt über deinen Higgsfield-Account | „Generier mir ein Bild/Video" |
-| **instagram-audit** | Profil-Audit & Nischen-Recherche über Apify (mit Kosten-Check vor jedem Lauf) | „Mach ein Audit von meinem Profil" |
+| **instagram-audit** | Profil-Audit, Engagement-Rate & echter Wachstums-Check (15-Tage-Verlauf via Social Blade) über Apify (mit Kosten-Check vor jedem Lauf) | „Ist mein Profil gewachsen?" |
 | **reel-hooks** | Erprobte Hook-Formeln & Reel-Strukturen (Humor + Sales), fragt nach deinem Funnel-Keyword | „Schreib mir ein Reel" |
 | **reel-layout** | Safe-Zones: wo Text in Reels & Stories sitzen darf | läuft automatisch beim Bearbeiten |
 | **reel-posting** | Auto-Posting-System mit Airtable + Make bauen | „Richte mein Auto-Posting ein" |
@@ -64,4 +64,4 @@ Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen 
 
 ---
 
-Made with ❤️ für die SCB Community · v0.3.0
+Made with ❤️ für die SCB Community · v0.4.0
