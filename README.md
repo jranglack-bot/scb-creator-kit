@@ -12,6 +12,7 @@ einem Setup-Assistenten.
 | **scb-setup** | Setup-Assistent: fragt ab, was du hast (Higgsfield, Make, Airtable, Obsidian …) und richtet alles ein | „Richte das SCB Kit ein" |
 | **kling-prompt-builder** | Führt dich zu einem perfekten Kling-3.0-Prompt (spart Credits) | „Bau mir einen Kling-Prompt" |
 | **seedance-prompt-builder** | Shot-für-Shot-Prompts für Seedance 2.0 | „Schreib mir einen Seedance-Prompt" |
+| **video-model-prompting** | Verifizierte Prompt-Regeln pro Videomodell (Seedance 2.0, Kling 3.0, Veo 3.1, Gemini Omni Flash) — Modell-Eigenheiten, Kamera-Vokabular, bekannte Fallen | läuft automatisch beim Prompt-Schreiben |
 | **video-schneiden** | Schneidet Versprecher, Ähs und Pausen automatisch raus | „Schneide mein Video" |
 | **untertitel-und-text** | Untertitel, Hook-Texte & B-Roll-Overlays einbrennen — Schriftart, Farbe & Hintergrund frei wählbar, automatisch in der Safe-Zone | „Mach Untertitel drauf" / „Text auf mein B-Roll" |
 | **higgsfield-generate** (+ Soul ID, Photoshoot, Marketplace-Cards) | Eigene Fotos hochladen, Bilder & Videos generieren, Bild-zu-Video, Soul-Charakter für dein Gesicht — alles direkt über deinen Higgsfield-Account | „Generier mir ein Bild/Video" |
@@ -64,4 +65,4 @@ Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen 
 
 ---
 
-Made with ❤️ für die SCB Community · v0.5.0
+Made with ❤️ für die SCB Community · v0.6.0
