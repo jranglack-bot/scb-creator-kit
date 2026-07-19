@@ -64,4 +64,4 @@ Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen 
 
 ---
 
-Made with ❤️ für die SCB Community · v0.4.0
+Made with ❤️ für die SCB Community · v0.5.0

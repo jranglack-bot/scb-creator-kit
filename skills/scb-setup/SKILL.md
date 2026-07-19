@@ -39,9 +39,48 @@ Begrüße den User und zeige kurz, was das Kit kann:
 
 Frage dann (mit AskUserQuestion, multiSelect), welche Bereiche eingerichtet
 werden sollen. Richte anschließend NUR die gewählten Bereiche ein, in der
-Reihenfolge unten.
+Reihenfolge unten — **das Obsidian-Gedächtnis kommt immer zuerst**, damit
+sich Claude ab der ersten Minute alles merken kann.
 
-### Schritt 2: Basis-Werkzeuge prüfen (immer)
+### Schritt 2: Obsidian-Gehirn ZUERST einrichten
+
+**Warum zuerst:** Alles, was der User ab jetzt erzählt (Zielgruppe, Angebot,
+Keyword, Schreibstil), wird sofort dauerhaft gespeichert — und jeder spätere
+Setup-Schritt und jeder künftige Auftrag baut darauf auf.
+
+Sag: „Bevor wir Technik installieren, richten wir Claudes Gedächtnis ein —
+so merke ich mir ab sofort alles über dich und deinen Content. Nutzt du
+schon Obsidian (kostenlose Notiz-App)?"
+
+- **Nein, kenne ich nicht** → Kurz erklären: kostenlos von
+  https://obsidian.md herunterladen, installieren, beim ersten Start einen
+  neuen Vault (= Ordner) anlegen, empfohlener Name: „Claude Gehirn". Warten,
+  bis das erledigt ist.
+- **Ja** → Nach dem Vault-Pfad fragen (oder auf der Platte nach `.obsidian`-
+  Ordnern suchen und den Fund bestätigen lassen).
+
+Übergib dann an den Skill `obsidian-gehirn`: Ordnerstruktur anlegen
+(00 Kontext / 01 Inbox / 02 Claude Memory / 03 Hooks) und die automatische
+Memory-Spiegelung einrichten.
+
+**Kennenlern-Interview (direkt im Anschluss):** Stelle vier kurze Fragen,
+eine nach der anderen, und lege jede Antwort sofort in die passende Notiz
+unter `00 Kontext/` ab (zusätzlich als Memory merken):
+
+1. „Wer ist deine Zielgruppe — für wen machst du Content?" → `ICP.md`
+2. „Was bietest du an bzw. wohin willst du deine Follower führen?" → `Angebote.md`
+3. „Hast du schon ein Kommentar-Keyword für deinen DM-Funnel (das Wort, das
+   Leute unter deine Reels schreiben)?" → `Angebote.md` — falls nein, das
+   klärt später der Skill `reel-hooks` beim ersten Sales-Reel.
+4. „Beschreib deinen Schreibstil in 2–3 Sätzen — oder schick mir 1–2
+   Beispieltexte von dir (Captions, Posts)." → `Schreibstil.md`
+
+Kann der User etwas noch nicht beantworten: überspringen und sagen, dass
+Claude die Notiz später beim Arbeiten von selbst füllt. Will der User KEIN
+Obsidian: weiter ohne — alles funktioniert, nur ohne sichtbares Gedächtnis;
+das Interview trotzdem anbieten und die Antworten als normale Memories sichern.
+
+### Schritt 3: Basis-Werkzeuge prüfen (immer)
 
 Prüfe still im Hintergrund und berichte das Ergebnis in einfacher Sprache:
 
@@ -56,7 +95,7 @@ ffmpeg -version; ffprobe -version
 - Fehlt **ffmpeg**: nur nötig für Video-Schnitt/Posting → `winget install Gyan.FFmpeg`, danach Terminal-Neustart erklären.
 - Führe Installationen erst nach kurzer Rückfrage aus („Darf ich ffmpeg installieren? Ist kostenlos und offiziell.").
 
-### Schritt 2b: RTK — Token-Sparer (optional, empfohlen)
+### Schritt 4: RTK — Token-Sparer (optional, empfohlen)
 
 Frage: „Willst du RTK installieren? Ein kostenloses Open-Source-Tool, das
 Claudes Terminal-Ausgaben filtert und komprimiert, bevor sie deinen Kontext
@@ -84,7 +123,7 @@ Projektseite), danach ebenfalls **`rtk init -g`**.
 Hinweis bei Problemen: Schlägt `rtk gain` fehl, ist evtl. ein anderes
 Programm namens „rtk" (Rust Type Kit) installiert — Namenskollision prüfen.
 
-### Schritt 3: Higgsfield (KI-Bilder & -Videos)
+### Schritt 5: Higgsfield (KI-Bilder & -Videos)
 
 Frage zuerst: „Hast du einen Higgsfield-Account? (higgsfield.ai — dort laufen
 die KI-Video-Generierungen)"
@@ -107,9 +146,9 @@ Erkläre zum Abschluss die zwei wichtigsten Regeln aus der Community-Praxis:
 - Vor jeder Generierung zeigt Claude **Idee + Prompt + Modell** und wartet auf
   ein Okay — jede Generierung kostet Credits.
 
-### Schritt 4: Video-Schneiden & Untertitel
+### Schritt 6: Video-Schneiden & Untertitel
 
-Benötigt: ffmpeg (Schritt 2) + einen **ElevenLabs-API-Key** (kostenloses
+Benötigt: ffmpeg (Schritt 3) + einen **ElevenLabs-API-Key** (kostenloses
 Konto reicht) für die Transkription. So bekommt ihn der User — Schritt für
 Schritt hinführen:
 
@@ -121,20 +160,7 @@ Der Key wird beim ersten Aufruf des Skills `video-schneiden` gespeichert und
 gilt danach auch für `untertitel-und-text` (Untertitel + Hook-Texte). Nie den
 Key im Chat wiederholen oder in Notizen ablegen.
 
-### Schritt 5: Obsidian-Gehirn
-
-Frage: „Nutzt du Obsidian (kostenlose Notiz-App)? Claude kann sich dort alles
-über dich und deine Inhalte merken — dein persönliches zweites Gehirn."
-
-- **Nein, kenne ich nicht** → Kurz erklären: kostenlos von https://obsidian.md,
-  installieren, einen neuen Vault (Ordner) anlegen, z. B. „Claude Gehirn".
-- **Ja** → Nach dem Vault-Pfad fragen (oder auf der Platte nach `.obsidian`-
-  Ordnern suchen und den Fund bestätigen lassen).
-
-Übergib dann an den Skill `obsidian-gehirn`, der die Ordnerstruktur anlegt
-und auf Wunsch die automatische Memory-Spiegelung einrichtet.
-
-### Schritt 6: Auto-Posting (Make + Airtable)
+### Schritt 7: Auto-Posting (Make + Airtable)
 
 Frage: „Willst du Reels automatisch auf Instagram posten lassen? Dafür
 brauchst du drei kostenlose/günstige Accounts: **Airtable** (Datenbank),
@@ -163,7 +189,7 @@ Gehe die drei Konten einzeln durch und führe jeweils hin:
 Einstellungen → Konto → auf professionelles Konto wechseln) und mit einer
 Facebook-Seite verknüpft — das verlangt die Instagram-API.
 
-### Schritt 7: Instagram-Audit & Recherche (Apify)
+### Schritt 8: Instagram-Audit & Recherche (Apify)
 
 Frage: „Willst du Profil-Audits und Nischen-Recherche nutzen? Dafür brauchst
 du ein kostenloses Apify-Konto (dein Monats-Freiguthaben reicht für hunderte
@@ -176,7 +202,7 @@ Profil-Abrufe)."
 3. Erkläre die Budget-Regel: Claude nennt vor jedem Apify-Lauf die geschätzten
    Kosten und wartet auf ein Okay — so bleibt es im Freiguthaben.
 
-### Schritt 8: Video-Analyse — /watch (optional, empfohlen)
+### Schritt 9: Video-Analyse — /watch (optional, empfohlen)
 
 Frage: „Soll Claude Videos ‚ansehen' können? Damit kannst du z. B. virale
 Reels analysieren lassen (was macht der Hook, wie ist das Video aufgebaut)
@@ -201,7 +227,7 @@ Installation für den User übernehmen — in `~/.claude/settings.json` mergen
 ```
 
 Danach die Werkzeuge sicherstellen (Windows):
-1. `winget install yt-dlp.yt-dlp` und ffmpeg (Schritt 2). Terminal-Neustart
+1. `winget install yt-dlp.yt-dlp` und ffmpeg (Schritt 3). Terminal-Neustart
    nötig, damit der PATH greift.
 2. **Bekannte Windows-Falle:** das Plugin braucht `yt-dlp` als echte .exe im
    PATH. Meldet `/watch` später „missing binaries: yt-dlp", die
@@ -213,7 +239,7 @@ Danach die Werkzeuge sicherstellen (Windows):
 
 Test: „/watch <YouTube-Link> Worum geht es?" — kommt eine Antwort, läuft alles.
 
-### Schritt 9: GitHub verbinden (optional, zukunftssicher)
+### Schritt 10: GitHub verbinden (optional, zukunftssicher)
 
 Frage: „Willst du dein Claude Code mit GitHub verbinden? Brauchst du nicht
 zwingend — aber dann kann Claude dir künftig weitere Tools und Updates aus
@@ -230,7 +256,7 @@ Wenn ja:
    Passwörter oder Tokens ein.
 4. Prüfen: `gh auth status` → „Logged in" = fertig.
 
-### Schritt 10: Abschluss
+### Schritt 11: Abschluss
 
 Fasse zusammen, was eingerichtet wurde und was der User jetzt sagen kann:
 
