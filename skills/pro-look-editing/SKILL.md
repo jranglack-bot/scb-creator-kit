@@ -90,6 +90,9 @@ Für hochwertigere Sounds legt sich der User eine eigene Bibliothek an:
 2. Kostenlose Quellen (zur Nutzung frei, nicht weiterverteilen):
    **pixabay.com/sound-effects** und **mixkit.co/free-sound-effects** —
    nach „whoosh", „swoosh", „click", „pop" suchen, Favoriten laden.
+   Oder Sounds **direkt mit Claude aus SFX-Reels extrahieren** — es gibt
+   Reels, die nur Soundeffekte teilen (Skill `sfx-extraktion`:
+   automatische Segment-Erkennung, Schnitt als MP3, Ablage hier).
 3. Ordnerpfad in Obsidian `00 Kontext/Branding.md` notieren
    (Zeile: `SFX-Bibliothek: <pfad>`). Ab dann werden bei Sound-Wünschen
    zuerst die eigenen Sounds genutzt, die Basis-Sounds als Fallback.
