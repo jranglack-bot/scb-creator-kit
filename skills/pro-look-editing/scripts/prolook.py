@@ -168,6 +168,28 @@ def main():
                   .format(vlabel, bi, st, st + bdur, bi))
         vlabel = '[vbr{}]'.format(bi)
 
+    # --- Animierte Overlays (Green-Screen-Elemente, per Chromakey) ---------
+    for oi, o in enumerate(cfg.get('overlays') or []):
+        inputs += ['-i', o['file']]
+        oidx = n_in
+        n_in += 1
+        st = float(o['start'])
+        odur = float(o.get('duration', 2.0))
+        oscale = float(o.get('scale', 0.35))
+        ow = int(W * oscale // 2 * 2)
+        chroma = o.get('chroma', '0x00FF00')
+        sim = float(o.get('similarity', 0.22))
+        blend = float(o.get('blend', 0.08))
+        # Position als Anteil der Flaeche (0-1), Element wird zentriert
+        ox = 'W*{}-w/2'.format(float(o.get('x', 0.5)))
+        oy = 'H*{}-h/2'.format(float(o.get('y', 0.3)))
+        fc.append('[{}:v]trim=0:{},setpts=PTS-STARTPTS+{}/TB,scale={}:-2,'
+                  'chromakey={}:{}:{},despill=type=green[ov{}]'
+                  .format(oidx, odur, st, ow, chroma, sim, blend, oi))
+        fc.append("{}[ov{}]overlay=x='{}':y='{}':enable='between(t,{},{})'[vov{}]"
+                  .format(vlabel, oi, ox, oy, st, st + odur, oi))
+        vlabel = '[vov{}]'.format(oi)
+
     # --- Look: Grade + Grain ----------------------------------------------
     post = []
     g = cfg.get('grade') or {}

@@ -15,7 +15,7 @@ einem Setup-Assistenten.
 | **video-model-prompting** | Verifizierte Prompt-Regeln pro Videomodell (Seedance 2.0, Kling 3.0, Veo 3.1, Gemini Omni Flash) — Modell-Eigenheiten, Kamera-Vokabular, bekannte Fallen | läuft automatisch beim Prompt-Schreiben |
 | **video-schneiden** | Schneidet Versprecher, Ähs und Pausen automatisch raus — token-optimiert (Scripts übernehmen die Mechanik, das KI-Modell nur das Verstehen) | „Schneide mein Video" |
 | **untertitel-und-text** | Untertitel, Hook-Texte & B-Roll-Overlays einbrennen — mit persönlichem Stil-Profil: einmal einrichten (auch per Screenshot-Vorlage „so will ich das"), gilt für immer | „Mach Untertitel drauf" / Screenshot zeigen |
-| **pro-look-editing** | Pro-Look-Paket: animierte Wort-für-Wort-Captions (CapCut-Stil), Punch-Ins & weicher Zoom, Wisch-Übergänge mit gekoppeltem Sound, B-Roll-Einblendungen, Picture-in-Picture, Hook-Cover, Fortschrittsbalken, Color-Grade, Filmkorn, Typewriter- & Akzent-SFX — plus Audio-Suite: Musikbett mit Auto-Ducking, Stimm-Mastering und Loudness auf Instagram-Standard (alle Extras immer nur auf Nachfrage) | „Mach das Video professionell" |
+| **pro-look-editing** | Pro-Look-Paket: animierte Wort-für-Wort-Captions (CapCut-Stil), Punch-Ins & weicher Zoom, Wisch-Übergänge mit gekoppeltem Sound, B-Roll-Einblendungen, animierte Motion-Overlays (Pfeile/Buttons/Konfetti per Green-Screen), Picture-in-Picture, Hook-Cover, Fortschrittsbalken, Color-Grade, Filmkorn, Typewriter- & Akzent-SFX — plus Audio-Suite: Musikbett mit Auto-Ducking, Stimm-Mastering und Loudness auf Instagram-Standard (alle Extras immer nur auf Nachfrage) | „Mach das Video professionell" |
 | **higgsfield-generate** (+ Soul ID, Photoshoot, Marketplace-Cards) | Eigene Fotos hochladen, Bilder & Videos generieren, Bild-zu-Video, Soul-Charakter für dein Gesicht — alles direkt über deinen Higgsfield-Account | „Generier mir ein Bild/Video" |
 | **instagram-audit** | Profil-Audit, Engagement-Rate & echter Wachstums-Check (15-Tage-Verlauf via Social Blade) über Apify (mit Kosten-Check vor jedem Lauf) | „Ist mein Profil gewachsen?" |
 | **reel-hooks** | Erprobte Hook-Formeln & Reel-Strukturen (Humor + Sales), fragt nach deinem Funnel-Keyword | „Schreib mir ein Reel" |
@@ -67,4 +67,4 @@ Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen 
 
 ---
 
-Made with ❤️ für die SCB Community · v0.13.0
+Made with ❤️ für die SCB Community · v0.14.0

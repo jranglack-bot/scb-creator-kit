@@ -178,6 +178,13 @@ Chart-/Trend-Musik dagegen nie einbrennen, sondern beim Posten in der
 Instagram-App hinzufügen (nur dort lizenziert); bei Verkaufs-/Werbe-Reels
 warnt Claude automatisch und empfiehlt lizenzfreie Musik.
 
+**Animierte Overlays (optional erwähnen):** Für Motion-Elemente (animierte
+Pfeile, Follow-Buttons, Konfetti) eine **Overlay-Bibliothek** anlegen:
+Green-Screen-Clips kostenlos und ohne Account von **pixabay.com/videos**
+(Suche „green screen arrow/subscribe/confetti") laden, Ordnerpfad in
+Branding.md als `Overlay-Bibliothek: <pfad>` notieren — Claude legt sie
+per Chromakey übers Video, aber nie ungefragt.
+
 ### Schritt 7: Auto-Posting (Make + Airtable)
 
 Frage: „Willst du Reels automatisch auf Instagram posten lassen? Dafür

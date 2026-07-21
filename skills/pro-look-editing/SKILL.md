@@ -123,6 +123,34 @@ das Gewählte umsetzen.
 Alle vier sind getestet (inkl. Pixel-Verifikation des Balkens); nur
 Parameter setzen, nichts improvisieren.
 
+## Animierte Overlays (Motion-Elemente per Green-Screen)
+
+**NIE Standard — nur anbieten**, wie alle Extras. Animierte Pfeile,
+Follow-Buttons, Konfetti, Kreis-Markierungen als Green-Screen-Clips, die
+per Chromakey transparent übers Video gelegt werden — der „Motion-Look"
+ohne After Effects, ohne neue Software, ohne Anmeldung.
+
+**Overlay-Bibliothek (einmal einrichten, wie SFX):**
+1. Green-Screen-Clips kostenlos und OHNE Account laden:
+   **pixabay.com/videos** (Suche: „green screen arrow", „green screen
+   subscribe button", „green screen confetti") oder mixkit.co. Sprechend
+   benennen (`pfeil-rechts.mp4`, `konfetti.mp4`).
+2. Ordnerpfad in `00 Kontext/Branding.md` als `Overlay-Bibliothek: <pfad>`
+   notieren. Ab dann per Satz einsetzbar.
+
+**Config (`overlays`-Liste in prolook):**
+`{"file": "...", "start": 2.0, "duration": 2.5, "x": 0.5, "y": 0.22,
+"scale": 0.5}` — x/y = Position des Element-ZENTRUMS als Anteil der Fläche
+(Safe-Zones beachten: siehe `reel-layout`!), scale = Anteil der
+Videobreite. Optional: `chroma` (Default `0x00FF00`), `similarity` (0.22),
+`blend` (0.08) — bei Grün-Resten similarity leicht erhöhen. Die Kette
+chromakey→despill entfernt auch grüne Kanten; Overlays laufen VOR dem
+Grade (bekommen denselben Look) und UNTER den Captions.
+
+**Qualitäts-Check:** Nach dem Render einen Frame im Overlay-Zeitfenster
+ziehen und prüfen: kein Grün sichtbar, Position in der Safe-Zone, nichts
+Wichtiges verdeckt.
+
 ## Audio-Suite: Musik, Stimm-Mastering, Loudness
 
 ### Stimm-Mastering + Loudness (Standard-Empfehlung, einmal kurz anbieten)
