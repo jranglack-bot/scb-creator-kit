@@ -67,7 +67,13 @@ def main():
     ap.add_argument('--mode', choices=('reel', 'story'), default='reel')
     ap.add_argument('--font', default='Segoe UI')
     ap.add_argument('--size', type=int, default=0)
+    ap.add_argument('--primary', default='FFFFFF',
+                    help='Textfarbe als RGB-Hex')
     ap.add_argument('--highlight', default='FFD400')
+    ap.add_argument('--outline', type=int, default=0,
+                    help='Konturstaerke in px (0 = automatisch)')
+    ap.add_argument('--box', action='store_true',
+                    help='halbtransparente Box hinter dem Text')
     ap.add_argument('--group', type=int, default=3)
     ap.add_argument('--playresx', type=int, default=1080)
     ap.add_argument('--playresy', type=int, default=1920)
@@ -76,7 +82,7 @@ def main():
     mode = MODES[args.mode]
     size = args.size or mode['size']
     hi = ass_color(args.highlight)
-    white = '&H00FFFFFF&'
+    white = ass_color(args.primary)
 
     with open(args.transcript, encoding='utf-8') as f:
         data = json.load(f)
@@ -94,12 +100,14 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,{font},{size},&H00FFFFFF,&H00FFFFFF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,{outline},2,2,{ml},{mr},{mv},1
+Style: Cap,{font},{size},{primary},{primary},&H00000000,&H96000000,-1,0,0,0,100,100,0,0,{borderstyle},{outline},2,2,{ml},{mr},{mv},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """.format(px=args.playresx, py=args.playresy, font=args.font, size=size,
-           outline=max(4, size // 10), ml=mode['marginl'],
+           primary=white,
+           borderstyle=3 if args.box else 1,
+           outline=args.outline or max(4, size // 10), ml=mode['marginl'],
            mr=mode['marginr'], mv=mode['marginv'])
 
     lines = [header]

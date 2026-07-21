@@ -18,6 +18,54 @@ Erzeuge sprach-synchrone Untertitel und brenne sie zusammen mit optionalem
 Hook-Text in das Video ein. Platzierung IMMER nach den Safe-Zone-Regeln aus
 dem Skill `reel-layout` — Reels und Stories unterscheiden sich!
 
+## Stil-Profil: einmal einrichten, für immer nutzen
+
+Bevor irgendetwas gefragt wird: Prüfe, ob in Obsidian
+`00 Kontext/Branding.md` ein **Untertitel-Profil** existiert (Codeblock mit
+der Sprachmarkierung `untertitel-profil`). Wenn ja → still verwenden, KEINE
+Stilfragen stellen. Format:
+
+```untertitel-profil
+{
+  "font": "Segoe UI",
+  "size": 64,
+  "primary": "FFFFFF",
+  "highlight": "FFD400",
+  "outline_px": 6,
+  "box": false,
+  "mode": "reel",
+  "position": "unteres Drittel (Standard-Safe-Zone)"
+}
+```
+
+**Profil neu einrichten — zwei Wege:**
+
+**Weg A — per Screenshot-Vorlage (der einfachste für den User):**
+Der User zeigt einen Screenshot eines Reels, dessen Untertitel-Stil ihm
+gefällt ("so will ich das"). Dann:
+1. Screenshot EINMAL ansehen und den Stil in Parameter übersetzen:
+   Schriftcharakter (rund/eckig, fett?), Textfarbe und Highlight-Farbe als
+   Hex, Kontur oder Box dahinter, Position im Frame, relative Größe.
+2. Als Schriftart die **nächstliegende installierte Systemschrift** wählen
+   (Fonts-Ordner prüfen; z. B. rundlich-fett → "Arial Rounded MT Bold" oder
+   "Segoe UI Black"). Ehrlich sagen, dass es die nächstliegende Schrift ist —
+   die Original-Schrift aus fremden Apps ist oft nicht frei verfügbar; wenn
+   der User die exakte Schrift besitzt, kann er sie installieren.
+3. **EINEN Vorschau-Frame rendern** (Beispieltext im neuen Stil auf einem
+   Frame des User-Videos oder neutralem 1080×1920-Hintergrund) und zeigen.
+4. Nach dem Okay (max. 1–2 Korrekturrunden) das Profil als
+   `untertitel-profil`-Block in `00 Kontext/Branding.md` speichern.
+5. Ab jetzt liest jeder Lauf das Profil — der Screenshot wird nie wieder
+   analysiert, es wird nie wieder gefragt.
+
+**Weg B — per kurzen Fragen:** Falls kein Screenshot da ist: maximal 3
+Fragen (Schrift-Stil grob, Highlight-Farbe, Box ja/nein), Vorschau-Frame,
+speichern wie oben.
+
+**Änderungswunsch später** („mach die Untertitel ab jetzt größer/blau"):
+Profil in Branding.md anpassen, kurz bestätigen mit einem Vorschau-Frame,
+fertig — gilt ab dann überall (auch im Skill `pro-look-editing`).
+
 ## Schritt 0: Vorklärung
 
 Frage (falls nicht aus dem Kontext klar):

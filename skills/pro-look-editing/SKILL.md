@@ -41,9 +41,12 @@ Templates in `scripts/` sind getestet; nur Parameter setzen und ausführen.
 - Video ist geschnitten (sonst zuerst Skill `video-schneiden`) und das
   Transkript-JSON der GESCHNITTENEN Fassung liegt vor (nach dem Schnitt neu
   transkribieren!).
-- Stil klären oder aus Obsidian `00 Kontext/Branding.md` ziehen:
-  Highlight-Farbe, Schriftart, gewünschte Effekte. Einmal gewählt → in
-  Branding.md notieren, nie wieder fragen.
+- Stil aus dem **Untertitel-Profil** in Obsidian `00 Kontext/Branding.md`
+  ziehen (`untertitel-profil`-Codeblock — Format und Einrichtung inkl.
+  Screenshot-Vorlage siehe Skill `untertitel-und-text`). Die Profilwerte
+  (font/size/highlight/outline) direkt als Flags an
+  `animated_captions.py` durchreichen. Existiert noch kein Profil: dort
+  einmalig einrichten, dann weiter. Nie pro Video neu fragen.
 
 ### 2. Effekte wählen (kurz fragen, nicht alles ungefragt aktivieren)
 - **Captions animiert** (fast immer ja)
