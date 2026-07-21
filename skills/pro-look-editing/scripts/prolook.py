@@ -102,9 +102,35 @@ def main():
                       .format(i, a, b, zf, i))
             fc.append('[0:a]atrim={}:{},asetpts=PTS-STARTPTS[a{}]'
                       .format(a, b, i))
-        fc.append('{}concat=n={}:v=1:a=1[vseg][aseg]'.format(
-            ''.join('[v{}][a{}]'.format(i, i) for i, _, _, _ in segs), len(segs)))
-        vlabel, alabel = '[vseg]', '[aseg]'
+        tr = cfg.get('transition') or {}
+        if tr.get('enabled') and len(segs) > 1:
+            # Wisch-/Blenden-Uebergang zwischen den Segmenten (xfade) +
+            # optional automatisch gekoppelter Sound an jedem Uebergang.
+            ttype = tr.get('type', 'wipeleft')
+            td = float(tr.get('duration', 0.3))
+            lengths = [b - a for _, a, b, _ in segs]
+            vcur, acur = '[v0]', '[a0]'
+            cum = lengths[0]
+            for k in range(1, len(segs)):
+                off = cum - td
+                vout = '[vx{}]'.format(k)
+                aout = '[ax{}]'.format(k)
+                fc.append('{}[v{}]xfade=transition={}:duration={}:offset={:.3f}{}'
+                          .format(vcur, k, ttype, td, off, vout))
+                fc.append('{}[a{}]acrossfade=d={}{}'
+                          .format(acur, k, td, aout))
+                if tr.get('sfx_file'):
+                    cfg.setdefault('sfx', []).append(
+                        {'time': round(off, 3), 'file': tr['sfx_file'],
+                         'gain': tr.get('sfx_gain', 0.6)})
+                vcur, acur = vout, aout
+                cum = cum + lengths[k] - td
+            vlabel, alabel = vcur, acur
+        else:
+            fc.append('{}concat=n={}:v=1:a=1[vseg][aseg]'.format(
+                ''.join('[v{}][a{}]'.format(i, i) for i, _, _, _ in segs),
+                len(segs)))
+            vlabel, alabel = '[vseg]', '[aseg]'
     else:
         alabel = '0:a'
 

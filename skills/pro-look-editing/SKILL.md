@@ -56,7 +56,54 @@ Templates in `scripts/` sind getestet; nur Parameter setzen und ausführen.
   zum Thema, subtil, ohne eigenen Bildfokus) oder eigenes B-Roll
 - **Grade + Grain**: dezenter Standard-Look (contrast 1.06, saturation 1.12,
   grain 6) — nicht übertreiben
-- **SFX**: Whooshes auf 2–4 wichtige Schnitte, nicht auf jeden
+- **Wisch-Übergänge**: `transition` in der Config (Typ z. B. `wipeleft`,
+  `slideleft`, `fade`; nutzt dieselben `cuts` wie Punch-In). WICHTIG: Bei
+  aktiven Übergängen die Captions mit `--transition-cuts "<cuts>"
+  --transition-duration <d>` erzeugen, sonst laufen sie asynchron
+  (Übergänge verkürzen die Timeline)!
+- **Sound-Effekte**: siehe eigener Abschnitt unten — NIEMALS ungefragt
+
+## Sound-Effekte — EISERNE REGEL: nur auf Nachfrage
+
+**Baue NIEMALS automatisch Soundeffekte ein.** Nicht auf Cuts, nicht auf
+Captions, nicht auf Übergänge — auch dann nicht, wenn es „gut passen
+würde". Stattdessen: Wenn ein Video fertig geschnitten/gebaut ist, einmal
+kurz ANBIETEN:
+
+> „Möchtest du Soundeffekte an den passenden Stellen — z. B. ein Wisch-Sound
+> auf den Übergängen oder Tipp-Geräusche auf den Untertiteln?"
+
+Erst nach einem klaren Ja einbauen — und nur das, was gewählt wurde.
+Gleiches gilt für Übergänge und jeden anderen Effekt: anbieten, nicht
+aufdrängen.
+
+### Mitgelieferte Basis-Sounds (lizenzfrei, im Kit enthalten)
+
+In `scripts/sfx/` liegen sechs selbst erzeugte, frei nutzbare Sounds:
+`whoosh` (Wisch), `swish` (kurzer heller Wisch), `click` (Tastatur/Typing),
+`pop`, `ding`, `riser` (Spannungsaufbau). Pegel aufeinander abgestimmt.
+
+### Eigene SFX-Bibliothek (bessere Sounds, einmal einrichten)
+
+Für hochwertigere Sounds legt sich der User eine eigene Bibliothek an:
+1. Ordner anlegen (z. B. `Dokumente\SFX`), Lieblings-Sounds als MP3 hinein.
+2. Kostenlose Quellen (zur Nutzung frei, nicht weiterverteilen):
+   **pixabay.com/sound-effects** und **mixkit.co/free-sound-effects** —
+   nach „whoosh", „swoosh", „click", „pop" suchen, Favoriten laden.
+3. Ordnerpfad in Obsidian `00 Kontext/Branding.md` notieren
+   (Zeile: `SFX-Bibliothek: <pfad>`). Ab dann werden bei Sound-Wünschen
+   zuerst die eigenen Sounds genutzt, die Basis-Sounds als Fallback.
+
+### Gekoppelte Effekte (Bild + Ton am selben Zeitpunkt)
+
+- **Wisch mit Sound:** `transition.sfx_file` auf einen Whoosh setzen —
+  prolook legt den Sound automatisch exakt auf jeden Übergang.
+- **Typewriter-Captions:** Cue-Zeiten beim Captions-Erzeugen mit
+  `--emit-times cue_times.json` ausgeben, daraus Klick-Events bauen und mit
+  `build_sfx_track.py` zu EINER Tonspur mischen (ein sfx-Eintrag bei
+  time 0) — funktioniert auch bei 50+ Klicks ohne Riesen-Kommando.
+- Einzelne Akzente (Ding auf eine Zahl, Riser vor der Auflösung): manuell
+  als `sfx`-Events an den gewünschten Zeitpunkten.
 
 ### 3. Getestete Standard-Kombinationen (nicht neu erfinden)
 - **Talking-Head pur:** Captions reel-Mode + Punch-Ins + Grade/Grain

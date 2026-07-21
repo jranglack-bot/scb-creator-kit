@@ -160,6 +160,13 @@ Der Key wird beim ersten Aufruf des Skills `video-schneiden` gespeichert und
 gilt danach auch für `untertitel-und-text` (Untertitel + Hook-Texte). Nie den
 Key im Chat wiederholen oder in Notizen ablegen.
 
+**Sound-Effekte (optional erwähnen):** Das Kit bringt sechs lizenzfreie
+Basis-Sounds mit (Whoosh, Klick, Pop …). Wer hochwertigere will: kostenlos
+bei **pixabay.com/sound-effects** oder **mixkit.co/free-sound-effects**
+Favoriten laden, in einen Ordner legen und den Pfad in Obsidian
+`00 Kontext/Branding.md` als `SFX-Bibliothek: <pfad>` notieren. Wichtig
+erklären: Claude baut Sounds NIE automatisch ein — es fragt immer erst.
+
 ### Schritt 7: Auto-Posting (Make + Airtable)
 
 Frage: „Willst du Reels automatisch auf Instagram posten lassen? Dafür

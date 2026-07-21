@@ -77,6 +77,14 @@ def main():
     ap.add_argument('--group', type=int, default=3)
     ap.add_argument('--playresx', type=int, default=1080)
     ap.add_argument('--playresy', type=int, default=1920)
+    ap.add_argument('--transition-cuts', default='',
+                    help='Kommagetrennte Schnittzeiten, wenn das Video mit '
+                         'xfade-Uebergaengen gerendert wird (prolook '
+                         'transition) — Untertitelzeiten werden angepasst')
+    ap.add_argument('--transition-duration', type=float, default=0.3)
+    ap.add_argument('--emit-times', default='',
+                    help='Pfad: schreibt die Cue-Startzeiten als JSON '
+                         '(fuer Typewriter-Sound via build_sfx_track.py)')
     args = ap.parse_args()
 
     mode = MODES[args.mode]
@@ -90,6 +98,18 @@ def main():
              and str(w.get('text', '')).strip()]
     if not words:
         raise SystemExit('Keine Woerter im Transkript gefunden.')
+
+    # Timeline-Korrektur bei xfade-Uebergaengen: jeder Uebergang verkuerzt
+    # das Video um seine Dauer — sonst laufen die Untertitel asynchron.
+    if args.transition_cuts:
+        cuts = sorted(float(c) for c in args.transition_cuts.split(',') if c)
+        td = args.transition_duration
+        adj = []
+        for w in words:
+            shift = td * sum(1 for c in cuts if c <= w['start'])
+            adj.append(dict(w, start=max(0.0, w['start'] - shift),
+                            end=max(0.0, w['end'] - shift)))
+        words = adj
 
     header = """[Script Info]
 ScriptType: v4.00+
@@ -135,6 +155,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
     with open(args.output, 'w', encoding='utf-8-sig') as f:
         f.write('\n'.join(lines) + '\n')
+
+    if args.emit_times:
+        times = [round(c[0]['start'], 3)
+                 for c in build_cues(words, args.group)]
+        with open(args.emit_times, 'w', encoding='utf-8') as f:
+            json.dump(times, f)
+
     print('OK: {} Woerter, ASS geschrieben: {}'.format(len(words), args.output))
 
 
