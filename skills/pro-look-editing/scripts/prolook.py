@@ -94,10 +94,22 @@ def main():
                 segs.append((len(segs), a, b, zoom if i % 2 == 1 else 1.0))
         fc.append('{}split={}{}'.format(
             vlabel, len(segs), ''.join('[s{}]'.format(i) for i, _, _, _ in segs)))
+        style = pi.get('style', 'static')
         for i, a, b, z in segs:
-            zf = (',scale=ceil(iw*{z}/2)*2:ceil(ih*{z}/2)*2,'
-                  'crop={w}:{h}:(iw-{w})/2:(ih-{h})/2'
-                  .format(z=z, w=W, h=H)) if z > 1.0 else ''
+            if style == 'smooth':
+                # kontinuierlicher Zoom von 1.0 auf 'zoom' ueber das Segment
+                # (scale kann per-Frame auswerten, crop-Groesse nicht)
+                rate = (float(pi.get('zoom', 1.06)) - 1.0) / max(b - a, 0.1)
+                zf = (",scale=w='trunc(iw*(1+{r}*t)/2)*2'"
+                      ":h='trunc(ih*(1+{r}*t)/2)*2':eval=frame"
+                      ',crop={w}:{h}:(iw-{w})/2:(ih-{h})/2'
+                      .format(r=rate, w=W, h=H))
+            elif z > 1.0:
+                zf = (',scale=ceil(iw*{z}/2)*2:ceil(ih*{z}/2)*2,'
+                      'crop={w}:{h}:(iw-{w})/2:(ih-{h})/2'
+                      .format(z=z, w=W, h=H))
+            else:
+                zf = ''
             fc.append('[s{}]trim={}:{},setpts=PTS-STARTPTS{},setsar=1[v{}]'
                       .format(i, a, b, zf, i))
             fc.append('[0:a]atrim={}:{},asetpts=PTS-STARTPTS[a{}]'
@@ -134,6 +146,28 @@ def main():
     else:
         alabel = '0:a'
 
+    # Finale Dauer (Uebergaenge verkuerzen die Timeline) — frueh berechnen
+    _tr = cfg.get('transition') or {}
+    _pi = cfg.get('punchin') or {}
+    final_dur = dur
+    if _tr.get('enabled') and _pi.get('cuts'):
+        final_dur = dur - len(_pi['cuts']) * float(_tr.get('duration', 0.3))
+
+    # --- B-Roll-Inserts (Bild wechselt, Ton laeuft weiter) -----------------
+    for bi, b in enumerate(cfg.get('broll') or []):
+        inputs += ['-i', b['file']]
+        bidx = n_in
+        n_in += 1
+        st = float(b['start'])
+        bdur = float(b.get('duration', 2.5))
+        fc.append('[{}:v]trim=0:{},scale={}:{}:'
+                  'force_original_aspect_ratio=increase,crop={}:{},setsar=1,'
+                  'setpts=PTS-STARTPTS+{}/TB[br{}]'
+                  .format(bidx, bdur, W, H, W, H, st, bi))
+        fc.append("{}[br{}]overlay=0:0:enable='between(t,{},{})'[vbr{}]"
+                  .format(vlabel, bi, st, st + bdur, bi))
+        vlabel = '[vbr{}]'.format(bi)
+
     # --- Look: Grade + Grain ----------------------------------------------
     post = []
     g = cfg.get('grade') or {}
@@ -152,6 +186,16 @@ def main():
     if post:
         fc.append('{}{}[vout]'.format(vlabel, ','.join(post)))
         vlabel = '[vout]'
+
+    # --- Fortschrittsbalken (Balken schiebt sich von links herein) ---------
+    pb = cfg.get('progressbar') or {}
+    if pb.get('enabled'):
+        bh = int(pb.get('height', 10))
+        fc.append('color=c={}:s={}x{}[pbar]'.format(
+            pb.get('color', 'white@0.85'), W, bh))
+        fc.append("{}[pbar]overlay=x='-main_w+main_w*t/{:.3f}':"
+                  'y=main_h-{}:shortest=1[vpb]'.format(vlabel, final_dur, bh))
+        vlabel = '[vpb]'
 
     def lab(a):
         return a if a.startswith('[') else '[{}]'.format(a)

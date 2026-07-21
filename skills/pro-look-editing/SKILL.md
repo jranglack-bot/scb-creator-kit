@@ -97,6 +97,32 @@ Für hochwertigere Sounds legt sich der User eine eigene Bibliothek an:
    (Zeile: `SFX-Bibliothek: <pfad>`). Ab dann werden bei Sound-Wünschen
    zuerst die eigenen Sounds genutzt, die Basis-Sounds als Fallback.
 
+## Bild-Paket: B-Roll, weicher Zoom, Hook-Cover, Fortschrittsbalken
+
+**NIE Standard — nur anbieten!** Keiner dieser Bausteine wird automatisch
+eingesetzt. Nach dem Bau eines Reels EINMAL kompakt hinweisen, was möglich
+wäre („Möglich wären außerdem: B-Roll-Einblendungen, weicher Zoom,
+Hook-Cover fürs Grid, Fortschrittsbalken — willst du davon etwas?") und nur
+das Gewählte umsetzen.
+
+- **B-Roll-Inserts** (`broll`-Liste in der Config: file/start/duration):
+  Bildwechsel über dem Talking-Head, Ton läuft weiter — der wichtigste
+  Retention-Hebel. Momente aus dem eh gelesenen Transkript wählen (2–4
+  Stellen, an denen ein passendes Bild das Gesagte verstärkt). Clips:
+  eigenes Material des Users oder per `higgsfield-generate` erzeugen
+  (Vorschlags- und Kosten-Regeln von dort beachten!). Captions bleiben
+  automatisch über dem B-Roll sichtbar.
+- **Weicher Zoom** (`punchin.style: "smooth"`): kontinuierliches
+  Reinziehen pro Segment statt Zoom-Sprung — die elegantere Bewegung.
+- **Hook-Cover** (`scripts/make_cover.py`): Standbild + großer Hook-Text
+  im Untertitel-Profil-Stil als JPG — fürs Cover im Grid. `|` = Zeilenumbruch,
+  `*WORT` = Highlight-Farbe. Text-Vorschlag aus dem Hook des Reels ableiten.
+- **Fortschrittsbalken** (`progressbar` in der Config): dünner Balken am
+  unteren Rand, füllt sich über die Laufzeit — simpler Retention-Trick.
+
+Alle vier sind getestet (inkl. Pixel-Verifikation des Balkens); nur
+Parameter setzen, nichts improvisieren.
+
 ## Audio-Suite: Musik, Stimm-Mastering, Loudness
 
 ### Stimm-Mastering + Loudness (Standard-Empfehlung, einmal kurz anbieten)
