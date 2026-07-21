@@ -163,9 +163,17 @@ print(json.dumps(cuts))
 
 ## Schritt 6b: Tiefe KI-Analyse (nur Modus B)
 
-Dies ist der wichtigste Schritt. Lies das gesamte Transkript Wort für Wort und analysiere es mit vollem Sprachverständnis. Kein regelbasiertes Denken – verstehe, was der Sprecher sagen wollte, und erkenne wo das Video nicht perfekt klingt.
+Dies ist der wichtigste Schritt. Lies das **gesamte** Transkript und analysiere
+es mit vollem Sprachverständnis. Kein regelbasiertes Denken – verstehe, was der
+Sprecher sagen wollte, und erkenne wo das Video nicht perfekt klingt.
 
-Erstelle zunächst die Wort-für-Wort-Liste:
+**Token-Spar-Architektur (Qualität bleibt identisch):** Du liest weiterhin
+jedes gesprochene Wort — aber als kompakten Fließtext mit sparsamen
+Zeit-Ankern, NICHT als Wort-für-Wort-Liste mit Timestamps (die kostet ~5×
+mehr Tokens, ohne Informationsgewinn fürs Verstehen). Die exakten
+Schnitt-Zeitstempel liefert danach ein Script per Wort-Lookup.
+
+Erstelle den kompakten Fließtext (ein Zeit-Anker ca. alle 15 Wörter):
 
 ```bash
 python3 -c "
@@ -173,8 +181,14 @@ import json
 with open('PFAD/transkript.json') as f:
     data = json.load(f)
 words = [w for w in data.get('words', []) if w.get('type') == 'word']
-for w in words:
-    print(f'{w[\"start\"]:.2f}|{w[\"end\"]:.2f}|{w[\"text\"]}')
+out, line = [], []
+for i, w in enumerate(words):
+    if i % 15 == 0:
+        out.append(' '.join(line)); line = []
+        line.append(f'[{w[\"start\"]:.0f}s]')
+    line.append(w['text'])
+out.append(' '.join(line))
+print('\n'.join(out).strip())
 "
 ```
 
@@ -222,6 +236,36 @@ Nicht schneiden: bewusste Zusammenfassungen am Ende eines Abschnitts, Beispiele 
 ### 4. Fließtext-Prüfung am Ende
 
 Nachdem alle Cuts identifiziert sind: Lies den verbleibenden Text durch, als wäre es ein geschriebenes Skript. Klingt es flüssig und professionell? Gibt es noch Stellen die holprig wirken, die du noch nicht markiert hast? Wenn ja, diese ebenfalls als Cut hinzufügen.
+
+### 5. Cuts in exakte Zeitstempel übersetzen (per Script, nicht schätzen!)
+
+Markiere jeden Cut als **exaktes Wort-Zitat**: erste 3–5 Wörter des zu
+schneidenden Abschnitts + erste 3–5 Wörter des sauberen Neuanfangs. Übersetze
+die Zitate dann per Script in präzise Zeiten — NIEMALS Zeiten aus den
+[Ns]-Ankern schätzen:
+
+```bash
+python3 -c "
+import json, sys
+with open('PFAD/transkript.json') as f:
+    data = json.load(f)
+words = [w for w in data.get('words', []) if w.get('type') == 'word']
+texts = [w['text'].lower().strip('.,!?') for w in words]
+def find(seq, start_idx=0):
+    seq = [s.lower().strip('.,!?') for s in seq]
+    for i in range(start_idx, len(texts) - len(seq) + 1):
+        if texts[i:i+len(seq)] == seq:
+            return i
+    return -1
+# Beispiel: Cut von Beginn 'ich hätte jetzt gerne' bis vor 'ich möchte dir'
+a = find(['ich','hätte','jetzt','gerne'])
+b = find(['ich','möchte','dir'], a+1)
+print('Cut:', words[a]['start'], '->', words[b]['start'])
+"
+```
+
+So bleibt die Präzision auf Wort-Ebene (wie zuvor mit der vollen Liste),
+aber der Kontext wurde nur mit dem kompakten Fließtext belastet.
 
 ---
 

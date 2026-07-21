@@ -43,11 +43,18 @@ Transkription mit Wort-Zeitstempeln (ElevenLabs Speech-to-Text, wie im Skill
 
 ## Schritt 2: Untertitel-Datei (ASS) erzeugen
 
-Baue aus den Wort-Zeitstempeln eine `.ass`-Datei (per Python-Script):
+Baue aus den Wort-Zeitstempeln eine `.ass`-Datei — **vollständig per
+Python-Script**, das die Transkript-JSON direkt liest und die Cues
+deterministisch erzeugt. Die Wort-für-Wort-Liste dabei NICHT in den Kontext
+laden (Token-Verschwendung ohne Qualitätsgewinn — die Cue-Bildung ist reine
+Mechanik, das Script macht sie fehlerfrei):
 
-- **Cues: 2–3 Wörter** pro Einblendung — kurz und lesbar.
-- **Nur während gesprochen wird** — in Pausen kein Untertitel stehen lassen.
+- **Cues: 2–3 Wörter** pro Einblendung — kurz und lesbar (Script gruppiert).
+- **Nur während gesprochen wird** — Script beendet jede Cue am Wort-Ende und
+  überspringt Lücken > 0,5 s automatisch.
 - PlayRes an die Videoauflösung anpassen (Standard 1080×1920).
+- Qualitätskontrolle danach über die **Vorschau-Frames** (Schritt 5), nicht
+  durch Lesen der Rohdaten.
 
 **Stil REEL** (unteres Drittel, Safe-Zone):
 ```
