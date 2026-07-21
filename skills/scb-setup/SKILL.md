@@ -174,6 +174,9 @@ kostenlose Tracks von **pixabay.com/music** (keine Namensnennung nötig,
 Stimmungs-Suche) hineinsortieren, Pfad in Branding.md als
 `Musik-Bibliothek: <pfad>` notieren. Claude schlägt dann je nach
 Reel-Stimmung passende Musik vor — aber baut sie nie ungefragt ein.
+Chart-/Trend-Musik dagegen nie einbrennen, sondern beim Posten in der
+Instagram-App hinzufügen (nur dort lizenziert); bei Verkaufs-/Werbe-Reels
+warnt Claude automatisch und empfiehlt lizenzfreie Musik.
 
 ### Schritt 7: Auto-Posting (Make + Airtable)
 

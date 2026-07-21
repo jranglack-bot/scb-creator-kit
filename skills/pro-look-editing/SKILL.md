@@ -128,8 +128,26 @@ sobald du sprichst." Bei Ja:
    traurig→`sad`, energetisch→`upbeat`/`energetic`, ruhig→`calm`/`chill`,
    episch→`epic`/`cinematic`, fröhlich→`happy`/`uplifting`. Alternativen:
    mixkit.co/free-stock-music, freebeats.io. Runtergeladene Tracks in den
-   passenden Stimmungs-Ordner → für immer verfügbar. **Keine Chart-Musik
-   aus der Instagram-App einbrennen** — die Lizenz gilt nur in der App.
+   passenden Stimmungs-Ordner → für immer verfügbar.
+
+**Chart-/Trend-Musik — der richtige Weg (User aktiv beraten!):**
+Trend-Sounds und Chartmusik sind für Instagram-Reels ausdrücklich eine gute
+Wahl — aber sie werden **nicht eingebrannt**, sondern **beim Posten in der
+Instagram-App hinzugefügt**. Zwei Gründe dem User erklären: (1) Metas
+Musik-Lizenz gilt nur für in der App hinzugefügte Musik — eingebrannte
+Chartmusik wird vom Rights Manager erkannt und das Reel stummgeschaltet
+oder geblockt; (2) In-App-Trend-Audio pusht zusätzlich die Reichweite.
+Workflow dann: Reel OHNE Musikbett rendern (Stimme gemastert, SFX, Loudness
+— alles wie gewohnt), Musik kommt beim Posten in der App drauf.
+
+**Kommerz-Check (automatisch machen):** Erkennst du am Inhalt, dass das
+Reel etwas VERKAUFT oder BEWIRBT (Sales-Aufbau, CTA mit Keyword,
+Produkt-Promo), den User aktiv warnen: Für kommerzielle Reels ist
+Chartmusik auch in der App nicht lizenziert (Business-Konten sehen nur die
+lizenzfreie Sound Collection) — hier lizenzfreies Musikbett einbrennen
+(Pixabay/eigene Bibliothek). Gleiches gilt fürs **Auto-Posting** über
+Make/API: Dort kann keine In-App-Musik ergänzt werden → immer lizenzfreies
+Bett einbrennen oder bewusst ohne Musik posten.
 4. **Config:** `"music": {"enabled": true, "file": "<track>", "gain": 0.3}`
    — das Ducking läuft automatisch (Sidechain: Musik senkt sich beim
    Sprechen um ~20 dB und atmet in Pausen wieder auf; getestet).
