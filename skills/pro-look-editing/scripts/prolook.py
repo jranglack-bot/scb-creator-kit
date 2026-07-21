@@ -153,6 +153,42 @@ def main():
         fc.append('{}{}[vout]'.format(vlabel, ','.join(post)))
         vlabel = '[vout]'
 
+    def lab(a):
+        return a if a.startswith('[') else '[{}]'.format(a)
+
+    # Finale Audiodauer (Uebergaenge verkuerzen die Timeline)
+    tr_cfg = cfg.get('transition') or {}
+    pi_cfg = cfg.get('punchin') or {}
+    final_dur = dur
+    if tr_cfg.get('enabled') and pi_cfg.get('cuts'):
+        final_dur = dur - len(pi_cfg['cuts']) * float(tr_cfg.get('duration', 0.3))
+
+    # --- Audio-Suite: Stimm-Mastering --------------------------------------
+    vmc = cfg.get('voice_master') or {}
+    if vmc.get('enabled'):
+        fc.append('{}highpass=f=80,'
+                  'acompressor=threshold=0.09:ratio=3:attack=5:release=150:'
+                  'makeup=2,equalizer=f=3200:t=q:w=1:g=2[vmast]'
+                  .format(lab(alabel)))
+        alabel = '[vmast]'
+
+    # --- Audio-Suite: Musikbett mit Auto-Ducking ---------------------------
+    mu = cfg.get('music') or {}
+    if mu.get('enabled'):
+        inputs += ['-stream_loop', '-1', '-i', mu['file']]
+        midx = n_in
+        n_in += 1
+        fc.append('[{}:a]atrim=0:{:.3f},asetpts=PTS-STARTPTS,'
+                  'afade=t=out:st={:.3f}:d=1.2,volume={}[mus]'
+                  .format(midx, final_dur, max(0.0, final_dur - 1.2),
+                          mu.get('gain', 0.30)))
+        fc.append('{}asplit=2[vc1][vc2]'.format(lab(alabel)))
+        # Musik wird automatisch leiser, sobald gesprochen wird
+        fc.append('[mus][vc1]sidechaincompress=threshold=0.03:ratio=12:'
+                  'attack=20:release=400[mduck]')
+        fc.append('[vc2][mduck]amix=inputs=2:duration=first:normalize=0[amus]')
+        alabel = '[amus]'
+
     # --- SFX-Akzente -------------------------------------------------------
     sfx = cfg.get('sfx') or []
     if sfx:
@@ -169,6 +205,11 @@ def main():
         fc.append('{}amix=inputs={}:duration=first:normalize=0[aout]'
                   .format(''.join(amix_in), len(amix_in)))
         alabel = '[aout]'
+
+    # --- Audio-Suite: finaler Loudness-Pass (Social-Standard -14 LUFS) -----
+    if (cfg.get('loudnorm') or {}).get('enabled'):
+        fc.append('{}loudnorm=I=-14:TP=-1.5:LRA=11[afin]'.format(lab(alabel)))
+        alabel = '[afin]'
 
     amap = alabel if alabel.startswith('[') else '{}'.format(alabel)
     cmd = (['ffmpeg', '-y'] + inputs +

@@ -167,6 +167,14 @@ Favoriten laden, in einen Ordner legen und den Pfad in Obsidian
 `00 Kontext/Branding.md` als `SFX-Bibliothek: <pfad>` notieren. Wichtig
 erklären: Claude baut Sounds NIE automatisch ein — es fragt immer erst.
 
+**Hintergrundmusik (optional erwähnen):** Für Musikbetten mit Auto-Ducking
+eine **Musik-Bibliothek** anlegen: Ordner mit Stimmungs-Unterordnern
+(`energetisch/`, `ruhig/`, `emotional/`, `episch/`, `froehlich/`),
+kostenlose Tracks von **pixabay.com/music** (keine Namensnennung nötig,
+Stimmungs-Suche) hineinsortieren, Pfad in Branding.md als
+`Musik-Bibliothek: <pfad>` notieren. Claude schlägt dann je nach
+Reel-Stimmung passende Musik vor — aber baut sie nie ungefragt ein.
+
 ### Schritt 7: Auto-Posting (Make + Airtable)
 
 Frage: „Willst du Reels automatisch auf Instagram posten lassen? Dafür

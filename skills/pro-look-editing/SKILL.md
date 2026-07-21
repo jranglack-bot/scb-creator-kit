@@ -97,6 +97,44 @@ Für hochwertigere Sounds legt sich der User eine eigene Bibliothek an:
    (Zeile: `SFX-Bibliothek: <pfad>`). Ab dann werden bei Sound-Wünschen
    zuerst die eigenen Sounds genutzt, die Basis-Sounds als Fallback.
 
+## Audio-Suite: Musik, Stimm-Mastering, Loudness
+
+### Stimm-Mastering + Loudness (Standard-Empfehlung, einmal kurz anbieten)
+
+Bei jedem Pro-Look-Render anbieten (einmal, nicht aufdrängen): „Soll ich
+deine Stimme professionell mastern und die Lautstärke auf den
+Instagram-Standard bringen?" Bei Ja in der Config:
+`"voice_master": {"enabled": true}` (Trittschall-Filter, Kompressor,
+Präsenz-Anhebung) und `"loudnorm": {"enabled": true}` (finaler Pass auf
+−14 LUFS — sonst klingt das Reel leiser als der Feed). Getestet: Ergebnis
+landet bei ~−14 LUFS.
+
+### Musikbett mit Auto-Ducking — NUR auf Nachfrage (eiserne Regel!)
+
+Niemals ungefragt Musik unterlegen. Nach dem Bau eines Reels EINMAL
+anbieten: „Möchtest du Hintergrundmusik? Sie wird automatisch leiser,
+sobald du sprichst." Bei Ja:
+
+1. **Stimmung bestimmen — ohne Extra-Kosten:** Das Transkript ist schon
+   gelesen → daraus die Stimmung ableiten und vorschlagen („Das Reel ist
+   motivierend — ich würde etwas Energetisches nehmen. Passt das?").
+2. **Track wählen:** Zuerst in der **Musik-Bibliothek** des Users schauen
+   (Pfad in `00 Kontext/Branding.md`, Zeile `Musik-Bibliothek: <pfad>`;
+   Stimmungs-Unterordner: `energetisch/`, `ruhig/`, `emotional/`,
+   `episch/`, `froehlich/`). Passenden Track nehmen — die Ordner-Konvention
+   macht die Wahl zur reinen Dateiabfrage, null Analyse-Token.
+3. **Bibliothek leer?** User zu **pixabay.com/music** schicken — kostenlos,
+   keine Namensnennung, mit Stimmungs-Suche. Suchbegriffe (DE→EN):
+   traurig→`sad`, energetisch→`upbeat`/`energetic`, ruhig→`calm`/`chill`,
+   episch→`epic`/`cinematic`, fröhlich→`happy`/`uplifting`. Alternativen:
+   mixkit.co/free-stock-music, freebeats.io. Runtergeladene Tracks in den
+   passenden Stimmungs-Ordner → für immer verfügbar. **Keine Chart-Musik
+   aus der Instagram-App einbrennen** — die Lizenz gilt nur in der App.
+4. **Config:** `"music": {"enabled": true, "file": "<track>", "gain": 0.3}`
+   — das Ducking läuft automatisch (Sidechain: Musik senkt sich beim
+   Sprechen um ~20 dB und atmet in Pausen wieder auf; getestet).
+5. Loudness-Pass (`loudnorm`) bei Musik IMMER mit aktivieren.
+
 ### Gekoppelte Effekte (Bild + Ton am selben Zeitpunkt)
 
 - **Wisch mit Sound:** `transition.sfx_file` auf einen Whoosh setzen —
