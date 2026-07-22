@@ -38,12 +38,15 @@ Config-JSON**, das Script rendert alle Folien und einen Kontaktbogen.
   bei Sales-Inhalt Disclaimer-Regeln beachten).
 - Texte dem User kurz als Liste zeigen, Freigabe, dann rendern.
 
-### 2. Branding (einmal einrichten, immer nutzen)
+### 2. Vorlage & Branding (einmal einrichten, immer nutzen)
 
 `karussell-profil` aus Obsidian `00 Kontext/Branding.md` lesen (Codeblock
-mit bg1/bg2/accent/text/font/account). Fehlt es: aus dem Untertitel-Profil
-ableiten (Akzentfarbe übernehmen) oder 2–3 kurze Fragen bzw.
-Screenshot-Vorlage — dann als Block speichern, nie wieder fragen.
+mit bg1/bg2/accent/text/font/account + `fotos: ja/nein` und ggf.
+Foto-Pfaden). Fehlt es: **den User fragen, wie er seine Karussells haben
+will** — Farben/Schrift (aus dem Untertitel-Profil ableitbar oder per
+Screenshot-Vorlage), Account-Handle, und ob eigene Fotos als Sticker drauf
+sollen (siehe Foto-Abschnitt unten). Alles als Block speichern = seine
+persönliche Vorlage; ab dann nie wieder fragen, nur anwenden.
 
 ### 3. Rendern & prüfen
 
@@ -65,14 +68,26 @@ stimmig? Dann dem User den Kontaktbogen zeigen und Freigabe holen.
   fürs Karussell irrelevant) oder automatisiert über Make („Create a
   Carousel Post"-Modul) via `reel-posting`-Strecke.
 
-## Creator-Fotos als Sticker (automatisch verteilt)
+## Creator-Fotos als Sticker — NIE Standard, immer erst fragen
 
-Will der User seine eigenen Fotos auf den Folien haben („hier sind 4
-Bilder von mir, pack auf jede Folie ein anderes"), genügt **eine Zeile**
-in der Config:
+**Foto-Sticker werden NIEMALS ungefragt eingebaut.** Beim ERSTEN Karussell
+eines Users einmal fragen:
+
+> „Möchtest du eigene Fotos auf den Folien haben — als runde Sticker, die
+> von Folie zu Folie Bild und Position wechseln? Wenn ja: Gib mir einfach
+> die Bilder (egal wie viele — eins oder zehn, sie rotieren durch)."
+
+Die Antwort als **Vorlage merken** (im `karussell-profil` in Branding.md:
+`fotos: ja/nein` + Ordner-/Dateipfade) — bei künftigen Karussells NICHT
+erneut fragen, sondern die gespeicherte Vorlage anwenden und nur kurz
+erwähnen („mit deinen Fotos wie immer — sag Bescheid, falls diesmal ohne").
+Will der User keine Fotos: nie wieder anbieten, außer er bringt es selbst auf.
+
+Technik (nur wenn der User Ja gesagt hat), **eine Zeile** in der Config —
+funktioniert mit beliebig vielen Bildern:
 
 ```json
-"accent_images": ["foto1.jpg", "foto2.jpg", "foto3.jpg", "foto4.jpg"]
+"accent_images": ["foto1.jpg", "foto2.jpg"]
 ```
 
 Das Script verteilt die Fotos automatisch reihum auf die Folien — als
