@@ -65,6 +65,25 @@ stimmig? Dann dem User den Kontaktbogen zeigen und Freigabe holen.
   fürs Karussell irrelevant) oder automatisiert über Make („Create a
   Carousel Post"-Modul) via `reel-posting`-Strecke.
 
+## Creator-Fotos als Sticker (automatisch verteilt)
+
+Will der User seine eigenen Fotos auf den Folien haben („hier sind 4
+Bilder von mir, pack auf jede Folie ein anderes"), genügt **eine Zeile**
+in der Config:
+
+```json
+"accent_images": ["foto1.jpg", "foto2.jpg", "foto3.jpg", "foto4.jpg"]
+```
+
+Das Script verteilt die Fotos automatisch reihum auf die Folien — als
+runde „Sticker" mit weißem Rahmen, Schatten und leichter Drehung, an
+wechselnden, **layout-sicheren** Positionen (weichen Nummern, Titeln und
+Footer aus; unten-links ist bewusst gesperrt, weil dort Text ausläuft).
+Pro Folie übersteuern geht mit `"accent_image"` / `"accent_pos"`
+(`tl`/`tr`/`bl`/`br`). Auf `image`-Folien gibt es keine Sticker
+(Foto auf Foto wirkt unruhig). Im Kontaktbogen prüfen: kein Foto
+verdeckt Text.
+
 ## Folien mit Bildern
 
 Zwei weitere Slide-Typen für gemischte Karussells (gleiche Config, nur

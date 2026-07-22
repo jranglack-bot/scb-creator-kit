@@ -59,9 +59,34 @@ def main():
     brand = dict(DEFAULT_BRAND, **(cfg.get('brand') or {}))
     browser = find_browser()
 
+    # Creator-Fotos als "Sticker" (rund, gedreht) automatisch verteilen:
+    # accent_images = Liste von Fotos -> jede Folie bekommt reihum ein
+    # anderes Foto an wechselnder Position (Layout-sicher pro Folientyp).
+    accent_pool = cfg.get('accent_images') or []
+    # 'bl' bewusst NICHT in der Rotation: kollidiert bei laengeren Texten
+    # mit dem Body (links laeuft der Text nach unten aus).
+    pos_cycle = {'hook': ['tr', 'br'], 'content': ['tr', 'br'],
+                 'cta': ['tl', 'tr']}
+    acc_count = 0
+
     slides = cfg['slides']
     total = len(slides)
     for i, s in enumerate(slides, 1):
+        accent_html = ''
+        aimg = s.get('accent_image')
+        apos = s.get('accent_pos')
+        if aimg is None and accent_pool and s['type'] in pos_cycle:
+            aimg = accent_pool[acc_count % len(accent_pool)]
+        if aimg:
+            if not apos:
+                cyc = pos_cycle.get(s['type'], ['tr', 'br'])
+                apos = cyc[acc_count % len(cyc)]
+            rot = -3.5 if acc_count % 2 == 0 else 3.5
+            accent_html = ('<img class="accimg pos-{}" '
+                           'style="transform:rotate({}deg)" src="file:///{}">'
+                           .format(apos, rot,
+                                   os.path.abspath(aimg).replace('\\', '/')))
+            acc_count += 1
         with open(os.path.join(tpl_dir, s['type'] + '.html'),
                   encoding='utf-8') as f:
             html = f.read()
@@ -77,6 +102,7 @@ def main():
             'NUMBER': str(s.get('number', '')),
             'PILL': s.get('pill', ''),
             'IMAGE': img_url,
+            'ACCENT_IMG': accent_html,
             'PAGE': '{}/{}'.format(i, total),
         }
         for k, v in repl.items():

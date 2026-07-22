@@ -12,7 +12,13 @@ h2 em { font-style:normal; color:{{ACCENT}}; }
 .body b { color:{{ACCENT}}; }
 .footer { position:absolute; bottom:70px; left:90px; right:90px;
   display:flex; justify-content:space-between; font-size:30px; opacity:.75; }
+.accimg { position:absolute; width:250px; height:250px; object-fit:cover;
+  border-radius:50%; border:8px solid rgba(255,255,255,.9);
+  box-shadow:0 16px 40px rgba(0,0,0,.45); z-index:5; }
+.pos-tl{top:70px;left:70px}.pos-tr{top:70px;right:70px}
+.pos-bl{bottom:160px;left:70px}.pos-br{bottom:160px;right:70px}
 </style></head><body>
+{{ACCENT_IMG}}
 <div class="num">{{NUMBER}}</div>
 <h2>{{TITLE}}</h2>
 <div class="body">{{BODY}}</div>

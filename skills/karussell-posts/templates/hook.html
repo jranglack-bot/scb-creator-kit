@@ -11,7 +11,13 @@ h1 em { font-style:normal; color:{{ACCENT}}; }
 .footer { position:absolute; bottom:70px; left:90px; right:90px;
   display:flex; justify-content:space-between; font-size:30px; opacity:.75; }
 .arrow { font-size:44px; }
+.accimg { position:absolute; width:270px; height:270px; object-fit:cover;
+  border-radius:50%; border:8px solid rgba(255,255,255,.9);
+  box-shadow:0 16px 40px rgba(0,0,0,.45); z-index:5; }
+.pos-tl{top:70px;left:70px}.pos-tr{top:70px;right:70px}
+.pos-bl{bottom:160px;left:70px}.pos-br{bottom:160px;right:70px}
 </style></head><body>
+{{ACCENT_IMG}}
 <div class="kicker">{{KICKER}}</div>
 <h1>{{TITLE}}</h1>
 <div class="footer"><span>{{ACCOUNT}}</span><span class="arrow">Weiter &rarr;</span></div>
