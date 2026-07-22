@@ -22,6 +22,7 @@ einem Setup-Assistenten.
 | **reel-layout** | Safe-Zones: wo Text in Reels & Stories sitzen darf | läuft automatisch beim Bearbeiten |
 | **reel-posting** | Auto-Posting-System mit Airtable + Make bauen | „Richte mein Auto-Posting ein" |
 | **sfx-extraktion** | Soundeffekte aus Reels/Videos herausschneiden — automatische Erkennung in SFX-Compilation-Reels, Ablage als MP3 in deiner Bibliothek | „Hol mir den Sound aus dem Reel" |
+| **karussell-posts** | Komplette Instagram-Karussells (1080×1350): Texte nach Hook-Formel, gebrandete Folien aus Templates (gerendert vom vorinstallierten Browser — nichts zu installieren), Kontrolle über einen Kontaktbogen | „Mach mir ein Karussell zu [Thema]" |
 | **obsidian-gehirn** | Claude merkt sich alles über dich in deinem Obsidian-Vault | „Verbinde Obsidian" |
 
 Zusätzlich empfiehlt und installiert der Setup-Assistent auf Wunsch zwei
@@ -67,4 +68,4 @@ Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen 
 
 ---
 
-Made with ❤️ für die SCB Community · v0.14.0
+Made with ❤️ für die SCB Community · v0.15.0

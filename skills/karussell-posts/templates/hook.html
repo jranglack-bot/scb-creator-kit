@@ -1,0 +1,18 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { width:1080px; height:1350px; font-family:'{{FONT}}',sans-serif;
+  background:linear-gradient(135deg,{{BG1}} 0%,{{BG2}} 100%);
+  display:flex; flex-direction:column; justify-content:center;
+  padding:90px; color:{{TEXT}}; position:relative; overflow:hidden; }
+.kicker { font-size:34px; font-weight:700; color:{{ACCENT}};
+  letter-spacing:2px; margin-bottom:36px; text-transform:uppercase; }
+h1 { font-size:94px; font-weight:800; line-height:1.14; }
+h1 em { font-style:normal; color:{{ACCENT}}; }
+.footer { position:absolute; bottom:70px; left:90px; right:90px;
+  display:flex; justify-content:space-between; font-size:30px; opacity:.75; }
+.arrow { font-size:44px; }
+</style></head><body>
+<div class="kicker">{{KICKER}}</div>
+<h1>{{TITLE}}</h1>
+<div class="footer"><span>{{ACCOUNT}}</span><span class="arrow">Weiter &rarr;</span></div>
+</body></html>

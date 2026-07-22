@@ -1,0 +1,20 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { width:1080px; height:1350px; font-family:'{{FONT}}',sans-serif;
+  background:linear-gradient(135deg,{{BG1}} 0%,{{BG2}} 100%);
+  display:flex; flex-direction:column; justify-content:center;
+  padding:90px; color:{{TEXT}}; position:relative; overflow:hidden; }
+.num { font-size:150px; font-weight:800; color:{{ACCENT}};
+  line-height:1; margin-bottom:30px; opacity:.95; }
+h2 { font-size:66px; font-weight:800; line-height:1.18; margin-bottom:40px; }
+h2 em { font-style:normal; color:{{ACCENT}}; }
+.body { font-size:40px; line-height:1.5; opacity:.92; max-width:860px; }
+.body b { color:{{ACCENT}}; }
+.footer { position:absolute; bottom:70px; left:90px; right:90px;
+  display:flex; justify-content:space-between; font-size:30px; opacity:.75; }
+</style></head><body>
+<div class="num">{{NUMBER}}</div>
+<h2>{{TITLE}}</h2>
+<div class="body">{{BODY}}</div>
+<div class="footer"><span>{{ACCOUNT}}</span><span>{{PAGE}}</span></div>
+</body></html>
