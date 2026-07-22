@@ -65,9 +65,24 @@ stimmig? Dann dem User den Kontaktbogen zeigen und Freigabe holen.
   fürs Karussell irrelevant) oder automatisiert über Make („Create a
   Carousel Post"-Modul) via `reel-posting`-Strecke.
 
+## Folien mit Bildern
+
+Zwei weitere Slide-Typen für gemischte Karussells (gleiche Config, nur
+`"image": "<pfad>"` dazu):
+
+- **`image`** — Bild füllt die ganze Folie; unten dunkler Verlauf, damit
+  der optionale `title` immer lesbar bleibt (funktioniert mit jedem Foto).
+- **`content-image`** — Text-Folie mit abgerundeter Bildkarte oben,
+  Titel + Body darunter.
+
+Bild-Quellen: eigene Fotos/Screenshots des Users, oder KI-Bilder per
+`higgsfield-generate` (Nano Banana; Vorschlags- und Kosten-Regeln von dort
+beachten). Beste Qualität ab ~1080 px Breite; das Template schneidet
+automatisch passend zu (object-fit cover).
+
 ## Grenzen
 
-Die drei Templates decken Text-Karussells ab (der meistgenutzte Typ).
-Foto-/Bild-Folien: KI-Bilder per `higgsfield-generate` erzeugen (Nano
-Banana, Vorschlags-Regeln beachten) und als eigene Folien beilegen —
-gemischte Karussells sind beim Posten einfach mehrere Bilder.
+Für vollständig frei gestaltete Einzel-Layouts (Poster-Design pro Folie)
+ist Canva die bessere Wahl — die Templates hier sind bewusst ein festes,
+konsistentes System. Template-Änderungen nur auf ausdrücklichen
+User-Wunsch, einmalig, nie pro Post.

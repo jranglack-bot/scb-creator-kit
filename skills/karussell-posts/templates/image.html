@@ -1,0 +1,19 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { width:1080px; height:1350px; font-family:'{{FONT}}',sans-serif;
+  position:relative; overflow:hidden; background:{{BG1}}; color:{{TEXT}}; }
+.bg { position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; }
+.scrim { position:absolute; left:0; right:0; bottom:0; height:46%;
+  background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.78) 78%); }
+h2 { position:absolute; left:90px; right:90px; bottom:150px;
+  font-size:72px; font-weight:800; line-height:1.16; }
+h2 em { font-style:normal; color:{{ACCENT}}; }
+.footer { position:absolute; bottom:70px; left:90px; right:90px;
+  display:flex; justify-content:space-between; font-size:30px; opacity:.8; }
+</style></head><body>
+<img class="bg" src="{{IMAGE}}">
+<div class="scrim"></div>
+<h2>{{TITLE}}</h2>
+<div class="footer"><span>{{ACCOUNT}}</span><span>{{PAGE}}</span></div>
+</body></html>

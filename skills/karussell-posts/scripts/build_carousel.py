@@ -65,6 +65,9 @@ def main():
         with open(os.path.join(tpl_dir, s['type'] + '.html'),
                   encoding='utf-8') as f:
             html = f.read()
+        img_url = ''
+        if s.get('image'):
+            img_url = 'file:///' + os.path.abspath(s['image']).replace('\\', '/')
         repl = {
             'FONT': brand['font'], 'BG1': brand['bg1'], 'BG2': brand['bg2'],
             'ACCENT': brand['accent'], 'TEXT': brand['text'],
@@ -73,6 +76,7 @@ def main():
             'BODY': str(s.get('body', '')).replace('\n', '<br>'),
             'NUMBER': str(s.get('number', '')),
             'PILL': s.get('pill', ''),
+            'IMAGE': img_url,
             'PAGE': '{}/{}'.format(i, total),
         }
         for k, v in repl.items():
