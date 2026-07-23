@@ -98,6 +98,12 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
   display:none; pointer-events:none; white-space:nowrap; z-index:5; }
 #playhead { position:absolute; top:-4px; bottom:-4px; width:2px;
   background:#FFD400; pointer-events:none; z-index:3; }
+#phlabel { position:absolute; top:-26px; transform:translateX(-50%);
+  background:#FFD400; color:#16181d; font-size:11px; font-weight:700;
+  padding:2px 7px; border-radius:6px; pointer-events:none; z-index:4;
+  font-variant-numeric:tabular-nums; white-space:nowrap; }
+#tl .cut { cursor:grab; }
+#tl .cut:active { cursor:grabbing; }
 #tlinfo { display:flex; justify-content:space-between; font-size:11px;
   opacity:.55; margin-top:6px; }
 </style></head><body>
@@ -148,7 +154,7 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
 </main>
 <footer>
   <div id="ruler"></div>
-  <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div></div>
+  <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div><div id="phlabel">0:00.0</div></div>
   <div id="tlinfo"><span>Klick = springen · Auf freier Fläche AUFZIEHEN = neuer Schnitt</span><span id="tDur">0:00.0</span></div>
 </footer>
 <script>
@@ -287,6 +293,37 @@ function renderTL(){
     d.title = (c.reason || 'Schnitt');
     d.innerHTML = '<span class="h l" title="Anfang ziehen"></span>' +
                   '<span class="h r" title="Ende ziehen"></span>';
+    // Ziehen auf dem Schnitt-KOERPER = ganzen Schnitt verschieben
+    d.addEventListener('pointerdown', ev => {
+      if (ev.target.classList.contains('h')) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const r = tl.getBoundingClientRect();
+      const len = c.end - c.start;
+      const grabOffset = (ev.clientX - r.left) / r.width * dur - c.start;
+      let moved = false;
+      tip.style.display = 'block';
+      const move = e2 => {
+        moved = true;
+        let ns = (e2.clientX - r.left) / r.width * dur - grabOffset;
+        ns = Math.max(0, Math.min(dur - len, ns));
+        c.start = Math.round(ns * 10) / 10;
+        c.end = Math.round((ns + len) * 10) / 10;
+        d.style.left = (c.start / dur * 100) + '%';
+        d.style.width = (Math.max(0.3, len) / dur * 100) + '%';
+        tip.textContent = 'Verschieben: ' + fmt(c.start) + '–' + fmt(c.end);
+        tip.style.left = (e2.clientX - r.left - 40) + 'px';
+        v.currentTime = c.start;
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        tip.style.display = 'none';
+        if (!moved) v.currentTime = c.start;
+        renderTL();
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    });
     d.querySelectorAll('.h').forEach(h => {
       h.addEventListener('pointerdown', ev => {
         ev.preventDefault(); ev.stopPropagation();
@@ -378,9 +415,9 @@ function renderRuler(){
 }
 
 // ---------- Klick = springen · Aufziehen = neuer Schnitt ------------------
+// (NUR auf freier Flaeche — Ziehen AUF einem Schnitt verschiebt ihn, s.u.)
 tl.addEventListener('pointerdown', e => {
-  if (e.target !== tl && !e.target.classList.contains('cut')) return;
-  if (e.target.classList.contains('h')) return;
+  if (e.target !== tl) return;
   e.preventDefault();
   const r = tl.getBoundingClientRect();
   const t0 = (e.clientX - r.left) / r.width * dur;
@@ -448,8 +485,16 @@ v.addEventListener('timeupdate', () => {
   if (mode === 'both' && Math.abs(pv.currentTime - v.currentTime) > 0.25)
     pv.currentTime = v.currentTime;
   ph.style.left = (v.currentTime / dur * tl.clientWidth) + 'px';
+  updPhLabel();
   updTC(); drawCap();
 });
+function updPhLabel(){
+  const lbl = document.getElementById('phlabel');
+  const x = v.currentTime / dur * tl.clientWidth;
+  lbl.style.left = Math.min(tl.clientWidth - 30, Math.max(30, x)) + 'px';
+  lbl.textContent = fmtT(v.currentTime);
+}
+v.addEventListener('seeked', updPhLabel);
 pv.addEventListener('timeupdate', () => {
   if (preview && (P.cuts_apply || 'both') === 'pip') {
     const c = P.cuts.find(c => c.active && pv.currentTime >= c.start && pv.currentTime < c.end);
