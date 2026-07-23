@@ -87,8 +87,14 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
   font-variant-numeric:tabular-nums; }
 #ruler span { position:absolute; transform:translateX(-50%); }
 #tlwrap { position:relative; }
-#tl { position:relative; height:72px; background:#262a33; border-radius:8px;
-  cursor:pointer; }
+#tl { position:relative; height:72px; display:flex; flex-direction:column;
+  gap:4px; cursor:pointer; }
+#tl .lane { position:relative; flex:1; background:#262a33; border-radius:8px; }
+#tl > .cut { z-index:2; }
+#tl .lanelbl { position:absolute; left:8px; top:2px; font-size:10px;
+  opacity:.45; pointer-events:none; z-index:1; }
+#tl canvas.wave { position:absolute; inset:0; width:100%; height:100%;
+  pointer-events:none; display:none; }
 #tl .cut { position:absolute; top:0; bottom:0; cursor:grab;
   background:rgba(255,70,70,.40); border-radius:4px; }
 #tl .cut:active { cursor:grabbing; }
@@ -161,10 +167,8 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
     <div class="row"><label><input type="radio" name="audiofrom" value="main"> großem Video</label></div>
     <div class="row"><label><input type="radio" name="audiofrom" value="pip"> kleinem Video (Bild-im-Bild)</label></div>
     <div class="row"><label><input type="radio" name="audiofrom" value="both"> beiden Videos (gemischt)</label></div>
-    <h2>Schnitte gelten für</h2>
-    <div class="row"><label><input type="radio" name="capply" value="both"> beide Videos</label></div>
-    <div class="row"><label><input type="radio" name="capply" value="main"> nur großes Video<br><span style="font-size:11px;opacity:.55">(kleines läuft ungeschnitten durch)</span></label></div>
-    <div class="row"><label><input type="radio" name="capply" value="pip"> nur kleines Video</label></div>
+    <h2>Timeline</h2>
+    <div class="row"><label>Tonspur anzeigen</label><input type="checkbox" id="waveOn"></div>
     <h2>Schnitte <span id="cutcount"></span></h2>
     <div id="cutlist"></div>
   </aside>
@@ -172,9 +176,10 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
 <footer>
   <div id="ruler"></div>
   <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div><div id="phgrab" title="Festhalten und ziehen = präzise spulen"></div><div id="phlabel">0:00.0</div></div>
-  <div id="tlinfo"><span>Klick = springen · Aufziehen = neuer Schnitt</span><span id="tDur">0:00.0</span></div>
+  <div id="tlinfo"><span>Klick = springen · Aufziehen = neuer Schnitt (auf der jeweiligen Videospur)</span><span id="tDur">0:00.0</span></div>
 </footer>
 <div id="toast"></div>
+<script src="waveform_data.js"></script>
 <script src="projekt_data.js"></script>
 <script>
 let P = window.PROJEKT || {};
@@ -200,8 +205,10 @@ function applyProjekt(data){
       group:3, font:'Segoe UI' }, P.captions || {});
   PIP = P.pip = Object.assign(
     { enabled:false, x:0.5, y:0.10, scale:0.58 }, P.pip || {});
-  P.cuts = (P.cuts || []).map(c => Object.assign({ active:true }, c));
+  // Altbestand: Schnitte ohne Spur-Zuordnung erben das alte cuts_apply
   P.cuts_apply = P.cuts_apply || 'both';
+  P.cuts = (P.cuts || []).map(c =>
+    Object.assign({ active:true, track: P.cuts_apply }, c));
   dur = P.duration || dur;
   // Videoquellen nur bei Aenderung neu setzen (sonst springt die Wiedergabe)
   const vsrc = P.video || '';
@@ -219,13 +226,17 @@ function applyProjekt(data){
   capPrim.value = ('#'+String(C.primary).replace('#','')).slice(0,7);
   capHi.value = ('#'+String(C.highlight).replace('#','')).slice(0,7);
   pipOn.checked = !!PIP.enabled;
-  document.querySelectorAll('input[name=capply]').forEach(r =>
-    r.checked = (r.value === P.cuts_apply));
   P.audio_from = P.audio_from || 'main';
   document.querySelectorAll('input[name=audiofrom]').forEach(r =>
     r.checked = (r.value === P.audio_from));
   applyAudio();
   buildCues(); drawCap(); drawPip(); renderTL();
+  // Waveform-Daten nachladen (falls Claude sie neu erzeugt hat)
+  const ws = document.createElement('script');
+  ws.src = 'waveform_data.js?v=' + Date.now();
+  ws.onload = () => { ws.remove(); drawWave(); };
+  ws.onerror = () => ws.remove();
+  document.head.appendChild(ws);
   lastApplied = JSON.stringify(data);
   dirty = false;
   document.getElementById('banner').classList.remove('show');
@@ -305,11 +316,8 @@ capSize.oninput = () => { C.size = +capSize.value;
   capSizeV.textContent = capSize.value; touch(); drawCap(); };
 capPrim.oninput = () => { C.primary = capPrim.value; touch(); drawCap(); };
 capHi.oninput = () => { C.highlight = capHi.value; touch(); drawCap(); };
-pipOn.oninput = () => { PIP.enabled = pipOn.checked; touch(); drawPip(); };
-document.querySelectorAll('input[name=capply]').forEach(r => {
-  r.onchange = () => { if (r.checked) { P.cuts_apply = r.value; touch();
-    pv.currentTime = v.currentTime; } };
-});
+pipOn.oninput = () => { PIP.enabled = pipOn.checked; touch(); drawPip();
+  renderTL(); };
 // Ton-Quelle: stummschalten je nach Auswahl (Vorschau = wie der Render)
 function applyAudio(){
   v.muted = (P.audio_from === 'pip');
@@ -365,14 +373,33 @@ function renderRuler(){
     s.textContent = Math.floor(t/60) + ':' + String(Math.round(t%60)).padStart(2,'0');
     ruler.appendChild(s);
   }
-  tl.style.backgroundImage =
-    'linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px)';
-  tl.style.backgroundSize = (100 / dur) + '% 100%';
 }
 function renderTL(){
-  tl.querySelectorAll('.cut').forEach(n => n.remove());
+  tl.innerHTML = '';
   if (!dur) return;
+  // Zwei Videospuren, sobald Bild-im-Bild aktiv ist — sonst eine
+  const two = !!PIP.enabled;
+  tl.style.height = two ? '104px' : '72px';
+  const lanes = {};
+  const mkLane = (trk, lbl) => {
+    const l = document.createElement('div');
+    l.className = 'lane'; l.dataset.track = trk;
+    l.style.backgroundImage =
+      'linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px)';
+    l.style.backgroundSize = (100 / dur) + '% 100%';
+    const cv = document.createElement('canvas'); cv.className = 'wave';
+    l.appendChild(cv);
+    if (lbl) { const s = document.createElement('span');
+      s.className = 'lanelbl'; s.textContent = lbl; l.appendChild(s); }
+    tl.appendChild(l); lanes[trk] = l; return l;
+  };
+  if (two) { mkLane('main', '🎬 großes Video'); mkLane('pip', '◱ kleines Video'); }
+  else mkLane('both', '');
   P.cuts.forEach(c => {
+    c.track = c.track || 'both';
+    // Spur waehlen: 'both' liegt ueber beiden Spuren
+    const parent = !two ? tl.querySelector('.lane')
+      : (c.track === 'both' ? tl : lanes[c.track]);
     const d = document.createElement('div');
     d.className = 'cut' + (c.active ? '' : ' inactive');
     d.style.left = (c.start / dur * 100) + '%';
@@ -435,9 +462,9 @@ function renderTL(){
         window.addEventListener('pointerup', up);
       });
     });
-    tl.appendChild(d);
+    parent.appendChild(d);
   });
-  renderList();
+  renderList(); drawWave();
 }
 function nudge(c, which, delta){
   if (which === 's') c.start = Math.max(0, Math.min(Math.round((c.start+delta)*10)/10, c.end - 0.1));
@@ -469,7 +496,16 @@ function renderList(){
         <button class="nb" data-w="e" data-d="-0.1">−0,1</button>
         <button class="nb" data-w="e" data-d="0.1">+0,1</button>
         <button class="nb" data-w="e" data-d="0.5">+0,5</button>
-      </div>`;
+      </div>` + (PIP.enabled ? `
+      <div class="nudge"><b>Gilt für</b>
+        <select class="trk">
+          <option value="both">beide Videos</option>
+          <option value="main">großes Video</option>
+          <option value="pip">kleines Video</option>
+        </select></div>` : '');
+    const trk = d.querySelector('.trk');
+    if (trk) { trk.value = c.track || 'both';
+      trk.onchange = ev => { c.track = ev.target.value; touch(); renderTL(); }; }
     d.querySelector('input').onchange = ev => { c.active = ev.target.checked;
       touch(); renderTL(); };
     d.querySelector('.del').onclick = ev => { ev.stopPropagation();
@@ -482,10 +518,12 @@ function renderList(){
     cutlist.appendChild(d);
   });
 }
-// freie Flaeche: Klick = springen, Aufziehen = neuer Schnitt
+// freie Flaeche einer Spur: Klick = springen, Aufziehen = neuer Schnitt
 tl.addEventListener('pointerdown', e => {
-  if (e.target !== tl) return;
+  if (!e.target.classList.contains('lane')) return;
   e.preventDefault();
+  const lane = e.target;
+  const track = lane.dataset.track;
   const r = tl.getBoundingClientRect();
   const t0 = (e.clientX - r.left) / r.width * dur;
   let moved = false, tmp = null, cur = null;
@@ -494,7 +532,7 @@ tl.addEventListener('pointerdown', e => {
     if (!moved && Math.abs(t1 - t0) < 0.15) return;
     moved = true;
     if (!tmp) { tmp = document.createElement('div');
-      tmp.className = 'cut creating'; tl.appendChild(tmp);
+      tmp.className = 'cut creating'; lane.appendChild(tmp);
       tip.style.display = 'block'; }
     const s = Math.min(t0, t1), en = Math.max(t0, t1);
     cur = [s, en];
@@ -510,7 +548,7 @@ tl.addEventListener('pointerdown', e => {
     if (moved && cur && cur[1] - cur[0] >= 0.2) {
       P.cuts.push({ start: Math.round(cur[0]*10)/10,
         end: Math.round(cur[1]*10)/10,
-        reason: 'Manuell markiert', active: true });
+        reason: 'Manuell markiert', active: true, track: track });
       P.cuts.sort((a,b) => a.start - b.start); touch();
     } else if (!moved) { v.currentTime = t0; }
     renderTL();
@@ -521,7 +559,7 @@ tl.addEventListener('pointerdown', e => {
 document.getElementById('bCutHere').onclick = () => {
   const t = Math.round(v.currentTime * 10) / 10;
   P.cuts.push({ start: t, end: Math.min(Math.round((t+1)*10)/10, dur),
-    reason: 'Manuell markiert', active: true });
+    reason: 'Manuell markiert', active: true, track: 'both' });
   P.cuts.sort((a,b) => a.start - b.start);
   touch(); renderTL();
 };
@@ -559,27 +597,61 @@ function drawZones(){ document.querySelectorAll('.zone').forEach(z =>
   z.style.display = zonesOn ? 'block' : 'none');
   bGuides.classList.toggle('on', zonesOn); }
 bGuides.onclick = () => { zonesOn = !zonesOn; drawZones(); };
+// Nur wenn ALLE aktiven Schnitte beide Videos treffen, laufen die Timelines
+// synchron — sonst driftet das Ergebnis absichtlich (wie im Render).
+const allBoth = () => (P.cuts||[]).every(c =>
+  !c.active || (c.track || 'both') === 'both');
 v.addEventListener('timeupdate', () => {
-  const mode = P.cuts_apply || 'both';
-  if (preview && mode !== 'pip') {
-    const c = (P.cuts||[]).find(c => c.active && v.currentTime >= c.start && v.currentTime < c.end);
+  if (preview) {
+    const c = (P.cuts||[]).find(c => c.active && (c.track||'both') !== 'pip'
+      && v.currentTime >= c.start && v.currentTime < c.end);
     if (c) v.currentTime = c.end + 0.01;
   }
-  if (mode === 'both' && Math.abs(pv.currentTime - v.currentTime) > 0.25)
+  if (allBoth() && Math.abs(pv.currentTime - v.currentTime) > 0.25)
     pv.currentTime = v.currentTime;
   updPhLabel(); updTC(); drawCap();
 });
 pv.addEventListener('timeupdate', () => {
-  if (preview && (P.cuts_apply || 'both') === 'pip') {
-    const c = (P.cuts||[]).find(c => c.active && pv.currentTime >= c.start && pv.currentTime < c.end);
+  if (preview) {
+    const c = (P.cuts||[]).find(c => c.active && (c.track||'both') !== 'main'
+      && pv.currentTime >= c.start && pv.currentTime < c.end);
     if (c) pv.currentTime = c.end + 0.01;
   }
 });
 v.addEventListener('seeked', () => {
-  if ((P.cuts_apply || 'both') === 'both') pv.currentTime = v.currentTime;
+  if (allBoth()) pv.currentTime = v.currentTime;
   updPhLabel();
 });
 function updTC(){ tc.textContent = fmt(v.currentTime) + ' / ' + fmt(dur); }
+
+// ---------- Tonspur (Waveform) --------------------------------------------
+// Peaks kommen aus waveform_data.js (erzeugt build_editor.py, gecacht):
+// window.WAVEFORM = { "datei.mp4": { d: <Sekunden>, p: [0..100, ...] } }
+function drawWave(){
+  const on = typeof waveOn !== 'undefined' && waveOn.checked;
+  tl.querySelectorAll('.lane').forEach(l => {
+    const cv = l.querySelector('canvas.wave');
+    if (!cv) return;
+    cv.style.display = on ? 'block' : 'none';
+    if (!on) return;
+    const key = l.dataset.track === 'pip' ? (PIP.source || P.video) : P.video;
+    const rec = (window.WAVEFORM || {})[key];
+    const w = l.clientWidth, h = l.clientHeight;
+    cv.width = w; cv.height = h;
+    if (!rec || !rec.p || !rec.p.length || !dur || !rec.d) return;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = 'rgba(110,205,255,.38)';
+    for (let x = 0; x < w; x++) {
+      const t = x / w * dur;
+      if (t > rec.d) break;
+      const p = rec.p[Math.min(rec.p.length - 1,
+        Math.floor(t / rec.d * rec.p.length))] / 100;
+      const bh = Math.max(1, p * h * 0.9);
+      ctx.fillRect(x, (h - bh) / 2, 1, bh);
+    }
+  });
+}
+waveOn.oninput = drawWave;
 
 // ---------- Speichern -----------------------------------------------------
 bSave.onclick = () => {
@@ -594,7 +666,8 @@ bSave.onclick = () => {
   setTimeout(() => bSave.textContent = '💾 Speichern für Claude', 4000);
 };
 
-window.addEventListener('resize', () => { drawCap(); drawPip(); updPhLabel(); });
+window.addEventListener('resize', () => { drawCap(); drawPip(); updPhLabel();
+  drawWave(); });
 applyProjekt(window.PROJEKT || {});
 drawZones();
 </script></body></html>
