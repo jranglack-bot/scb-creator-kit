@@ -1,0 +1,292 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8">
+<title>SCB Video-Cockpit</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+body { font-family:'Segoe UI',sans-serif; background:#16181d; color:#e8e8ee;
+  display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+header { display:flex; align-items:center; gap:16px; padding:10px 18px;
+  background:#1e2128; border-bottom:1px solid #2c303a; }
+header h1 { font-size:17px; font-weight:700; }
+header .hint { font-size:12px; opacity:.55; flex:1; }
+button { background:#2c303a; color:#e8e8ee; border:0; border-radius:8px;
+  padding:8px 14px; font-size:13px; cursor:pointer; }
+button:hover { background:#3a3f4d; }
+button.primary { background:#FFD400; color:#16181d; font-weight:700; }
+button.on { outline:2px solid #FFD400; }
+main { flex:1; display:flex; min-height:0; }
+#stagewrap { flex:1; display:flex; align-items:center; justify-content:center;
+  background:#0d0e11; position:relative; }
+#stage { position:relative; height:92%; aspect-ratio:9/16; background:#000;
+  overflow:hidden; border-radius:10px; }
+#stage video { position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; }
+#pipbox { position:absolute; border:3px solid #FFD400; border-radius:6px;
+  cursor:move; display:none; box-shadow:0 0 0 2000px rgba(0,0,0,.25); }
+#pipbox .rs { position:absolute; right:-8px; bottom:-8px; width:16px;
+  height:16px; background:#FFD400; border-radius:50%; cursor:nwse-resize; }
+#pipbox .lbl { position:absolute; top:-24px; left:0; font-size:11px;
+  color:#FFD400; white-space:nowrap; }
+#capbox { position:absolute; left:5%; width:90%; text-align:center;
+  cursor:ns-resize; font-weight:800; line-height:1.25;
+  text-shadow:0 0 6px #000,0 0 12px #000,2px 2px 2px #000; }
+#capbox em { font-style:normal; }
+.guide { position:absolute; pointer-events:none; border:1px dashed
+  rgba(255,80,80,.55); display:none; }
+#g-top { left:0; right:0; top:15%; border-width:1px 0 0 0; }
+#g-bot { left:0; right:0; top:80%; border-width:1px 0 0 0; }
+#g-right { top:0; bottom:0; right:15%; border-width:0 1px 0 0; }
+aside { width:280px; background:#1e2128; border-left:1px solid #2c303a;
+  padding:14px; overflow-y:auto; font-size:13px; }
+aside h2 { font-size:12px; text-transform:uppercase; letter-spacing:1px;
+  opacity:.6; margin:14px 0 8px; }
+aside h2:first-child { margin-top:0; }
+.row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.row label { flex:1; opacity:.85; }
+input[type=range] { width:110px; }
+input[type=color] { width:34px; height:24px; border:0; background:none;
+  cursor:pointer; }
+#cutlist { font-size:12px; }
+#cutlist .c { padding:7px 8px; border-radius:6px; margin-bottom:5px;
+  background:#262a33; cursor:pointer; display:flex; gap:8px;
+  align-items:center; }
+#cutlist .c.inactive { opacity:.4; text-decoration:line-through; }
+#cutlist .c:hover { background:#303541; }
+#cutlist .t { color:#ff7a7a; font-variant-numeric:tabular-nums; }
+footer { background:#1e2128; border-top:1px solid #2c303a; padding:10px 18px 16px; }
+#tlwrap { position:relative; }
+#tl { position:relative; height:56px; background:#262a33; border-radius:8px;
+  cursor:pointer; overflow:hidden; }
+#tl .cut { position:absolute; top:0; bottom:0;
+  background:rgba(255,70,70,.42); border-left:1px solid #ff5050;
+  border-right:1px solid #ff5050; }
+#tl .cut.inactive { background:rgba(255,70,70,.10); border-color:#7a4040; }
+#tl .h { position:absolute; top:0; bottom:0; width:10px; cursor:ew-resize; }
+#tl .h.l { left:-5px; } #tl .h.r { right:-5px; }
+#playhead { position:absolute; top:-4px; bottom:-4px; width:2px;
+  background:#FFD400; pointer-events:none; }
+#tlinfo { display:flex; justify-content:space-between; font-size:11px;
+  opacity:.55; margin-top:6px; }
+</style></head><body>
+<header>
+  <h1>🎬 SCB Video-Cockpit</h1>
+  <span class="hint">Schnitte: ziehen an den Kanten · Doppelklick = an/aus · Untertitel: hoch/runter ziehen · Bild-im-Bild: ziehen & Ecke skalieren</span>
+  <button id="bPrev">Vorschau: Schnitte überspringen</button>
+  <button id="bGuides">Safe-Zones</button>
+  <button id="bSave" class="primary">💾 Speichern für Claude</button>
+</header>
+<main>
+  <div id="stagewrap"><div id="stage">
+    <video id="v"></video>
+    <div id="pipbox"><span class="lbl">Bild-im-Bild — ziehen / Ecke = Größe</span><span class="rs"></span></div>
+    <div id="capbox"></div>
+    <div class="guide" id="g-top"></div><div class="guide" id="g-bot"></div><div class="guide" id="g-right"></div>
+  </div></div>
+  <aside>
+    <h2>Untertitel</h2>
+    <div class="row"><label>Anzeigen</label><input type="checkbox" id="capOn" checked></div>
+    <div class="row"><label>Größe</label><input type="range" id="capSize" min="36" max="110" value="64"><span id="capSizeV">64</span></div>
+    <div class="row"><label>Textfarbe</label><input type="color" id="capPrim" value="#FFFFFF"></div>
+    <div class="row"><label>Highlight</label><input type="color" id="capHi" value="#FFD400"></div>
+    <h2>Bild-im-Bild</h2>
+    <div class="row"><label>Aktiv</label><input type="checkbox" id="pipOn"></div>
+    <h2>Schnitte <span id="cutcount"></span></h2>
+    <div id="cutlist"></div>
+  </aside>
+</main>
+<footer>
+  <div id="tlwrap"><div id="tl"></div><div id="playhead"></div></div>
+  <div id="tlinfo"><span id="tCur">0:00.0</span><span>Rot = wird herausgeschnitten</span><span id="tDur">0:00.0</span></div>
+</footer>
+<script>
+const P = /*__PROJEKT_JSON__*/{};
+const v = document.getElementById('v'), tl = document.getElementById('tl'),
+  stage = document.getElementById('stage'), cap = document.getElementById('capbox'),
+  pip = document.getElementById('pipbox'), ph = document.getElementById('playhead');
+let dur = P.duration || 0, preview = false, cues = [];
+
+v.src = P.video;
+v.addEventListener('loadedmetadata', () => { dur = v.duration; renderTL(); fmtDur(); });
+v.addEventListener('click', () => v.paused ? v.play() : v.pause());
+
+// ---------- Untertitel-Cues aus Wortliste (wie animated_captions.py) ------
+function buildCues() {
+  cues = []; let cur = [];
+  const words = (P.words || []).filter(w => (w.type || 'word') === 'word');
+  const g = (P.captions && P.captions.group) || 3;
+  for (const w of words) {
+    if (cur.length && (cur.length >= g || w.start - cur[cur.length-1].end > 0.6)) {
+      cues.push(cur); cur = [];
+    }
+    cur.push(w);
+  }
+  if (cur.length) cues.push(cur);
+}
+buildCues();
+
+// ---------- Zustand aus projekt.json --------------------------------------
+const C = P.captions = Object.assign(
+  { enabled:true, size:64, y:0.72, primary:'#FFFFFF', highlight:'#FFD400', group:3 },
+  P.captions || {});
+const PIP = P.pip = Object.assign(
+  { enabled:false, x:0.5, y:0.10, scale:0.58 }, P.pip || {});
+P.cuts = (P.cuts || []).map(c => Object.assign({ active:true }, c));
+
+capOn.checked = C.enabled; capSize.value = C.size; capSizeV.textContent = C.size;
+capPrim.value = ('#'+String(C.primary).replace('#','')).slice(0,7);
+capHi.value = ('#'+String(C.highlight).replace('#','')).slice(0,7);
+pipOn.checked = PIP.enabled;
+
+// ---------- Anzeige-Updates ----------------------------------------------
+function scaleFactor() { return stage.clientWidth / 1080; }
+function drawCap() {
+  cap.style.display = capOn.checked ? 'block' : 'none';
+  cap.style.fontSize = (capSize.value * scaleFactor()) + 'px';
+  cap.style.color = capPrim.value;
+  cap.style.top = (C.y * 100) + '%';
+  const t = v.currentTime;
+  const cue = cues.find(c => t >= c[0].start && t <= c[c.length-1].end + 0.05);
+  if (!cue) { cap.innerHTML = '&nbsp;'; return; }
+  cap.innerHTML = cue.map(w =>
+    (t >= w.start && (t <= w.end || w === cue[cue.length-1]))
+      ? `<em style="color:${capHi.value}">${w.text}</em>` : w.text).join(' ');
+}
+function drawPip() {
+  pip.style.display = pipOn.checked ? 'block' : 'none';
+  const w = PIP.scale * stage.clientWidth;
+  pip.style.width = w + 'px'; pip.style.height = (w * 16/9) + 'px';
+  pip.style.left = (PIP.x * stage.clientWidth - w/2) + 'px';
+  pip.style.top = (PIP.y * stage.clientHeight) + 'px';
+}
+capOn.oninput = drawCap;
+capSize.oninput = () => { C.size = +capSize.value; capSizeV.textContent = capSize.value; drawCap(); };
+capPrim.oninput = () => { C.primary = capPrim.value; drawCap(); };
+capHi.oninput = () => { C.highlight = capHi.value; drawCap(); };
+pipOn.oninput = () => { PIP.enabled = pipOn.checked; drawPip(); };
+
+// ---------- Dragging: Untertitel (vertikal) -------------------------------
+cap.addEventListener('pointerdown', e => {
+  e.preventDefault(); cap.setPointerCapture(e.pointerId);
+  const move = ev => {
+    const r = stage.getBoundingClientRect();
+    C.y = Math.min(0.88, Math.max(0.05, (ev.clientY - r.top) / r.height));
+    drawCap();
+  };
+  const up = () => { cap.removeEventListener('pointermove', move);
+    cap.removeEventListener('pointerup', up); };
+  cap.addEventListener('pointermove', move); cap.addEventListener('pointerup', up);
+});
+
+// ---------- Dragging: PiP (Position + Größe) ------------------------------
+pip.addEventListener('pointerdown', e => {
+  if (e.target.classList.contains('rs')) return;
+  e.preventDefault(); pip.setPointerCapture(e.pointerId);
+  const move = ev => {
+    const r = stage.getBoundingClientRect();
+    PIP.x = Math.min(0.95, Math.max(0.05, (ev.clientX - r.left) / r.width));
+    PIP.y = Math.min(0.8, Math.max(0.0, (ev.clientY - r.top) / r.height));
+    drawPip();
+  };
+  const up = () => { pip.removeEventListener('pointermove', move);
+    pip.removeEventListener('pointerup', up); };
+  pip.addEventListener('pointermove', move); pip.addEventListener('pointerup', up);
+});
+pip.querySelector('.rs').addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  const el = e.target; el.setPointerCapture(e.pointerId);
+  const move = ev => {
+    const r = stage.getBoundingClientRect();
+    const w = Math.abs(ev.clientX - (r.left + PIP.x * r.width - (PIP.scale*r.width)/2));
+    PIP.scale = Math.min(0.95, Math.max(0.2, w / r.width));
+    drawPip();
+  };
+  const up = () => { el.removeEventListener('pointermove', move);
+    el.removeEventListener('pointerup', up); };
+  el.addEventListener('pointermove', move); el.addEventListener('pointerup', up);
+});
+
+// ---------- Timeline ------------------------------------------------------
+function renderTL() {
+  tl.querySelectorAll('.cut').forEach(n => n.remove());
+  P.cuts.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'cut' + (c.active ? '' : ' inactive');
+    d.style.left = (c.start / dur * 100) + '%';
+    d.style.width = (Math.max(0.15, c.end - c.start) / dur * 100) + '%';
+    d.title = (c.reason || 'Schnitt') + ' — Doppelklick: an/aus';
+    d.innerHTML = '<span class="h l"></span><span class="h r"></span>';
+    d.addEventListener('dblclick', ev => { ev.stopPropagation();
+      c.active = !c.active; renderTL(); renderList(); });
+    d.addEventListener('pointerdown', ev => {
+      if (!ev.target.classList.contains('h')) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const left = ev.target.classList.contains('l');
+      const h = ev.target; h.setPointerCapture(ev.pointerId);
+      const move = e2 => {
+        const r = tl.getBoundingClientRect();
+        const t = Math.min(dur, Math.max(0, (e2.clientX - r.left) / r.width * dur));
+        if (left) c.start = Math.min(t, c.end - 0.05);
+        else c.end = Math.max(t, c.start + 0.05);
+        renderTL(); renderList();
+      };
+      const up = () => { h.removeEventListener('pointermove', move);
+        h.removeEventListener('pointerup', up); };
+      h.addEventListener('pointermove', move); h.addEventListener('pointerup', up);
+    });
+    tl.appendChild(d);
+  });
+  renderList();
+}
+function renderList() {
+  const fmt = t => Math.floor(t/60) + ':' + (t%60).toFixed(1).padStart(4,'0');
+  cutcount.textContent = '(' + P.cuts.filter(c=>c.active).length + ' aktiv)';
+  cutlist.innerHTML = '';
+  P.cuts.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'c' + (c.active ? '' : ' inactive');
+    d.innerHTML = `<span class="t">${fmt(c.start)}–${fmt(c.end)}</span>
+      <span style="flex:1">${c.reason || ''}</span>`;
+    d.onclick = () => { v.currentTime = Math.max(0, c.start - 1); v.play(); };
+    d.ondblclick = () => { c.active = !c.active; renderTL(); };
+    cutlist.appendChild(d);
+  });
+}
+tl.addEventListener('click', e => {
+  const r = tl.getBoundingClientRect();
+  v.currentTime = (e.clientX - r.left) / r.width * dur;
+});
+
+// ---------- Wiedergabe: Schnitte überspringen -----------------------------
+bPrev.onclick = () => { preview = !preview; bPrev.classList.toggle('on', preview); };
+bGuides.onclick = () => {
+  const show = document.getElementById('g-top').style.display !== 'block';
+  document.querySelectorAll('.guide').forEach(g => g.style.display = show ? 'block' : 'none');
+  bGuides.classList.toggle('on', show);
+};
+v.addEventListener('timeupdate', () => {
+  if (preview) {
+    const c = P.cuts.find(c => c.active && v.currentTime >= c.start && v.currentTime < c.end);
+    if (c) v.currentTime = c.end + 0.01;
+  }
+  ph.style.left = (v.currentTime / dur * tl.clientWidth) + 'px';
+  tCur.textContent = fmtT(v.currentTime);
+  drawCap();
+});
+function fmtT(t){ return Math.floor(t/60)+':'+(t%60).toFixed(1).padStart(4,'0'); }
+function fmtDur(){ tDur.textContent = fmtT(dur); }
+
+// ---------- Speichern -----------------------------------------------------
+bSave.onclick = () => {
+  C.enabled = capOn.checked; PIP.enabled = pipOn.checked;
+  C.primary = capPrim.value.replace('#',''); C.highlight = capHi.value.replace('#','');
+  const out = JSON.stringify(P, null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([out], {type:'application/json'}));
+  a.download = 'projekt.json';
+  a.click();
+  bSave.textContent = '✓ Gespeichert (Downloads) — sag Claude Bescheid';
+  setTimeout(() => bSave.textContent = '💾 Speichern für Claude', 4000);
+};
+
+window.addEventListener('resize', () => { drawCap(); drawPip(); });
+drawCap(); drawPip(); renderTL();
+</script></body></html>

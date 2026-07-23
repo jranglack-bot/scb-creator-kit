@@ -23,6 +23,7 @@ einem Setup-Assistenten.
 | **reel-posting** | Auto-Posting-System mit Airtable + Make bauen | „Richte mein Auto-Posting ein" |
 | **sfx-extraktion** | Soundeffekte aus Reels/Videos herausschneiden — automatische Erkennung in SFX-Compilation-Reels, Ablage als MP3 in deiner Bibliothek | „Hol mir den Sound aus dem Reel" |
 | **karussell-posts** | Komplette Instagram-Karussells (1080×1350): Texte nach Hook-Formel, gebrandete Folien aus Templates (gerendert vom vorinstallierten Browser — nichts zu installieren), Kontrolle über einen Kontaktbogen | „Mach mir ein Karussell zu [Thema]" |
+| **video-projekt** | Projekt-Modus mit Video-Cockpit: Browser-Editor zum Schnitte-Verschieben (Timeline mit rot markierten Schnitten), Untertitel-Ziehen und Bild-im-Bild-Skalieren — Feinarbeit kostet 0 Tokens; Stufen-Rendering + Editierbar-Export für Canva/CapCut (Master + SRT) | „Ich will die Schnitte selbst prüfen" / „Mach es editierbar" |
 | **obsidian-gehirn** | Claude merkt sich alles über dich in deinem Obsidian-Vault | „Verbinde Obsidian" |
 
 Zusätzlich empfiehlt und installiert der Setup-Assistent auf Wunsch zwei
@@ -68,4 +69,4 @@ Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen 
 
 ---
 
-Made with ❤️ für die SCB Community · v0.17.1
+Made with ❤️ für die SCB Community · v0.18.0
