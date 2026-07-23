@@ -65,6 +65,31 @@ lokal nicht direkt zurückschreiben). Wenn der Nutzer „fertig" sagt: neueste
 `projekt.json` aus `%USERPROFILE%\Downloads` in den Projektordner
 verschieben (alte ersetzen), dann rendern.
 
+### 2b. Schnitte pro Element (`cuts_apply` aus dem Cockpit)
+
+Das Cockpit speichert, worauf die Schnitte wirken — beim Rendern so mappen:
+
+| `cuts_apply` | prolook-`input` (kleines Fenster) | `pip.background` (großes Video) | Extras |
+|---|---|---|---|
+| `both` | `01_schnitt.mp4` | `01_schnitt.mp4` | — |
+| `main` (Erklärvideo) | `original.mp4` (ungeschnitten = Ton-/Zeit-Master) | `01_schnitt.mp4` | `pip.background_end: "freeze"` (großes Video friert am Ende ein statt zu loopen) |
+| `pip` | `01_schnitt.mp4` | `original.mp4` | — |
+
+Untertitel-Wortzeiten dabei passend wählen: Sie folgen dem TON — also der
+Datei, die als `input` läuft (bei `main` = Original-Zeiten unverändert!).
+
+### 2c. Claude arbeitet im Projekt mit (Roundtrip)
+
+Sagt der User z. B. „setz noch einen Schnitt bei 20–22" oder „ändere die
+Schriftfarbe": ERST prüfen, ob er im Cockpit ungespeicherte Änderungen hat
+(„Hast du im Cockpit gespeichert? Sonst geht deine Maus-Arbeit verloren") —
+ggf. neueste projekt.json aus Downloads einspielen. Dann projekt.json
+ändern, `build_editor.py` neu ausführen, User drückt F5. Kosten: eine
+JSON-Änderung.
+
+Die Untertitel-`font` aus dem Cockpit (Windows-Systemschriften-Dropdown)
+als `--font` an `animated_captions.py` durchreichen.
+
 ### 3. Stufen-Rendering (Zeit sparen, nichts doppelt tun)
 - **Stufe 1 — Schnitt:** nur wenn sich `cuts` geändert haben (oder noch
   kein `01_schnitt.mp4` existiert): Keep-Segmente aus den aktiven Cuts

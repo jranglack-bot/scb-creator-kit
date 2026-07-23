@@ -118,11 +118,22 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:12px 18px 16p
   <aside>
     <h2>Untertitel</h2>
     <div class="row"><label>Anzeigen</label><input type="checkbox" id="capOn" checked></div>
+    <div class="row"><label>Schrift</label>
+      <select id="capFont" style="background:#313642;color:#e8e8ee;border:0;border-radius:6px;padding:5px 8px;font-size:12px;max-width:150px">
+        <option>Segoe UI</option><option>Segoe UI Black</option>
+        <option>Arial Black</option><option>Impact</option>
+        <option>Bahnschrift</option><option>Verdana</option>
+        <option>Georgia</option><option>Trebuchet MS</option>
+      </select></div>
     <div class="row"><label>Größe</label><input type="range" id="capSize" min="36" max="110" value="64"><span id="capSizeV">64</span></div>
     <div class="row"><label>Textfarbe</label><input type="color" id="capPrim" value="#FFFFFF"></div>
     <div class="row"><label>Highlight</label><input type="color" id="capHi" value="#FFD400"></div>
     <h2>Bild-im-Bild</h2>
     <div class="row"><label>Aktiv</label><input type="checkbox" id="pipOn"></div>
+    <h2>Schnitte gelten für</h2>
+    <div class="row"><label><input type="radio" name="capply" value="both" checked> beide Videos</label></div>
+    <div class="row"><label><input type="radio" name="capply" value="main"> nur großes Video<br><span style="font-size:11px;opacity:.55">(kleines läuft ungeschnitten durch, z. B. Erklärvideo)</span></label></div>
+    <div class="row"><label><input type="radio" name="capply" value="pip"> nur kleines Video</label></div>
     <h2>Schnitte <span id="cutcount"></span></h2>
     <div id="cutlist"></div>
   </aside>
@@ -182,11 +193,20 @@ capSizeV.textContent = C.size;
 capPrim.value = ('#'+String(C.primary).replace('#','')).slice(0,7);
 capHi.value = ('#'+String(C.highlight).replace('#','')).slice(0,7);
 pipOn.checked = !!PIP.enabled;
+C.font = C.font || 'Segoe UI';
+capFont.value = C.font;
+capFont.oninput = () => { C.font = capFont.value; drawCap(); };
+P.cuts_apply = P.cuts_apply || 'both';
+document.querySelectorAll('input[name=capply]').forEach(r => {
+  r.checked = (r.value === P.cuts_apply);
+  r.onchange = () => { if (r.checked) P.cuts_apply = r.value; };
+});
 
 function scaleFactor(){ return stage.clientWidth / 1080; }
 function drawCap(){
   cap.style.display = (capOn.checked && cues.length) ? 'block' : 'none';
   cap.style.fontSize = (capSize.value * scaleFactor()) + 'px';
+  cap.style.fontFamily = "'" + (C.font || 'Segoe UI') + "',sans-serif";
   cap.style.color = capPrim.value;
   cap.style.top = (C.y * 100) + '%';
   const t = v.currentTime;
@@ -258,23 +278,27 @@ function renderTL(){
       h.addEventListener('pointerdown', ev => {
         ev.preventDefault(); ev.stopPropagation();
         const left = h.classList.contains('l');
-        h.setPointerCapture(ev.pointerId);
         tip.style.display = 'block';
+        // WICHTIG: Listener am Fenster + nur Styles anpassen — die
+        // Timeline darf WAEHREND des Ziehens nicht neu gebaut werden,
+        // sonst stirbt der gezogene Griff (das war der Kleb-Bug).
         const move = e2 => {
           const r = tl.getBoundingClientRect();
           const t = Math.min(dur, Math.max(0, (e2.clientX - r.left) / r.width * dur));
           if (left) c.start = Math.min(Math.round(t*10)/10, c.end - 0.1);
           else c.end = Math.max(Math.round(t*10)/10, c.start + 0.1);
+          d.style.left = (c.start / dur * 100) + '%';
+          d.style.width = (Math.max(0.3, c.end - c.start) / dur * 100) + '%';
           tip.textContent = (left ? 'Anfang: ' : 'Ende: ') + fmt(left ? c.start : c.end);
-          tip.style.left = (e2.clientX - tl.getBoundingClientRect().left - 20) + 'px';
+          tip.style.left = (e2.clientX - r.left - 20) + 'px';
           v.currentTime = left ? c.start : c.end;
-          renderTL(); renderList();
         };
         const up = () => { tip.style.display = 'none';
-          h.removeEventListener('pointermove', move);
-          h.removeEventListener('pointerup', up); };
-        h.addEventListener('pointermove', move);
-        h.addEventListener('pointerup', up);
+          window.removeEventListener('pointermove', move);
+          window.removeEventListener('pointerup', up);
+          renderTL(); };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
       });
     });
     tl.appendChild(d);

@@ -64,15 +64,24 @@ def main():
     # --- Picture-in-Picture ------------------------------------------------
     pip = cfg.get('pip') or {}
     if pip.get('enabled'):
-        inputs += ['-stream_loop', '-1', '-i', pip['background']]
+        # background_end: 'loop' (Standard) laesst das grosse Video neu
+        # starten, wenn es kuerzer ist als das kleine; 'freeze' friert den
+        # letzten Frame ein (z. B. Erklaervideo: kleines Video ungeschnitten
+        # als Ton-/Zeit-Master, grosses geschnitten).
+        freeze = pip.get('background_end', 'loop') == 'freeze'
+        if freeze:
+            inputs += ['-i', pip['background']]
+        else:
+            inputs += ['-stream_loop', '-1', '-i', pip['background']]
         bg_idx = n_in
         n_in += 1
         fgw = int(W * float(pip.get('fg_scale', 0.82)) // 2 * 2)
         border = int(pip.get('border_px', 6))
         bcolor = pip.get('border_color', 'white')
         ypos = float(pip.get('y_pos', 0.30))
+        tpad = ',tpad=stop_mode=clone:stop=-1' if freeze else ''
         fc.append('[{}:v]scale={}:{}:force_original_aspect_ratio=increase,'
-                  'crop={}:{},setsar=1[bg]'.format(bg_idx, W, H, W, H))
+                  'crop={}:{},setsar=1{}[bg]'.format(bg_idx, W, H, W, H, tpad))
         fc.append('{}scale={}:-2,pad=iw+{}:ih+{}:{}:{}:{}[fg]'
                   .format(vlabel, fgw, border * 2, border * 2,
                           border, border, bcolor))
