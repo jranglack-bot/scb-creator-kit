@@ -102,6 +102,12 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
   background:#FFD400; color:#16181d; font-size:11px; font-weight:700;
   padding:2px 7px; border-radius:6px; pointer-events:none; z-index:4;
   font-variant-numeric:tabular-nums; white-space:nowrap; }
+#phgrab { position:absolute; top:-8px; bottom:-8px; width:18px;
+  transform:translateX(-50%); cursor:grab; z-index:5; }
+#phgrab:active { cursor:grabbing; }
+#phgrab::after { content:''; position:absolute; top:0; left:50%;
+  transform:translateX(-50%); border:8px solid transparent;
+  border-top:10px solid #FFD400; }
 #tl .cut { cursor:grab; }
 #tl .cut:active { cursor:grabbing; }
 #tlinfo { display:flex; justify-content:space-between; font-size:11px;
@@ -154,7 +160,7 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
 </main>
 <footer>
   <div id="ruler"></div>
-  <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div><div id="phlabel">0:00.0</div></div>
+  <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div><div id="phgrab" title="Festhalten und ziehen = präzise spulen"></div><div id="phlabel">0:00.0</div></div>
   <div id="tlinfo"><span>Klick = springen · Auf freier Fläche AUFZIEHEN = neuer Schnitt</span><span id="tDur">0:00.0</span></div>
 </footer>
 <script>
@@ -491,10 +497,32 @@ v.addEventListener('timeupdate', () => {
 function updPhLabel(){
   const lbl = document.getElementById('phlabel');
   const x = v.currentTime / dur * tl.clientWidth;
+  ph.style.left = x + 'px';
+  document.getElementById('phgrab').style.left = x + 'px';
   lbl.style.left = Math.min(tl.clientWidth - 30, Math.max(30, x)) + 'px';
   lbl.textContent = fmtT(v.currentTime);
 }
 v.addEventListener('seeked', updPhLabel);
+
+// ---------- Laeufer greifen und praezise ziehen (Scrubbing) ---------------
+document.getElementById('phgrab').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  const wasPlaying = !v.paused;
+  v.pause();
+  const move = ev => {
+    const r = tl.getBoundingClientRect();
+    const t = Math.min(dur, Math.max(0, (ev.clientX - r.left) / r.width * dur));
+    v.currentTime = t;
+    updPhLabel();
+  };
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    if (wasPlaying) v.play();
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+});
 pv.addEventListener('timeupdate', () => {
   if (preview && (P.cuts_apply || 'both') === 'pip') {
     const c = P.cuts.find(c => c.active && pv.currentTime >= c.start && pv.currentTime < c.end);
