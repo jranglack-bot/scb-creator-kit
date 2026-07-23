@@ -76,10 +76,12 @@ def main():
         fc.append('{}scale={}:-2,pad=iw+{}:ih+{}:{}:{}:{}[fg]'
                   .format(vlabel, fgw, border * 2, border * 2,
                           border, border, bcolor))
-        # y_pos = Abstand der OBERKANTE des Fensters vom oberen Rand
-        # (Anteil der Hoehe). 0.06 = knapp unter der Instagram-Tabuzone.
-        fc.append('[bg][fg]overlay=(W-w)/2:{}*H:shortest=1[pipd]'
-                  .format(ypos))
+        # y_pos = Abstand der OBERKANTE vom oberen Rand (Anteil der Hoehe).
+        # x = ZENTRUM des Fensters als Anteil der Breite (wie im Cockpit);
+        # Default 0.5 = mittig.
+        xpos = float(pip.get('x', 0.5))
+        fc.append("[bg][fg]overlay='{}*W-w/2':{}*H:shortest=1[pipd]"
+                  .format(xpos, ypos))
         vlabel = '[pipd]'
 
     # --- Punch-In pro Segment ---------------------------------------------
