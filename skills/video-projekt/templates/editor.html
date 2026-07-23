@@ -172,9 +172,12 @@ const v = document.getElementById('v'), pv = document.getElementById('pv'),
   bigplay = document.getElementById('bigplay');
 let dur = P.duration || 0, preview = false, cues = [];
 
-v.src = P.video; pv.src = P.video;
+v.src = P.video;
+// Bild-im-Bild kann eine EIGENE Quelle haben (pip.source), sonst dasselbe Video
+const pipSrc = (P.pip && P.pip.source) || P.video;
+pv.src = pipSrc;
 document.getElementById('piplbl').textContent =
-  'Bild-im-Bild (' + (P.video || '') + ') — ziehen / Ecke = Größe';
+  'Bild-im-Bild (' + pipSrc + ') — ziehen / Ecke = Größe';
 v.addEventListener('loadedmetadata', () => { dur = v.duration; renderTL();
   renderRuler(); tDur.textContent = fmtT(dur); updTC(); });
 
