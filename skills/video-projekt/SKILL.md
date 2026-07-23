@@ -52,8 +52,18 @@ die Schnittliste.
 > Schnitte verschieben, Untertitel ziehen und Bild-im-Bild anpassen kannst
 > — oder (c) du vertraust mir und ich rendere direkt."
 
-Cockpit-Weg: `python scripts/build_editor.py <projekt.json>` → editor.html
-per `Start-Process` öffnen. Der Nutzer arbeitet dort OHNE Token-Verbrauch:
+Cockpit-Weg — **EIN-TAB-PRINZIP (wichtig!):**
+`python scripts/build_editor.py <projekt.json>` erzeugt `editor.html`
+(statisch) + `projekt_data.js` (die Daten). Das offene Cockpit lädt die
+Daten-Datei alle 2,5 s selbst nach — **Änderungen von Claude erscheinen im
+offenen Tab von allein.** Deshalb: `Start-Process editor.html` NUR beim
+allerersten Erstellen des Cockpits. Bei jeder späteren Änderung NUR
+`build_editor.py` ausführen und dem User sagen „schau in deinen offenen
+Tab" — NIEMALS erneut öffnen (das erzeugt verwirrende Doppel-Tabs). Hat
+der User ungespeicherte Änderungen, zeigt das Cockpit einen
+Übernehmen/Behalten-Banner statt sie zu überschreiben.
+
+Der Nutzer arbeitet dort OHNE Token-Verbrauch:
 Timeline unten zeigt das GANZE Video, Schnitte rot, Kanten ziehbar,
 Doppelklick = Schnitt an/aus, „Vorschau: Schnitte überspringen" spielt das
 Video wie geschnitten. Untertitel: Live-Vorschau mit Wort-Highlight, per
