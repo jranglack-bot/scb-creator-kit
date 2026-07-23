@@ -240,6 +240,16 @@ def main():
     if tr_cfg.get('enabled') and pi_cfg.get('cuts'):
         final_dur = dur - len(pi_cfg['cuts']) * float(tr_cfg.get('duration', 0.3))
 
+    # --- Ton beider Videos mischen (audio_from: both aus dem Cockpit) ------
+    # pip.mix_audio: true -> Ton des pip.background wird zum Ton der
+    # input-Datei dazugemischt (Lautstaerke via pip.audio_gain, Standard 1.0)
+    if pip.get('enabled') and pip.get('mix_audio'):
+        fc.append('[{}:a]volume={}[bga]'.format(
+            bg_idx, pip.get('audio_gain', 1.0)))
+        fc.append('{}[bga]amix=inputs=2:duration=first:normalize=0[apip]'
+                  .format(lab(alabel)))
+        alabel = '[apip]'
+
     # --- Audio-Suite: Stimm-Mastering --------------------------------------
     vmc = cfg.get('voice_master') or {}
     if vmc.get('enabled'):

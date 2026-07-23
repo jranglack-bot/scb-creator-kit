@@ -160,6 +160,7 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
     <h2>Ton kommt von</h2>
     <div class="row"><label><input type="radio" name="audiofrom" value="main"> großem Video</label></div>
     <div class="row"><label><input type="radio" name="audiofrom" value="pip"> kleinem Video (Bild-im-Bild)</label></div>
+    <div class="row"><label><input type="radio" name="audiofrom" value="both"> beiden Videos (gemischt)</label></div>
     <h2>Schnitte gelten für</h2>
     <div class="row"><label><input type="radio" name="capply" value="both"> beide Videos</label></div>
     <div class="row"><label><input type="radio" name="capply" value="main"> nur großes Video<br><span style="font-size:11px;opacity:.55">(kleines läuft ungeschnitten durch)</span></label></div>
@@ -312,7 +313,7 @@ document.querySelectorAll('input[name=capply]').forEach(r => {
 // Ton-Quelle: stummschalten je nach Auswahl (Vorschau = wie der Render)
 function applyAudio(){
   v.muted = (P.audio_from === 'pip');
-  pv.muted = (P.audio_from !== 'pip');
+  pv.muted = (P.audio_from === 'main');
 }
 document.querySelectorAll('input[name=audiofrom]').forEach(r => {
   r.onchange = () => { if (r.checked) { P.audio_from = r.value; touch();

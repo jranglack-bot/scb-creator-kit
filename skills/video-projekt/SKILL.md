@@ -88,12 +88,16 @@ Das Cockpit speichert, worauf die Schnitte wirken — beim Rendern so mappen:
 Untertitel-Wortzeiten dabei passend wählen: Sie folgen dem TON — also der
 Datei, die als `input` läuft (bei `main` = Original-Zeiten unverändert!).
 
-**Ton-Quelle (`audio_from` aus dem Cockpit):** `main` oder `pip` — beim
-Rendern gilt: Der Ton kommt IMMER aus der prolook-`input`-Datei. Also die
-Datei mit dem gewünschten Ton als `input` setzen und die andere als
-`pip.background` (das Layout — wer groß/klein ist — steuern `pip.x/y/scale`
-unabhängig davon). Die Cockpit-Vorschau schaltet exakt so stumm wie der
-Render.
+**Ton-Quelle (`audio_from` aus dem Cockpit):** `main`, `pip` oder `both` —
+beim Rendern gilt: Der Ton kommt aus der prolook-`input`-Datei. Also bei
+`main`/`pip` die Datei mit dem gewünschten Ton als `input` setzen und die
+andere als `pip.background` (das Layout — wer groß/klein ist — steuern
+`pip.x/y/scale` unabhängig davon). Bei `both` die `input`-Wahl einfach nach
+der `cuts_apply`-Tabelle treffen und zusätzlich `"mix_audio": true` in die
+`pip`-Config setzen — prolook mischt dann den Ton des `pip.background`
+dazu (Lautstärke-Balance optional via `pip.audio_gain`, Standard 1.0). Die
+Cockpit-Vorschau schaltet exakt so stumm wie der Render (bei `both` spielen
+beide).
 
 ### 2c. Claude arbeitet im Projekt mit (Roundtrip)
 
