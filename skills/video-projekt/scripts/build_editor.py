@@ -50,6 +50,12 @@ def build_waveforms(projekt, projdir):
     src = (projekt.get('pip') or {}).get('source')
     if src and src not in videos:
         videos.append(src)
+    mus = (projekt.get('music') or {}).get('file')
+    if mus and mus not in videos:
+        videos.append(mus)
+    voi = (projekt.get('voiceover') or {}).get('file')
+    if voi and voi not in videos:
+        videos.append(voi)
     wf_path = os.path.join(projdir, 'waveform_data.js')
     wf = {}
     if os.path.exists(wf_path):
@@ -83,6 +89,15 @@ def main():
     with open(pj_path, encoding='utf-8-sig') as f:
         projekt = json.load(f)
     projekt['rev'] = int(time.time())
+    # Videodateien im Projektordner -> Dropdown "anderes kleines Video"
+    # (nur Anzeige-Info; das Cockpit speichert _dateien nicht zurueck)
+    projekt['_dateien'] = sorted(
+        f for f in os.listdir(projdir)
+        if f.lower().endswith(('.mp4', '.mov', '.mkv', '.m4v')))
+    projekt['_audiodateien'] = sorted(
+        f for f in os.listdir(projdir)
+        if f.lower().endswith(('.mp3', '.wav', '.m4a', '.aac', '.ogg',
+                               '.webm', '.flac')))
 
     payload = json.dumps(projekt, ensure_ascii=False)
     payload = payload.replace('</', '<\\/')
@@ -97,6 +112,40 @@ def main():
     dest = os.path.join(projdir, 'editor.html')
     existed = os.path.exists(dest)
     shutil.copyfile(tpl, dest)
+
+    # Eigene Erweiterungen des Nutzers: cockpit_custom.js wird NIE
+    # ueberschrieben — Kit-Updates ersetzen nur editor.html. Fehlt die Datei,
+    # wird die globale Vorlage des Nutzers kopiert (falls vorhanden) oder ein
+    # leerer Platzhalter angelegt.
+    custom = os.path.join(projdir, 'cockpit_custom.js')
+    if not os.path.exists(custom):
+        glob_custom = os.path.join(os.path.expanduser('~'),
+                                   '.scb-creator-kit', 'cockpit_custom.js')
+        if os.path.exists(glob_custom):
+            shutil.copyfile(glob_custom, custom)
+            print('OK: Eigene Cockpit-Erweiterungen uebernommen ->', custom)
+        else:
+            with open(custom, 'w', encoding='utf-8') as f:
+                f.write(
+                    '// Eigene Cockpit-Erweiterungen — diese Datei wird bei\n'
+                    '// Kit-Updates NIE ueberschrieben. Alle Funktionen des\n'
+                    '// Cockpits sind global und koennen hier ergaenzt oder\n'
+                    '// ersetzt werden (danach ggf. renderTL() aufrufen).\n'
+                    '// Soll eine Erweiterung in ALLEN Projekten gelten:\n'
+                    '// Datei ablegen unter\n'
+                    '//   %USERPROFILE%\\.scb-creator-kit\\cockpit_custom.js\n')
+
+    # Doppelklick-Render: rendert das fertige MP4 ohne Claude (0 Tokens)
+    bat = os.path.join(projdir, 'video_rendern.bat')
+    rp = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                      'render_projekt.py')
+    with open(bat, 'w', encoding='cp1252', errors='replace', newline='') as f:
+        f.write('@echo off\r\n'
+                'echo SCB Video-Render laeuft - Fenster offen lassen ...\r\n'
+                'python "{}" "%~dp0projekt.json"\r\n'
+                'echo.\r\n'
+                'echo Fertig! Das Video liegt in diesem Ordner.\r\n'
+                'pause\r\n'.format(rp))
 
     print('OK: Daten aktualisiert ->', os.path.join(projdir, 'projekt_data.js'))
     if existed:

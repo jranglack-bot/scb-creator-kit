@@ -216,6 +216,10 @@ def main():
         # relativer Pfad noetig (Windows-Doppelpunkt im ass-Filter)
         post.append('ass={}'.format(os.path.basename(cfg['captions'])))
 
+    # --- Freie Text-Overlays (Hook/Titel, aus text_overlays.py) ------------
+    if cfg.get('text_overlays'):
+        post.append('ass={}'.format(os.path.basename(cfg['text_overlays'])))
+
     if post:
         fc.append('{}{}[vout]'.format(vlabel, ','.join(post)))
         vlabel = '[vout]'
@@ -240,6 +244,12 @@ def main():
     if tr_cfg.get('enabled') and pi_cfg.get('cuts'):
         final_dur = dur - len(pi_cfg['cuts']) * float(tr_cfg.get('duration', 0.3))
 
+    # --- Basis-Lautstaerke der input-Tonspur (Cockpit: Lautstaerke-Regler) --
+    in_gain = float(cfg.get('audio_gain', 1.0))
+    if in_gain != 1.0:
+        fc.append('{}volume={}[aing]'.format(lab(alabel), in_gain))
+        alabel = '[aing]'
+
     # --- Ton beider Videos mischen (audio_from: both aus dem Cockpit) ------
     # pip.mix_audio: true -> Ton des pip.background wird zum Ton der
     # input-Datei dazugemischt (Lautstaerke via pip.audio_gain, Standard 1.0)
@@ -249,6 +259,19 @@ def main():
         fc.append('{}[bga]amix=inputs=2:duration=first:normalize=0[apip]'
                   .format(lab(alabel)))
         alabel = '[apip]'
+
+    # --- Voiceover: zusaetzliche Sprechspur (Cockpit: Audio-Kachel) --------
+    # Wird VOR Mastering/Musik gemischt -> Ducking reagiert auch aufs
+    # Voiceover. Datei vorher wie den Ton-Master schneiden (siehe SKILL).
+    voc = cfg.get('voiceover') or {}
+    if voc.get('file'):
+        inputs += ['-i', voc['file']]
+        vo_idx = n_in
+        n_in += 1
+        fc.append('[{}:a]volume={}[voa]'.format(vo_idx, voc.get('gain', 1.0)))
+        fc.append('{}[voa]amix=inputs=2:duration=first:normalize=0[avoc]'
+                  .format(lab(alabel)))
+        alabel = '[avoc]'
 
     # --- Audio-Suite: Stimm-Mastering --------------------------------------
     vmc = cfg.get('voice_master') or {}
@@ -302,7 +325,8 @@ def main():
     cmd = (['ffmpeg', '-y'] + inputs +
            ['-filter_complex', ';'.join(fc),
             '-map', vlabel, '-map', amap,
-            '-c:v', 'libx264', '-crf', '20', '-preset', 'medium',
+            '-c:v', 'libx264', '-crf', str(cfg.get('crf', 20)),
+            '-preset', str(cfg.get('preset', 'medium')),
             '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k',
             '-movflags', '+faststart', cfg['output']])
     print('FFMPEG:', ' '.join(cmd))

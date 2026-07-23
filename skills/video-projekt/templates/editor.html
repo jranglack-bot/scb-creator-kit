@@ -26,7 +26,13 @@ button.on { outline:2px solid #FFD400; }
 #toast.show { opacity:1; }
 main { flex:1; display:flex; min-height:0; }
 #stagewrap { flex:1; display:flex; align-items:center; justify-content:center;
-  background:#0d0e11; position:relative; }
+  background:#0d0e11; position:relative; overflow:hidden; }
+#zoomui { position:absolute; left:12px; bottom:10px; z-index:8;
+  display:flex; gap:4px; align-items:center; background:rgba(22,24,29,.8);
+  border-radius:8px; padding:3px 6px; }
+#zoomui button { padding:3px 9px; font-size:13px; }
+#zoomLbl { font-size:11.5px; opacity:.75; min-width:42px; text-align:center;
+  cursor:pointer; font-variant-numeric:tabular-nums; }
 #stage { position:relative; height:92%; aspect-ratio:9/16; background:#000;
   overflow:hidden; border-radius:10px; }
 #stage > video { position:absolute; inset:0; width:100%; height:100%;
@@ -49,6 +55,41 @@ main { flex:1; display:flex; min-height:0; }
   cursor:ns-resize; font-weight:800; line-height:1.25; z-index:4;
   text-shadow:0 0 6px #000,0 0 12px #000,2px 2px 2px #000; }
 #capbox em { font-style:normal; }
+#capbox .capbg, .stagetext .capbg { padding:.08em .35em; border-radius:.18em;
+  box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+.capbg.blockbg { display:inline-block; padding:.18em .55em;
+  border-radius:.14em; box-decoration-break:slice;
+  -webkit-box-decoration-break:slice; }
+.stagetext { position:absolute; transform:translate(-50%,-50%);
+  text-align:center; cursor:move; z-index:5; display:none; line-height:1.3;
+  white-space:pre; width:max-content;
+  text-shadow:0 0 6px #000,0 0 12px #000,2px 2px 2px #000; }
+.stagetext .sh { display:none; position:absolute; width:14px; height:14px;
+  background:#ffd66e; border:2px solid #16181d; border-radius:50%; z-index:6; }
+.stagetext:hover .sh { display:block; }
+.stagetext .sh.w { right:-9px; top:50%; transform:translateY(-50%);
+  cursor:ew-resize; }
+.stagetext .sh.s { right:-9px; bottom:-9px; cursor:nwse-resize; }
+.ta-fade { animation:taFade .4s ease-out; }
+.ta-left { animation:taLeft .45s ease-out; }
+.ta-right { animation:taRight .45s ease-out; }
+.ta-up { animation:taUp .45s ease-out; }
+.ta-pop { animation:taPop .35s cubic-bezier(.2,1.6,.4,1); }
+@keyframes taFade { from { opacity:0; } }
+@keyframes taLeft { from { opacity:0; translate:-130px 0; } }
+@keyframes taRight { from { opacity:0; translate:130px 0; } }
+@keyframes taUp { from { opacity:0; translate:0 110px; } }
+@keyframes taPop { from { opacity:0; scale:.4; } }
+#tl .txt { position:absolute; top:0; bottom:0; cursor:grab; z-index:2;
+  background:rgba(255,214,110,.25); border:1px solid rgba(255,214,110,.8);
+  border-radius:4px; }
+#tl .txt.creating { background:rgba(255,214,110,.35); border-style:dashed; }
+#tl .txt .tlbl { position:absolute; left:4px; bottom:2px; font-size:10px;
+  color:#ffe9b3; pointer-events:none; white-space:nowrap; overflow:hidden;
+  max-width:calc(100% - 8px); }
+#tl .txt .h::before { background:#ffd66e; }
+textarea { user-select:text; background:#313642; border:0; border-radius:6px;
+  color:#e8e8ee; padding:5px 8px; font-size:12px; width:100%; resize:vertical; }
 .zone { position:absolute; pointer-events:none; display:none; z-index:2;
   background:repeating-linear-gradient(45deg, rgba(255,60,60,.30) 0px,
     rgba(255,60,60,.30) 8px, rgba(255,60,60,.08) 8px, rgba(255,60,60,.08) 16px);
@@ -65,17 +106,27 @@ aside { width:300px; background:#1e2128; border-left:1px solid #2c303a;
 aside h2 { font-size:12px; text-transform:uppercase; letter-spacing:1px;
   opacity:.6; margin:16px 0 8px; }
 aside h2:first-child { margin-top:0; }
+details.card { margin-bottom:8px; background:#22252c; border-radius:10px;
+  padding:0 10px 2px; border:1px solid #2c303a; }
+details.card > summary { list-style:none; cursor:pointer; font-size:12px;
+  text-transform:uppercase; letter-spacing:1px; opacity:.7; padding:9px 0;
+  display:flex; align-items:center; gap:7px; }
+details.card > summary::before { content:'▸'; font-size:10px;
+  transition:transform .15s; }
+details.card[open] > summary::before { transform:rotate(90deg); }
+details.card > summary::-webkit-details-marker { display:none; }
+details.card > summary:hover { opacity:1; }
 .row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
 .row label { flex:1; opacity:.85; }
 input[type=range] { width:110px; }
 input[type=color] { width:34px; height:24px; border:0; background:none; cursor:pointer; }
 select { background:#313642; color:#e8e8ee; border:0; border-radius:6px;
   padding:5px 8px; font-size:12px; max-width:150px; }
-#cutlist .c { padding:8px; border-radius:8px; margin-bottom:8px; background:#262a33; }
+#cutlist .c, #vollist .c { padding:8px; border-radius:8px; margin-bottom:8px; background:#262a33; }
 #cutlist .c.inactive { opacity:.45; }
-#cutlist .top { display:flex; align-items:center; gap:8px; cursor:pointer; }
-#cutlist .t { color:#ff7a7a; font-variant-numeric:tabular-nums; font-size:12px; }
-#cutlist .reason { flex:1; font-size:12px; opacity:.85; }
+#cutlist .top, #vollist .top { display:flex; align-items:center; gap:8px; cursor:pointer; }
+#cutlist .t, #vollist .t { color:#ff7a7a; font-variant-numeric:tabular-nums; font-size:12px; }
+#cutlist .reason, #vollist .reason { flex:1; font-size:12px; opacity:.85; }
 #cutlist .nudge { display:flex; gap:6px; margin-top:7px; align-items:center;
   font-size:11px; }
 #cutlist .nudge b { opacity:.6; font-weight:600; }
@@ -100,6 +151,13 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
 #tl .cut:active { cursor:grabbing; }
 #tl .cut.inactive { background:rgba(255,70,70,.10); }
 #tl .cut.creating { background:rgba(255,212,0,.35); border:1px dashed #FFD400; }
+#tl .vol { position:absolute; top:0; bottom:0; cursor:grab; z-index:2;
+  background:rgba(64,156,255,.25); border:1px solid rgba(64,156,255,.75);
+  border-radius:4px; }
+#tl .vol.creating { background:rgba(64,156,255,.35); border-style:dashed; }
+#tl .vol .vlbl { position:absolute; left:4px; bottom:2px; font-size:10px;
+  color:#bfe0ff; pointer-events:none; }
+#tl .vol .h::before { background:#4a9eff; }
 #tl .h { position:absolute; top:0; bottom:0; width:18px; cursor:ew-resize;
   display:flex; align-items:center; justify-content:center; z-index:2; }
 #tl .h::before { content:''; width:6px; height:60%; border-radius:3px;
@@ -123,14 +181,30 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
   border-top:10px solid #FFD400; }
 #tlinfo { display:flex; justify-content:space-between; font-size:11px;
   opacity:.55; margin-top:6px; }
+#songwrap { position:relative; height:30px; margin-top:8px; background:#1a1d23;
+  border-radius:6px; overflow:hidden; }
+#songwave { position:absolute; inset:0; width:100%; height:100%; }
+#songwin { position:absolute; top:0; bottom:0; background:rgba(190,140,255,.25);
+  border:1px solid #be8cff; border-radius:4px; cursor:grab; }
+#songwin:active { cursor:grabbing; }
+#songlbl { position:absolute; right:8px; top:2px; font-size:10px; opacity:.5;
+  pointer-events:none; }
+#cuelist { max-height:190px; overflow-y:auto; margin-bottom:4px; }
+.cue { display:flex; gap:6px; margin-bottom:4px; align-items:center; }
+.cue .ct { font-size:10px; opacity:.5; min-width:42px; cursor:pointer;
+  font-variant-numeric:tabular-nums; }
+.cue input { flex:1; min-width:0; background:#313642; border:0; border-radius:6px;
+  color:#e8e8ee; padding:4px 8px; font-size:12px; user-select:text; }
+.cue input:focus { outline:2px solid #FFD400; }
 </style></head><body>
 <header>
   <h1>🎬 SCB Video-Cockpit</h1>
   <button id="bPlay" title="Leertaste">▶</button>
   <span id="tc">0:00.0 / 0:00.0</span>
   <span class="hint">Rote Balken = wird herausgeschnitten. Kanten ziehen = trimmen · Mitte ziehen = verschieben · freie Fläche aufziehen = neuer Schnitt. Änderungen von Claude erscheinen hier automatisch.</span>
+  <button id="bTool" title="Werkzeug umschalten: Aufziehen in der Timeline erzeugt Schnitte (✂) oder Lautstärke-Abschnitte (🔊)">✂ Schneiden</button>
   <button id="bCutHere" title="Setzt einen neuen 1-Sekunden-Schnitt an der aktuellen Stelle">✂ Schnitt hier</button>
-  <button id="bPrev">Vorschau: wie geschnitten</button>
+  <button id="bPrev" title="Zeigt die herausgeschnittenen Stellen wieder — normal spielt das Cockpit immer das geschnittene Ergebnis">Rohmaterial zeigen</button>
   <button id="bGuides">Instagram-Zonen</button>
   <button id="bSave" class="primary">💾 Speichern für Claude</button>
 </header>
@@ -147,38 +221,100 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
     <div id="pipbox"><video id="pv" muted></video>
       <span class="lbl" id="piplbl"></span><span class="rs"></span></div>
     <div id="capbox"></div>
-  </div></div>
+  </div>
+  <div id="zoomui"><button id="zOut" title="Rauszoomen">−</button><span id="zoomLbl" title="Klick = Zoom zurücksetzen">100%</span><button id="zIn" title="Reinzoomen (auch: Mausrad über dem Video)">+</button></div>
+  </div>
   <aside>
-    <h2>Untertitel</h2>
-    <div class="row"><label>Anzeigen</label><input type="checkbox" id="capOn"></div>
-    <div class="row"><label>Schrift</label>
-      <select id="capFont">
-        <option>Segoe UI</option><option>Segoe UI Black</option>
-        <option>Arial Black</option><option>Impact</option>
-        <option>Bahnschrift</option><option>Verdana</option>
-        <option>Georgia</option><option>Trebuchet MS</option>
-      </select></div>
-    <div class="row"><label>Größe</label><input type="range" id="capSize" min="36" max="110" value="64"><span id="capSizeV">64</span></div>
-    <div class="row"><label>Textfarbe</label><input type="color" id="capPrim" value="#FFFFFF"></div>
-    <div class="row"><label>Highlight</label><input type="color" id="capHi" value="#FFD400"></div>
-    <h2>Bild-im-Bild</h2>
-    <div class="row"><label>Aktiv</label><input type="checkbox" id="pipOn"></div>
-    <h2>Ton kommt von</h2>
-    <div class="row"><label><input type="radio" name="audiofrom" value="main"> großem Video</label></div>
-    <div class="row"><label><input type="radio" name="audiofrom" value="pip"> kleinem Video (Bild-im-Bild)</label></div>
-    <div class="row"><label><input type="radio" name="audiofrom" value="both"> beiden Videos (gemischt)</label></div>
-    <h2>Timeline</h2>
-    <div class="row"><label>Tonspur anzeigen</label><input type="checkbox" id="waveOn"></div>
-    <h2>Schnitte <span id="cutcount"></span></h2>
-    <div id="cutlist"></div>
+    <details class="card" id="cardCap" open><summary>Untertitel</summary>
+      <div class="row"><label>Anzeigen</label><input type="checkbox" id="capOn"></div>
+      <div class="row"><label>Schrift</label>
+        <select id="capFont">
+          <option>Segoe UI</option><option>Segoe UI Black</option>
+          <option>Arial</option><option>Arial Black</option>
+          <option>Arial Rounded MT Bold</option><option>Bahnschrift</option>
+          <option>Calibri</option><option>Cambria</option>
+          <option>Candara</option><option>Comic Sans MS</option>
+          <option>Consolas</option><option>Corbel</option>
+          <option>Courier New</option><option>Franklin Gothic Demi</option>
+          <option>Gabriola</option><option>Garamond</option>
+          <option>Georgia</option><option>Impact</option>
+          <option>Lucida Sans</option><option>Palatino Linotype</option>
+          <option>Rockwell</option><option>Sitka Display</option>
+          <option>Tahoma</option><option>Times New Roman</option>
+          <option>Trebuchet MS</option><option>Verdana</option>
+        </select></div>
+      <div class="row"><label>Größe</label><input type="range" id="capSize" min="36" max="110" value="64"><span id="capSizeV">64</span></div>
+      <div class="row"><label>Fett</label><input type="checkbox" id="capBold" checked></div>
+      <div class="row"><label>Wörter pro Einblendung</label><input type="range" id="capGroup" min="1" max="6" value="3" style="width:70px"><span id="capGroupV">3</span></div>
+      <div class="row"><label>Textfarbe</label><input type="color" id="capPrim" value="#FFFFFF"></div>
+      <div class="row"><label>Wort-Highlight</label><input type="checkbox" id="capHiOn" checked><input type="color" id="capHi" value="#FFD400"></div>
+      <div class="row"><label>Hintergrund-Box</label><input type="checkbox" id="capBoxOn"><input type="color" id="capBoxCol" value="#000000"></div>
+      <div class="row"><label>Box-Form</label>
+        <select id="capBoxStyle">
+          <option value="line">um die Wörter</option>
+          <option value="block">Viereck (ganzer Text)</option>
+        </select></div>
+      <div class="row" id="rowBoxA"><label>Box-Deckkraft</label><input type="range" id="capBoxA" min="10" max="100" value="55"><span id="capBoxAV">55%</span></div>
+    </details>
+    <details class="card" id="cardCues" style="display:none" open><summary>Untertitel-Text</summary>
+      <div class="row"><span style="font-size:11px;opacity:.55">Reinklicken = ändern · Doppelklick auf den Untertitel im Video springt her</span></div>
+      <div id="cuelist"></div>
+    </details>
+    <details class="card" id="cardTexts" open><summary>Texte (Hook &amp; Titel)</summary>
+      <div class="row"><button id="bAddText" style="flex:1">＋ Text an dieser Stelle</button></div>
+      <div class="row"><span style="font-size:11px;opacity:.55">Im Video ziehen = Position · auf der 📝-Spur ziehen = Timing · Aufziehen auf der 📝-Spur = neuer Text</span></div>
+      <div id="textlist"></div>
+    </details>
+    <details class="card" id="cardPip" open><summary>Bild-im-Bild</summary>
+      <div class="row"><label>Aktiv</label><input type="checkbox" id="pipOn"></div>
+      <div class="row" id="rowPipSrc" style="display:none"><label>Video-Datei</label><select id="pipSrc"></select></div>
+    </details>
+    <details class="card" id="cardAudio" open><summary>Audio hinzufügen</summary>
+      <div class="row"><button id="bPickMusic" style="flex:1">🎵 Lied auswählen</button></div>
+      <div class="row"><button id="bPickVoice" style="flex:1">🎙 Voiceover-Datei wählen</button></div>
+      <div class="row"><button id="bRec" style="flex:1">● Voiceover aufnehmen</button></div>
+      <div class="row"><span style="font-size:11px;opacity:.55">Neue Dateien landen automatisch in Downloads — nach „Speichern für Claude" kurz Bescheid sagen, dann übernimmt Claude sie fest ins Projekt.</span></div>
+      <input type="file" id="fMusic" accept="audio/*" style="display:none">
+      <input type="file" id="fVoice" accept="audio/*" style="display:none">
+    </details>
+    <details class="card" id="cardGain" open><summary>Lautstärke</summary>
+      <div class="row"><label>großes Video</label><input type="range" id="gMain" min="0" max="150" value="100"><span id="gMainV">100%</span></div>
+      <div class="row" id="rowGPip"><label>kleines Video</label><input type="range" id="gPip" min="0" max="150" value="100"><span id="gPipV">100%</span></div>
+      <div class="row" id="rowGVo" style="display:none"><label>Voiceover</label><input type="range" id="gVo" min="0" max="150" value="100"><span id="gVoV">100%</span></div>
+      <div class="row" id="rowGMus" style="display:none"><label>Musik</label><input type="range" id="gMus" min="0" max="100" value="30"><span id="gMusV">30%</span></div>
+    </details>
+    <details class="card" id="musSec" style="display:none" open><summary>Musik</summary>
+      <div class="row"><span id="musName" style="font-size:12px;opacity:.7">—</span></div>
+      <div class="row"><label>Start im Lied</label><span id="musOffV" style="font-variant-numeric:tabular-nums">0:00.0</span></div>
+      <div class="row" style="justify-content:flex-end">
+        <button class="nb" data-mo="-5">−5s</button>
+        <button class="nb" data-mo="-1">−1s</button>
+        <button class="nb" data-mo="-0.1">−0,1</button>
+        <button class="nb" data-mo="0.1">+0,1</button>
+        <button class="nb" data-mo="1">+1s</button>
+        <button class="nb" data-mo="5">+5s</button></div>
+      <div class="row"><span style="font-size:11px;opacity:.55">Läuft ab Reel-Start, endet automatisch mit dem Reel (Fade-Out). Schnitte auf der ♪-Spur entfernen Stellen aus dem Lied.</span></div>
+    </details>
+    <details class="card" id="cardTL" open><summary>Timeline</summary>
+      <div class="row"><label>Tonspur anzeigen</label><input type="checkbox" id="waveOn"></div>
+    </details>
+    <details class="card" id="cardCuts" open><summary>Schnitte <span id="cutcount"></span></summary>
+      <div id="cutlist"></div>
+    </details>
+    <details class="card" id="cardVols" style="display:none" open><summary>Lautstärke-Abschnitte <span id="volcount"></span></summary>
+      <div id="vollist"></div>
+    </details>
   </aside>
 </main>
 <footer>
   <div id="ruler"></div>
   <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div><div id="phgrab" title="Festhalten und ziehen = präzise spulen"></div><div id="phlabel">0:00.0</div></div>
-  <div id="tlinfo"><span>Klick = springen · Aufziehen = neuer Schnitt (auf der jeweiligen Videospur)</span><span id="tDur">0:00.0</span></div>
+  <div id="songwrap" style="display:none"><canvas id="songwave"></canvas><div id="songwin" title="Ziehen = Ausschnitt im Lied wählen"></div><span id="songlbl">♪ ganzes Lied — lila Fenster = dein Ausschnitt</span></div>
+  <div id="tlinfo"><span>Klick = springen · Aufziehen = Schnitt ✂ oder Lautstärke-Abschnitt 🔊 (Werkzeug oben) — je Spur</span><span id="tDur">0:00.0</span></div>
 </footer>
 <div id="toast"></div>
+<audio id="mus" preload="auto"></audio>
+<audio id="vo" preload="auto"></audio>
 <script src="waveform_data.js"></script>
 <script src="projekt_data.js"></script>
 <script>
@@ -188,21 +324,66 @@ const v = document.getElementById('v'), pv = document.getElementById('pv'),
   tl = document.getElementById('tl'), stage = document.getElementById('stage'),
   cap = document.getElementById('capbox'), pip = document.getElementById('pipbox'),
   ph = document.getElementById('playhead'), tip = document.getElementById('dragtip'),
-  bigplay = document.getElementById('bigplay');
-let dur = 0, preview = false, cues = [], zonesOn = true;
+  bigplay = document.getElementById('bigplay'), mus = document.getElementById('mus'),
+  vo = document.getElementById('vo');
+// preview=true: Abspielen zeigt IMMER das geschnittene Ergebnis (WYSIWYG);
+// der Schalter "Rohmaterial zeigen" setzt preview=false
+let dur = 0, preview = true, cues = [], zonesOn = true;
+// Spur-Farben: ueberall gleich (Timeline-Balkenrand, Listen, Spur-Namen)
+const TRACKCOL = { main:'#4a9eff', pip:'#3ddc84', both:'#ff9f43',
+  music:'#be8cff', voice:'#ff8fb1', text:'#ffd66e' };
+const TRACKNAME = { main:'großes Video', pip:'kleines Video',
+  both:'beide Videos', music:'♪ Musik', voice:'🎙 Voiceover',
+  text:'📝 Texte' };
+const ANIMS = { fade:'Einblenden', left:'Von links', right:'Von rechts',
+  up:'Von unten', pop:'Pop', none:'Keine' };
+const esc = s => String(s).replace(/[&<>"]/g,
+  ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const newText = (s, e) => ({ text:'Dein Text', start:Math.round(s*10)/10,
+  end:Math.round(e*10)/10, x:0.5, y:0.3, font:'Segoe UI', size:72,
+  color:'#FFFFFF', bold:true, box:true, box_color:'000000', box_alpha:0.55,
+  box_style:'line', anim:'fade', width:0 });
 const fmt = t => Math.floor(t/60) + ':' + (t%60).toFixed(1).padStart(4,'0');
 const touch = () => { dirty = true; };
 function toast(msg){ const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500); }
 
+// Musik- und Voiceover-Zustand aus P uebernehmen (UI + Audio-Elemente)
+function adoptAudioUI(){
+  MUS = P.music = (P.music && P.music.file)
+    ? Object.assign({ offset: 0, gain: 0.3 }, P.music) : null;
+  VO = P.voiceover = (P.voiceover && P.voiceover.file)
+    ? Object.assign({ gain: 1.0 }, P.voiceover) : null;
+  setAudioSrc(mus, MUS && MUS.file);
+  setAudioSrc(vo, VO && VO.file);
+  if (MUS) { musName.textContent = '♪ ' + (MUS.titel || MUS.file);
+    gMus.value = Math.round(MUS.gain * 100); }
+  if (VO) gVo.value = Math.round(VO.gain * 100);
+  musSec.style.display = MUS ? 'block' : 'none';
+  rowGMus.style.display = MUS ? 'flex' : 'none';
+  rowGVo.style.display = VO ? 'flex' : 'none';
+  updGainLabels(); updMusOff();
+}
+
 // ---------- Projektdaten anwenden (initial + Live-Updates von Claude) -----
-let C = {}, PIP = {};
+let C = {}, PIP = {}, MUS = null, VO = null;
+// Frisch gewaehlte/aufgenommene Audiodateien: sofort abspielbar per Blob-URL
+const localBlobs = {};
+function setAudioSrc(el, name){
+  if (!name) { if (el.src) el.removeAttribute('src'); el.dataset.srcname = '';
+    return; }
+  if (el.dataset.srcname === name) return;
+  el.src = localBlobs[name] || name;
+  el.dataset.srcname = name;
+}
 function applyProjekt(data){
   P = JSON.parse(JSON.stringify(data));
   C = P.captions = Object.assign(
     { enabled:true, size:64, y:0.72, primary:'#FFFFFF', highlight:'#FFD400',
-      group:3, font:'Segoe UI' }, P.captions || {});
+      group:3, font:'Segoe UI', bold:true, highlight_on:true,
+      box:false, box_color:'000000', box_alpha:0.55, box_style:'line' },
+    P.captions || {});
   PIP = P.pip = Object.assign(
     { enabled:false, x:0.5, y:0.10, scale:0.58 }, P.pip || {});
   // Altbestand: Schnitte ohne Spur-Zuordnung erben das alte cuts_apply
@@ -225,16 +406,43 @@ function applyProjekt(data){
   capSizeV.textContent = C.size;
   capPrim.value = ('#'+String(C.primary).replace('#','')).slice(0,7);
   capHi.value = ('#'+String(C.highlight).replace('#','')).slice(0,7);
+  capBold.checked = C.bold !== false;
+  capHiOn.checked = C.highlight_on !== false;
+  capGroup.value = C.group; capGroupV.textContent = C.group;
+  capBoxOn.checked = !!C.box;
+  capBoxStyle.value = C.box_style || 'line';
+  capBoxCol.value = ('#'+String(C.box_color).replace('#','')).slice(0,7);
+  capBoxA.value = Math.round((C.box_alpha != null ? C.box_alpha : 0.55) * 100);
+  capBoxAV.textContent = capBoxA.value + '%';
   pipOn.checked = !!PIP.enabled;
+  // Lautstaerke je Tonspur (Altbestand: aus audio_from ableiten)
   P.audio_from = P.audio_from || 'main';
-  document.querySelectorAll('input[name=audiofrom]').forEach(r =>
-    r.checked = (r.value === P.audio_from));
+  P.gains = Object.assign(
+    { main: P.audio_from === 'pip' ? 0 : 1,
+      pip:  P.audio_from === 'main' ? 0 : 1 }, P.gains || {});
+  P.volumes = P.volumes || [];
+  P.texts = (P.texts || []).map(tx => Object.assign(
+    { text:'Dein Text', start:0, end:3, x:0.5, y:0.3, font:'Segoe UI',
+      size:72, color:'#FFFFFF', bold:true, box:true, box_color:'000000',
+      box_alpha:0.55, box_style:'line', anim:'fade', width:0 }, tx));
+  adoptAudioUI();
+  rowGPip.style.display = PIP.enabled ? 'flex' : 'none';
+  gMain.value = Math.round(P.gains.main * 100);
+  gPip.value = Math.round(P.gains.pip * 100);
+  // Andere Videodatei fuers kleine Fenster waehlbar (Liste aus build_editor)
+  const files = P._dateien || [];
+  rowPipSrc.style.display = files.length > 1 ? 'flex' : 'none';
+  if (files.length) pipSrc.innerHTML = files.map(f =>
+    '<option' + (f === (PIP.source || P.video) ? ' selected' : '') + '>'
+    + f + '</option>').join('');
+  updGainLabels(); updMusOff();
   applyAudio();
-  buildCues(); drawCap(); drawPip(); renderTL();
+  buildCues(); drawCap(); drawPip(); renderTL(); renderCueList();
+  rebuildStageTexts();
   // Waveform-Daten nachladen (falls Claude sie neu erzeugt hat)
   const ws = document.createElement('script');
   ws.src = 'waveform_data.js?v=' + Date.now();
-  ws.onload = () => { ws.remove(); drawWave(); };
+  ws.onload = () => { ws.remove(); drawWave(); drawSongbar(); };
   ws.onerror = () => ws.remove();
   document.head.appendChild(ws);
   lastApplied = JSON.stringify(data);
@@ -266,14 +474,24 @@ document.getElementById('bKeep').onclick = () => {
 // ---------- Wiedergabe ----------------------------------------------------
 function togglePlay(){ v.paused ? v.play() : v.pause(); }
 document.getElementById('bPlay').onclick = togglePlay;
-v.addEventListener('click', togglePlay);
+v.addEventListener('click', () => {
+  if (panSuppress) { panSuppress = false; return; }   // Ziehen war Panning
+  togglePlay();
+});
 document.addEventListener('keydown', e => {
+  // In Eingabefeldern (Untertitel-/Titel-Text ...) ist die Leertaste zum
+  // Schreiben da — Play/Pause nur, wenn kein Feld den Fokus hat
+  const el = document.activeElement;
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
+      || el.tagName === 'SELECT' || el.isContentEditable)) return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
 });
 v.addEventListener('play', () => { bPlay.textContent = '⏸';
-  bigplay.classList.add('hidden'); pv.play(); });
+  bigplay.classList.add('hidden'); pv.play();
+  if (MUS && mus.src) { syncMusic(true); mus.play(); }
+  if (VO && vo.src) { vo.currentTime = v.currentTime; vo.play(); } });
 v.addEventListener('pause', () => { bPlay.textContent = '▶';
-  bigplay.classList.remove('hidden'); pv.pause(); });
+  bigplay.classList.remove('hidden'); pv.pause(); mus.pause(); vo.pause(); });
 v.addEventListener('loadedmetadata', () => { dur = v.duration;
   renderTL(); renderRuler(); tDur.textContent = fmt(dur); updTC(); });
 
@@ -289,19 +507,188 @@ function buildCues(){
   }
   if (cur.length) cues.push(cur);
 }
+// Untertitel-Text direkt aendern (Tippfehler, andere Schreibweise ...)
+function renderCueList(){
+  cardCues.style.display = cues.length ? 'block' : 'none';
+  cuelist.innerHTML = '';
+  cues.forEach((cue, i) => {
+    const d = document.createElement('div'); d.className = 'cue';
+    const t0 = cue[0].start, t1 = cue[cue.length - 1].end;
+    d.innerHTML = `<span class="ct" title="Anhören">${fmt(t0)}</span>
+      <input type="text" spellcheck="false">`;
+    const inp = d.querySelector('input');
+    inp.value = cue.map(w => w.text).join(' ');
+    inp.onchange = () => {
+      const parts = inp.value.trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) { inp.value = cue.map(w => w.text).join(' '); return; }
+      if (parts.length === cue.length) {
+        cue.forEach((w, k) => w.text = parts[k]);   // Zeiten bleiben exakt
+      } else {
+        // Wortzahl geaendert: Zeiten gleichmaessig im Cue-Zeitraum verteilen
+        const first = P.words.indexOf(cue[0]);
+        const span = (t1 - t0) / parts.length;
+        P.words.splice(first, cue.length, ...parts.map((p, k) => ({
+          text: p, start: Math.round((t0 + k * span) * 100) / 100,
+          end: Math.round((t0 + (k + 1) * span) * 100) / 100, type: 'word' })));
+      }
+      touch(); buildCues(); drawCap(); renderCueList();
+    };
+    d.querySelector('.ct').onclick = () => {
+      v.currentTime = Math.max(0, t0 - 0.3); v.play(); };
+    cuelist.appendChild(d);
+  });
+}
+// Doppelklick auf den Untertitel im Video springt zur passenden Textzeile
+cap.addEventListener('dblclick', () => {
+  const t = v.currentTime;
+  const i = cues.findIndex(c => t >= c[0].start && t <= c[c.length-1].end + 0.05);
+  if (i >= 0) { const inp = cuelist.querySelectorAll('input')[i];
+    if (inp) { inp.scrollIntoView({ block: 'center' }); inp.focus();
+      inp.select(); } }
+});
 function scaleFactor(){ return stage.clientWidth / 1080; }
+function boxRgba(){
+  const h = String(C.box_color || '000000').replace('#', '');
+  return 'rgba(' + parseInt(h.slice(0,2),16) + ',' + parseInt(h.slice(2,4),16)
+    + ',' + parseInt(h.slice(4,6),16) + ','
+    + (C.box_alpha != null ? C.box_alpha : 0.55) + ')';
+}
 function drawCap(){
   cap.style.display = (capOn.checked && cues.length) ? 'block' : 'none';
   cap.style.fontSize = (capSize.value * scaleFactor()) + 'px';
   cap.style.fontFamily = "'" + (C.font || 'Segoe UI') + "',sans-serif";
+  cap.style.fontWeight = C.bold === false ? '500' : '800';
   cap.style.color = capPrim.value;
   cap.style.top = (C.y * 100) + '%';
-  const t = v.currentTime;
+  const t = masterTime();
   const cue = cues.find(c => t >= c[0].start && t <= c[c.length-1].end + 0.05);
-  cap.innerHTML = cue ? cue.map(w =>
-    (t >= w.start && (t <= w.end || w === cue[cue.length-1]))
+  let html = cue ? cue.map(w =>
+    (C.highlight_on !== false && t >= w.start
+      && (t <= w.end || w === cue[cue.length-1]))
       ? `<em style="color:${capHi.value}">${w.text}</em>` : w.text).join(' ')
     : '&nbsp;';
+  if (C.box && cue)
+    html = '<span class="capbg' + (C.box_style === 'block' ? ' blockbg' : '')
+      + '" style="background:' + boxRgba() + '">' + html + '</span>';
+  cap.innerHTML = html;
+}
+// ---------- Freie Text-Overlays (Hook & Titel fuer B-Roll) -----------------
+function txBoxRgba(tx){
+  const h = String(tx.box_color || '000000').replace('#', '');
+  return 'rgba(' + parseInt(h.slice(0,2),16) + ',' + parseInt(h.slice(2,4),16)
+    + ',' + parseInt(h.slice(4,6),16) + ','
+    + (tx.box_alpha != null ? tx.box_alpha : 0.55) + ')';
+}
+// Zeilenumbruch DETERMINISTISCH berechnen (echte Schrift vermessen, im
+// 1080er-Designraum) — Vorschau und Render zeigen exakt dieselben Zeilen.
+// width 0 = automatisch: eine Zeile pro Enter, nie von selbst umbrechen.
+const measCtx = document.createElement('canvas').getContext('2d');
+function computeLines(tx){
+  if (!tx.width) { tx.lines = String(tx.text || '').split('\n'); return; }
+  measCtx.font = (tx.bold === false ? '500 ' : '800 ') + tx.size
+    + "px '" + (tx.font || 'Segoe UI') + "'";
+  const maxW = tx.width * 1080;
+  const lines = [];
+  String(tx.text || '').split('\n').forEach(par => {
+    let cur = '';
+    par.split(' ').forEach(w => {
+      const test = cur ? cur + ' ' + w : w;
+      if (cur && measCtx.measureText(test).width > maxW) {
+        lines.push(cur); cur = w;
+      } else { cur = test; }
+    });
+    lines.push(cur);
+  });
+  tx.lines = lines;
+}
+function styleStageText(d, tx){
+  computeLines(tx);
+  d.style.fontFamily = "'" + (tx.font || 'Segoe UI') + "',sans-serif";
+  d.style.fontSize = (tx.size * scaleFactor()) + 'px';
+  d.style.fontWeight = tx.bold === false ? '500' : '800';
+  d.style.color = tx.color || '#FFFFFF';
+  d.style.left = (tx.x * 100) + '%';
+  d.style.top = (tx.y * 100) + '%';
+  const inner = tx.lines.map(esc).join('<br>');
+  const span = d.querySelector('.stxinner');
+  span.innerHTML = tx.box
+    ? '<span class="capbg' + (tx.box_style === 'block' ? ' blockbg' : '')
+      + '" style="background:' + txBoxRgba(tx) + '">' + inner + '</span>'
+    : inner;
+}
+function rebuildStageTexts(){
+  document.querySelectorAll('.stagetext').forEach(n => n.remove());
+  (P.texts || []).forEach((tx, i) => {
+    const d = document.createElement('div');
+    d.className = 'stagetext'; d.dataset.i = i;
+    d.title = 'Ziehen = Position · rechter Punkt = Text-Breite · Eck-Punkt = Schriftgröße';
+    d.innerHTML = '<span class="stxinner"></span>'
+      + '<span class="sh w" title="Breite ziehen: ab hier bricht der Text um — ganz nach außen = eine Zeile"></span>'
+      + '<span class="sh s" title="Ziehen = Schriftgröße"></span>';
+    d.addEventListener('pointerdown', e => {
+      if (e.target.classList.contains('sh')) return;
+      e.preventDefault(); d.setPointerCapture(e.pointerId);
+      const move = ev => { const r = stage.getBoundingClientRect();
+        tx.x = Math.min(0.97, Math.max(0.03, (ev.clientX - r.left) / r.width));
+        tx.y = Math.min(0.95, Math.max(0.03, (ev.clientY - r.top) / r.height));
+        touch(); styleStageText(d, tx); };
+      const up = () => { d.removeEventListener('pointermove', move);
+        d.removeEventListener('pointerup', up); };
+      d.addEventListener('pointermove', move);
+      d.addEventListener('pointerup', up);
+    });
+    // Rechter Anfasser: Breite der Text-Flaeche (bestimmt den Umbruch)
+    d.querySelector('.sh.w').addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      const el = e.target; el.setPointerCapture(e.pointerId);
+      const move = ev => { const r = stage.getBoundingClientRect();
+        const half = ev.clientX - (r.left + tx.x * r.width);
+        let w = Math.abs(half) * 2 / r.width;
+        if (w > 1.5) { tx.width = 0; }          // ganz aussen = automatisch
+        else { tx.width = Math.max(0.12, Math.round(w * 100) / 100); }
+        touch(); styleStageText(d, tx); };
+      const up = () => { el.removeEventListener('pointermove', move);
+        el.removeEventListener('pointerup', up);
+        toast(tx.width ? '↔ Text-Breite: ' + Math.round(tx.width * 100) + '%'
+          : '↔ Breite: automatisch (Umbruch nur per Enter)'); };
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up);
+    });
+    // Eck-Anfasser: Schriftgroesse durch Ziehen
+    d.querySelector('.sh.s').addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      const el = e.target; el.setPointerCapture(e.pointerId);
+      const startY = e.clientY, startSize = tx.size;
+      const move = ev => {
+        tx.size = Math.max(24, Math.min(220, Math.round(
+          startSize + (ev.clientY - startY) / scaleFactor() * 0.6)));
+        touch(); styleStageText(d, tx); };
+      const up = () => { el.removeEventListener('pointermove', move);
+        el.removeEventListener('pointerup', up); renderTextList(); };
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up);
+    });
+    stage.appendChild(d);
+  });
+  drawTexts(true);
+}
+function drawTexts(force){
+  const t = masterTime();
+  document.querySelectorAll('.stagetext').forEach(d => {
+    const tx = (P.texts || [])[+d.dataset.i];
+    if (!tx) return;
+    const vis = t >= tx.start && t < tx.end;
+    if (vis && (force || d.style.display !== 'block')) {
+      styleStageText(d, tx);
+      d.style.display = 'block';
+      const cls = { fade:'ta-fade', left:'ta-left', right:'ta-right',
+        up:'ta-up', pop:'ta-pop' }[tx.anim];
+      d.className = 'stagetext' + (cls ? ' ' + cls : '');
+      void d.offsetWidth;   // Animation neu starten
+    } else if (!vis && d.style.display !== 'none') {
+      d.style.display = 'none';
+    }
+  });
 }
 function drawPip(){
   pip.style.display = pipOn.checked ? 'block' : 'none';
@@ -316,16 +703,97 @@ capSize.oninput = () => { C.size = +capSize.value;
   capSizeV.textContent = capSize.value; touch(); drawCap(); };
 capPrim.oninput = () => { C.primary = capPrim.value; touch(); drawCap(); };
 capHi.oninput = () => { C.highlight = capHi.value; touch(); drawCap(); };
+capBold.oninput = () => { C.bold = capBold.checked; touch(); drawCap(); };
+capHiOn.oninput = () => { C.highlight_on = capHiOn.checked; touch();
+  drawCap(); };
+capGroup.oninput = () => { C.group = +capGroup.value;
+  capGroupV.textContent = capGroup.value; touch();
+  buildCues(); drawCap(); renderCueList(); };
+capBoxOn.oninput = () => { C.box = capBoxOn.checked; touch(); drawCap(); };
+capBoxStyle.onchange = () => { C.box_style = capBoxStyle.value; touch();
+  drawCap(); };
+capBoxCol.oninput = () => { C.box_color = capBoxCol.value.replace('#','');
+  touch(); drawCap(); };
+capBoxA.oninput = () => { C.box_alpha = capBoxA.value / 100;
+  capBoxAV.textContent = capBoxA.value + '%'; touch(); drawCap(); };
 pipOn.oninput = () => { PIP.enabled = pipOn.checked; touch(); drawPip();
-  renderTL(); };
-// Ton-Quelle: stummschalten je nach Auswahl (Vorschau = wie der Render)
-function applyAudio(){
-  v.muted = (P.audio_from === 'pip');
-  pv.muted = (P.audio_from === 'main');
+  rowGPip.style.display = PIP.enabled ? 'flex' : 'none';
+  applyAudio(); renderTL(); };
+pipSrc.onchange = () => {
+  PIP.source = pipSrc.value; touch();
+  if (!pv.src.endsWith(encodeURIComponent(PIP.source))
+      && !pv.src.endsWith(PIP.source)) pv.src = PIP.source;
+  document.getElementById('piplbl').textContent =
+    'Bild-im-Bild (' + PIP.source + ') — ziehen / Ecke = Größe';
+  renderTL();
+};
+// Lautstaerke: Basis je Tonspur + zeitliche Abschnitte (Vorschau = wie Render)
+function gainAt(track, t, base){
+  const r = (P.volumes || []).find(r =>
+    r.track === track && t >= r.start && t < r.end);
+  return r ? r.gain : base;
 }
-document.querySelectorAll('input[name=audiofrom]').forEach(r => {
-  r.onchange = () => { if (r.checked) { P.audio_from = r.value; touch();
-    applyAudio(); } };
+function applyAudio(){
+  const t = masterTime();
+  // PiP aus = kleines Video KOMPLETT aus, auch sein Ton
+  const gm = gainAt('main', t, P.gains.main),
+        gp = PIP.enabled ? gainAt('pip', t, P.gains.pip) : 0;
+  v.volume = Math.min(1, gm);  v.muted = gm <= 0.001;
+  pv.volume = Math.min(1, gp); pv.muted = gp <= 0.001;
+  if (MUS) mus.volume = Math.min(1, gainAt('music', t, MUS.gain));
+  if (VO) {
+    // Voiceover-Schnitte = Stelle sofort stumm (im Render entfernt)
+    const inCut = preview && (P.cuts || []).some(c => c.active
+      && c.track === 'voice' && t >= c.start && t < c.end);
+    const gv = inCut ? 0 : gainAt('voice', t, VO.gain);
+    vo.volume = Math.min(1, gv); vo.muted = gv <= 0.001;
+  }
+  // Waehrend einer Mikro-Aufnahme alles stumm (sonst nimmt das Mikro es auf)
+  if (recActive) { v.muted = pv.muted = mus.muted = true; }
+  // audio_from fuer den Render ableiten (Abwaertskompatibilitaet)
+  const pipBase = PIP.enabled ? P.gains.pip : 0;
+  P.audio_from = (P.gains.main > 0.001 && pipBase > 0.001) ? 'both'
+    : (pipBase > 0.001 ? 'pip' : 'main');
+}
+function updGainLabels(){
+  gMainV.textContent = gMain.value + '%';
+  gPipV.textContent = gPip.value + '%';
+  gMusV.textContent = gMus.value + '%';
+  gVoV.textContent = gVo.value + '%';
+}
+gMain.oninput = () => { P.gains.main = gMain.value / 100; touch();
+  updGainLabels(); applyAudio(); };
+gPip.oninput = () => { P.gains.pip = gPip.value / 100; touch();
+  updGainLabels(); applyAudio(); };
+gMus.oninput = () => { if (MUS) { MUS.gain = gMus.value / 100; touch(); }
+  updGainLabels(); applyAudio(); };
+gVo.oninput = () => { if (VO) { VO.gain = gVo.value / 100; touch(); }
+  updGainLabels(); applyAudio(); };
+
+// ---------- Musik: Startpunkt im Lied + Sync zur Timeline ------------------
+function updMusOff(){ if (MUS) musOffV.textContent = fmt(MUS.offset || 0); }
+// Song-Position zu einer Timeline-Zeit: Musik-Schnitte entfernen Stellen aus
+// dem Lied, der Rest rueckt nach links auf (wie im Render)
+function songPos(t){
+  let add = 0;
+  (P.cuts || []).forEach(c => {
+    if (c.active && c.track === 'music' && t >= c.start)
+      add += (c.end - c.start);
+  });
+  return (MUS.offset || 0) + t + add;
+}
+function syncMusic(force){
+  if (!MUS || !mus.src) return;
+  let target = songPos(masterTime());
+  if (mus.duration) target = target % mus.duration;
+  if (force || Math.abs(mus.currentTime - target) > 0.35)
+    mus.currentTime = target;
+}
+document.querySelectorAll('[data-mo]').forEach(b => b.onclick = () => {
+  if (!MUS) return;
+  MUS.offset = Math.max(0,
+    Math.round(((MUS.offset || 0) + parseFloat(b.dataset.mo)) * 10) / 10);
+  touch(); updMusOff(); drawWave(); drawSongbar(); syncMusic(true);
 });
 
 // ---------- Dragging: Untertitel / PiP ------------------------------------
@@ -361,6 +829,64 @@ pip.querySelector('.rs').addEventListener('pointerdown', e => {
   el.addEventListener('pointermove', move); el.addEventListener('pointerup', up);
 });
 
+// ---------- Vorschau-Zoom: Mausrad = zoomen, Ziehen = verschieben ----------
+let zoomZ = 1, panX = 0, panY = 0, panSuppress = false;
+const stagewrap = document.getElementById('stagewrap');
+function clampPan(){
+  const mx = stage.clientWidth * (zoomZ - 1) / 2 + 40;
+  const my = stage.clientHeight * (zoomZ - 1) / 2 + 40;
+  panX = Math.max(-mx, Math.min(mx, panX));
+  panY = Math.max(-my, Math.min(my, panY));
+}
+function applyZoom(){
+  if (zoomZ <= 1.001) { zoomZ = 1; panX = panY = 0; }
+  stage.style.transform = zoomZ === 1 ? ''
+    : 'translate(' + panX + 'px,' + panY + 'px) scale(' + zoomZ + ')';
+  stagewrap.style.cursor = zoomZ === 1 ? '' : 'grab';
+  zoomLbl.textContent = Math.round(zoomZ * 100) + '%';
+}
+function setZoom(nz, cx, cy){
+  const old = zoomZ;
+  zoomZ = Math.min(4, Math.max(1, nz));
+  if (zoomZ === old) return;
+  // Punkt unter dem Cursor beim Zoomen festhalten
+  const f = zoomZ / old;
+  panX = cx - f * (cx - panX);
+  panY = cy - f * (cy - panY);
+  clampPan(); applyZoom();
+}
+stagewrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = stagewrap.getBoundingClientRect();
+  setZoom(zoomZ * (e.deltaY < 0 ? 1.15 : 1 / 1.15),
+    e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2);
+}, { passive: false });
+zIn.onclick = () => setZoom(zoomZ * 1.25, 0, 0);
+zOut.onclick = () => setZoom(zoomZ / 1.25, 0, 0);
+zoomLbl.onclick = () => { zoomZ = 1; panX = panY = 0; applyZoom(); };
+stagewrap.addEventListener('pointerdown', e => {
+  if (zoomZ === 1) return;
+  if (e.target.closest('#capbox,#pipbox,.stagetext,.sh,.rs,#zoomui')) return;
+  e.preventDefault();
+  const sx = e.clientX - panX, sy = e.clientY - panY;
+  const x0 = e.clientX, y0 = e.clientY;
+  let moved = false;
+  stagewrap.style.cursor = 'grabbing';
+  const move = ev => {
+    if (Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) > 4) moved = true;
+    panX = ev.clientX - sx; panY = ev.clientY - sy;
+    clampPan(); applyZoom();
+  };
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    stagewrap.style.cursor = 'grab';
+    if (moved) panSuppress = true;   // folgender Klick soll nicht Play togglen
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+});
+
 // ---------- Zeitleiste ----------------------------------------------------
 function renderRuler(){
   const ruler = document.getElementById('ruler');
@@ -377,9 +903,12 @@ function renderRuler(){
 function renderTL(){
   tl.innerHTML = '';
   if (!dur) return;
-  // Zwei Videospuren, sobald Bild-im-Bild aktiv ist — sonst eine
+  // Zwei Videospuren bei Bild-im-Bild, plus Voiceover-/Musikspur wenn gesetzt
   const two = !!PIP.enabled;
-  tl.style.height = two ? '104px' : '72px';
+  const nLanes = (two ? 2 : 1) + (VO ? 1 : 0) + (MUS ? 1 : 0)
+    + ((P.texts || []).length ? 1 : 0);
+  tl.style.height = nLanes === 1 ? '72px'
+    : (nLanes * 50 + (nLanes - 1) * 4) + 'px';
   const lanes = {};
   const mkLane = (trk, lbl) => {
     const l = document.createElement('div');
@@ -390,21 +919,41 @@ function renderTL(){
     const cv = document.createElement('canvas'); cv.className = 'wave';
     l.appendChild(cv);
     if (lbl) { const s = document.createElement('span');
-      s.className = 'lanelbl'; s.textContent = lbl; l.appendChild(s); }
+      s.className = 'lanelbl'; s.textContent = lbl;
+      s.style.color = TRACKCOL[trk === 'both' ? 'main' : trk];
+      l.appendChild(s); }
     tl.appendChild(l); lanes[trk] = l; return l;
   };
   if (two) { mkLane('main', '🎬 großes Video'); mkLane('pip', '◱ kleines Video'); }
-  else mkLane('both', '');
+  else mkLane('both', (MUS || VO) ? '🎬 Video' : '');
+  if (VO) mkLane('voice', '🎙 Voiceover');
+  if (MUS) mkLane('music', '♪ Musik');
+  if ((P.texts || []).length) mkLane('text', '📝 Texte');
+  // Unterkante der Videospuren (fuer 'both'-Elemente ueber beiden Spuren)
+  const vidLane = lanes.pip || lanes.both || lanes.main;
+  const videoBottom = vidLane.offsetTop + vidLane.offsetHeight;
+  const laneFor = trk => {
+    if (trk === 'music') return lanes.music;
+    if (trk === 'voice') return lanes.voice;
+    if (!two) return lanes.both;
+    if (trk === 'both') return null;   // Overlay ueber beiden Videospuren
+    return lanes[trk];
+  };
+  const overlaySpan = d => { d.style.bottom = 'auto'; d.style.top = '0';
+    d.style.height = videoBottom + 'px'; };
   P.cuts.forEach(c => {
     c.track = c.track || 'both';
-    // Spur waehlen: 'both' liegt ueber beiden Spuren
-    const parent = !two ? tl.querySelector('.lane')
-      : (c.track === 'both' ? tl : lanes[c.track]);
+    let parent = laneFor(c.track);
+    if (!parent && (c.track === 'music' || c.track === 'voice')) return;
+    const overlay = (parent === null);
+    if (overlay) parent = tl;
     const d = document.createElement('div');
+    if (overlay) overlaySpan(d);
     d.className = 'cut' + (c.active ? '' : ' inactive');
     d.style.left = (c.start / dur * 100) + '%';
     d.style.width = (Math.max(0.3, c.end - c.start) / dur * 100) + '%';
-    d.title = (c.reason || 'Schnitt');
+    d.style.borderLeft = '3px solid ' + (TRACKCOL[c.track] || '#ff7a7a');
+    d.title = (c.reason || 'Schnitt') + ' · ' + (TRACKNAME[c.track] || '');
     d.innerHTML = '<span class="h l" title="Anfang ziehen"></span>' +
                   '<span class="h r" title="Ende ziehen"></span>';
     // Koerper ziehen = verschieben
@@ -464,7 +1013,127 @@ function renderTL(){
     });
     parent.appendChild(d);
   });
-  renderList(); drawWave();
+  // Lautstaerke-Abschnitte (blau): verschieben + trimmen wie Schnitte
+  (P.volumes || []).forEach(rg => {
+    let parent = rg.track === 'music' ? lanes.music
+      : (lanes[rg.track] || lanes.both);
+    if (!parent) return;
+    const d = document.createElement('div');
+    d.className = 'vol';
+    d.style.left = (rg.start / dur * 100) + '%';
+    d.style.width = (Math.max(0.3, rg.end - rg.start) / dur * 100) + '%';
+    d.style.borderLeft = '3px solid ' + (TRACKCOL[rg.track] || '#4a9eff');
+    d.title = 'Lautstärke-Abschnitt (' + (TRACKNAME[rg.track] || rg.track)
+      + '): ' + Math.round(rg.gain * 100) + '%';
+    d.innerHTML = '<span class="h l" title="Anfang ziehen"></span>' +
+      '<span class="h r" title="Ende ziehen"></span>' +
+      '<span class="vlbl">' + Math.round(rg.gain * 100) + '%</span>';
+    d.addEventListener('pointerdown', ev => {
+      if (ev.target.classList.contains('h')) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const r = tl.getBoundingClientRect();
+      const len = rg.end - rg.start;
+      const grab = (ev.clientX - r.left) / r.width * dur - rg.start;
+      tip.style.display = 'block';
+      const move = e2 => {
+        let ns = (e2.clientX - r.left) / r.width * dur - grab;
+        ns = Math.max(0, Math.min(dur - len, ns));
+        rg.start = Math.round(ns * 10) / 10;
+        rg.end = Math.round((ns + len) * 10) / 10;
+        d.style.left = (rg.start / dur * 100) + '%';
+        tip.textContent = '🔊 ' + fmt(rg.start) + '–' + fmt(rg.end);
+        tip.style.left = (e2.clientX - r.left - 40) + 'px'; touch();
+      };
+      const up = () => { window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        tip.style.display = 'none'; renderTL(); };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    });
+    d.querySelectorAll('.h').forEach(h => {
+      h.addEventListener('pointerdown', ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        const left = h.classList.contains('l');
+        tip.style.display = 'block';
+        const move = e2 => {
+          const r = tl.getBoundingClientRect();
+          const t = Math.min(dur, Math.max(0, (e2.clientX - r.left) / r.width * dur));
+          if (left) rg.start = Math.min(Math.round(t*10)/10, rg.end - 0.1);
+          else rg.end = Math.max(Math.round(t*10)/10, rg.start + 0.1);
+          d.style.left = (rg.start / dur * 100) + '%';
+          d.style.width = (Math.max(0.3, rg.end - rg.start) / dur * 100) + '%';
+          tip.textContent = '🔊 ' + (left ? 'Anfang: ' : 'Ende: ')
+            + fmt(left ? rg.start : rg.end);
+          tip.style.left = (e2.clientX - r.left - 20) + 'px'; touch();
+        };
+        const up = () => { tip.style.display = 'none';
+          window.removeEventListener('pointermove', move);
+          window.removeEventListener('pointerup', up); renderTL(); };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+      });
+    });
+    parent.appendChild(d);
+  });
+  // Text-Overlays: Timing-Balken auf der 📝-Spur (verschieben + trimmen)
+  if (lanes.text) (P.texts || []).forEach(tx => {
+    const d = document.createElement('div');
+    d.className = 'txt';
+    d.style.left = (tx.start / dur * 100) + '%';
+    d.style.width = (Math.max(0.3, tx.end - tx.start) / dur * 100) + '%';
+    d.innerHTML = '<span class="h l" title="Anfang ziehen"></span>'
+      + '<span class="h r" title="Ende ziehen"></span>'
+      + '<span class="tlbl">' + esc((tx.text || '').split('\n')[0].slice(0, 22))
+      + '</span>';
+    d.addEventListener('pointerdown', ev => {
+      if (ev.target.classList.contains('h')) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const r = tl.getBoundingClientRect();
+      const len = tx.end - tx.start;
+      const grab = (ev.clientX - r.left) / r.width * dur - tx.start;
+      tip.style.display = 'block';
+      const move = e2 => {
+        let ns = (e2.clientX - r.left) / r.width * dur - grab;
+        ns = Math.max(0, Math.min(dur - len, ns));
+        tx.start = Math.round(ns * 10) / 10;
+        tx.end = Math.round((ns + len) * 10) / 10;
+        d.style.left = (tx.start / dur * 100) + '%';
+        tip.textContent = '📝 ' + fmt(tx.start) + '–' + fmt(tx.end);
+        tip.style.left = (e2.clientX - r.left - 40) + 'px'; touch();
+      };
+      const up = () => { window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        tip.style.display = 'none'; renderTL(); drawTexts(true); };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    });
+    d.querySelectorAll('.h').forEach(h => {
+      h.addEventListener('pointerdown', ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        const left = h.classList.contains('l');
+        tip.style.display = 'block';
+        const move = e2 => {
+          const r = tl.getBoundingClientRect();
+          const t = Math.min(dur, Math.max(0, (e2.clientX - r.left) / r.width * dur));
+          if (left) tx.start = Math.min(Math.round(t*10)/10, tx.end - 0.2);
+          else tx.end = Math.max(Math.round(t*10)/10, tx.start + 0.2);
+          d.style.left = (tx.start / dur * 100) + '%';
+          d.style.width = (Math.max(0.3, tx.end - tx.start) / dur * 100) + '%';
+          tip.textContent = '📝 ' + (left ? 'Ab: ' : 'Bis: ')
+            + fmt(left ? tx.start : tx.end);
+          tip.style.left = (e2.clientX - r.left - 20) + 'px'; touch();
+        };
+        const up = () => { tip.style.display = 'none';
+          window.removeEventListener('pointermove', move);
+          window.removeEventListener('pointerup', up);
+          renderTL(); drawTexts(true); };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+      });
+    });
+    lanes.text.appendChild(d);
+  });
+  renderList(); renderVolList(); renderTextList(); drawWave();
 }
 function nudge(c, which, delta){
   if (which === 's') c.start = Math.max(0, Math.min(Math.round((c.start+delta)*10)/10, c.end - 0.1));
@@ -478,10 +1147,13 @@ function renderList(){
   P.cuts.forEach(c => {
     const d = document.createElement('div');
     d.className = 'c' + (c.active ? '' : ' inactive');
+    const tcol = TRACKCOL[c.track] || '#ff7a7a';
+    d.style.borderLeft = '3px solid ' + tcol;
     d.innerHTML = `
       <div class="top">
         <input type="checkbox" ${c.active?'checked':''} title="Schnitt aktiv">
         <span class="t">${fmt(c.start)}–${fmt(c.end)}</span>
+        <span style="color:${tcol};font-size:11px;white-space:nowrap">${TRACKNAME[c.track] || ''}</span>
         <span class="reason">${c.reason || ''}</span>
         <button class="del" title="Schnitt löschen">🗑</button>
       </div>
@@ -496,13 +1168,15 @@ function renderList(){
         <button class="nb" data-w="e" data-d="-0.1">−0,1</button>
         <button class="nb" data-w="e" data-d="0.1">+0,1</button>
         <button class="nb" data-w="e" data-d="0.5">+0,5</button>
-      </div>` + (PIP.enabled ? `
+      </div>` + ((c.track === 'music' || c.track === 'voice')
+        ? `<div class="nudge"><b style="color:${tcol}">${TRACKNAME[c.track]}-Spur</b></div>`
+        : (PIP.enabled ? `
       <div class="nudge"><b>Gilt für</b>
         <select class="trk">
           <option value="both">beide Videos</option>
           <option value="main">großes Video</option>
           <option value="pip">kleines Video</option>
-        </select></div>` : '');
+        </select></div>` : ''));
     const trk = d.querySelector('.trk');
     if (trk) { trk.value = c.track || 'both';
       trk.onchange = ev => { c.track = ev.target.value; touch(); renderTL(); }; }
@@ -518,7 +1192,121 @@ function renderList(){
     cutlist.appendChild(d);
   });
 }
-// freie Flaeche einer Spur: Klick = springen, Aufziehen = neuer Schnitt
+// Liste der Lautstaerke-Abschnitte in der Seitenleiste
+function renderVolList(){
+  const vols = P.volumes || [];
+  cardVols.style.display = vols.length ? 'block' : 'none';
+  volcount.textContent = '(' + vols.length + ')';
+  vollist.innerHTML = '';
+  vols.forEach(rg => {
+    const d = document.createElement('div');
+    d.className = 'c';
+    const tcol = TRACKCOL[rg.track] || '#4a9eff';
+    d.style.borderLeft = '3px solid ' + tcol;
+    d.innerHTML = `
+      <div class="top">
+        <span class="t" style="color:#8fc7ff">${fmt(rg.start)}–${fmt(rg.end)}</span>
+        <span class="reason" style="color:${tcol}">${TRACKNAME[rg.track] || rg.track}</span>
+        <button class="del" title="Abschnitt löschen">🗑</button>
+      </div>
+      <div class="row" style="margin:7px 0 0">
+        <label style="font-size:11px">Lautstärke</label>
+        <input type="range" min="0" max="150" value="${Math.round(rg.gain*100)}">
+        <span style="font-size:11px;min-width:34px">${Math.round(rg.gain*100)}%</span>
+      </div>`;
+    const sl = d.querySelector('input[type=range]');
+    sl.oninput = ev => { rg.gain = sl.value / 100;
+      sl.nextElementSibling.textContent = sl.value + '%'; touch(); applyAudio(); };
+    sl.onchange = () => renderTL();
+    d.querySelector('.del').onclick = ev => { ev.stopPropagation();
+      P.volumes.splice(P.volumes.indexOf(rg), 1); touch(); renderTL(); };
+    d.querySelector('.top').onclick = ev => {
+      if (!ev.target.classList.contains('del'))
+        { v.currentTime = Math.max(0, rg.start - 1); v.play(); } };
+    vollist.appendChild(d);
+  });
+}
+// Werkzeug: Aufziehen erzeugt Schnitte (cut) oder Lautstaerke-Abschnitte (vol)
+let tool = 'cut';
+bTool.onclick = () => {
+  tool = tool === 'cut' ? 'vol' : 'cut';
+  bTool.textContent = tool === 'cut' ? '✂ Schneiden' : '🔊 Lautstärke';
+  bTool.classList.toggle('on', tool === 'vol');
+  toast(tool === 'cut'
+    ? '✂ Aufziehen erzeugt jetzt Schnitte'
+    : '🔊 Aufziehen erzeugt jetzt Lautstärke-Abschnitte');
+};
+// Liste der Text-Overlays in der Seitenleiste (Stil je Text)
+function renderTextList(){
+  textlist.innerHTML = '';
+  (P.texts || []).forEach((tx, i) => {
+    const d = document.createElement('div');
+    d.className = 'c';
+    d.style.borderLeft = '3px solid #ffd66e';
+    d.innerHTML = `
+      <div class="top">
+        <span class="t" style="color:#ffd66e">${fmt(tx.start)}–${fmt(tx.end)}</span>
+        <span class="reason"></span>
+        <button class="del" title="Text löschen">🗑</button>
+      </div>
+      <textarea rows="2" class="ttext">${esc(tx.text)}</textarea>
+      <div class="row" style="margin-top:6px"><label style="font-size:11px">Schrift</label>
+        <select class="tfont">${capFont.innerHTML}</select></div>
+      <div class="row"><label style="font-size:11px">Größe</label>
+        <input type="range" class="tsize" min="24" max="220" value="${tx.size}">
+        <span style="font-size:11px;min-width:26px">${tx.size}</span></div>
+      <div class="row"><label style="font-size:11px">Farbe / Fett</label>
+        <input type="color" class="tcol" value="${tx.color}">
+        <input type="checkbox" class="tbold" ${tx.bold !== false ? 'checked' : ''} title="Fett"></div>
+      <div class="row"><label style="font-size:11px">Hintergrund</label>
+        <input type="checkbox" class="tboxon" ${tx.box ? 'checked' : ''}>
+        <input type="color" class="tboxcol" value="#${String(tx.box_color).replace('#','')}"></div>
+      <div class="row"><label style="font-size:11px">Box-Form</label>
+        <select class="tboxstyle">
+          <option value="line"${tx.box_style !== 'block' ? ' selected' : ''}>um die Wörter</option>
+          <option value="block"${tx.box_style === 'block' ? ' selected' : ''}>Viereck</option>
+        </select></div>
+      <div class="row"><label style="font-size:11px">Box-Deckkraft</label>
+        <input type="range" class="tboxa" min="10" max="100" value="${Math.round((tx.box_alpha != null ? tx.box_alpha : 0.55) * 100)}"></div>
+      <div class="row"><label style="font-size:11px">Animation</label>
+        <select class="tanim">${Object.keys(ANIMS).map(k =>
+          `<option value="${k}"${tx.anim === k ? ' selected' : ''}>${ANIMS[k]}</option>`).join('')}</select></div>`;
+    const upd = () => { touch();
+      const el = document.querySelector('.stagetext[data-i="' + i + '"]');
+      if (el && el.style.display === 'block') styleStageText(el, tx); };
+    d.querySelector('.tfont').value = tx.font;
+    d.querySelector('.ttext').onchange = ev => { tx.text = ev.target.value;
+      upd(); renderTL(); };
+    d.querySelector('.tfont').onchange = ev => { tx.font = ev.target.value; upd(); };
+    d.querySelector('.tsize').oninput = ev => { tx.size = +ev.target.value;
+      ev.target.nextElementSibling.textContent = ev.target.value; upd(); };
+    d.querySelector('.tcol').oninput = ev => { tx.color = ev.target.value; upd(); };
+    d.querySelector('.tbold').oninput = ev => { tx.bold = ev.target.checked; upd(); };
+    d.querySelector('.tboxon').oninput = ev => { tx.box = ev.target.checked; upd(); };
+    d.querySelector('.tboxcol').oninput = ev => {
+      tx.box_color = ev.target.value.replace('#',''); upd(); };
+    d.querySelector('.tboxstyle').onchange = ev => {
+      tx.box_style = ev.target.value; upd(); };
+    d.querySelector('.tboxa').oninput = ev => {
+      tx.box_alpha = ev.target.value / 100; upd(); };
+    d.querySelector('.tanim').onchange = ev => { tx.anim = ev.target.value;
+      touch(); drawTexts(true); };
+    d.querySelector('.del').onclick = ev => { ev.stopPropagation();
+      P.texts.splice(i, 1); touch(); rebuildStageTexts(); renderTL(); };
+    d.querySelector('.top').onclick = ev => {
+      if (!ev.target.classList.contains('del'))
+        { v.currentTime = Math.max(0, tx.start); v.play(); } };
+    textlist.appendChild(d);
+  });
+}
+bAddText.onclick = () => {
+  const t = Math.round(v.currentTime * 10) / 10;
+  P.texts.push(newText(t, Math.min(t + 3, dur || t + 3)));
+  touch(); rebuildStageTexts(); renderTL();
+  toast('📝 Text eingefügt — im Video an die Wunschposition ziehen');
+};
+
+// freie Flaeche einer Spur: Klick = springen, Aufziehen = neues Element
 tl.addEventListener('pointerdown', e => {
   if (!e.target.classList.contains('lane')) return;
   e.preventDefault();
@@ -532,13 +1320,17 @@ tl.addEventListener('pointerdown', e => {
     if (!moved && Math.abs(t1 - t0) < 0.15) return;
     moved = true;
     if (!tmp) { tmp = document.createElement('div');
-      tmp.className = 'cut creating'; lane.appendChild(tmp);
+      tmp.className = (track === 'text' ? 'txt'
+        : tool === 'cut' ? 'cut' : 'vol') + ' creating';
+      lane.appendChild(tmp);
       tip.style.display = 'block'; }
     const s = Math.min(t0, t1), en = Math.max(t0, t1);
     cur = [s, en];
     tmp.style.left = (s / dur * 100) + '%';
     tmp.style.width = ((en - s) / dur * 100) + '%';
-    tip.textContent = 'Neuer Schnitt: ' + fmt(s) + '–' + fmt(en);
+    tip.textContent = (track === 'text' ? '📝 Neuer Text: '
+      : tool === 'cut' ? 'Neuer Schnitt: ' : '🔊 Abschnitt: ')
+      + fmt(s) + '–' + fmt(en);
     tip.style.left = (ev.clientX - r.left - 40) + 'px';
   };
   const up = () => {
@@ -546,10 +1338,22 @@ tl.addEventListener('pointerdown', e => {
     window.removeEventListener('pointerup', up);
     tip.style.display = 'none';
     if (moved && cur && cur[1] - cur[0] >= 0.2) {
-      P.cuts.push({ start: Math.round(cur[0]*10)/10,
-        end: Math.round(cur[1]*10)/10,
-        reason: 'Manuell markiert', active: true, track: track });
-      P.cuts.sort((a,b) => a.start - b.start); touch();
+      if (track === 'text') {
+        P.texts.push(newText(cur[0], cur[1]));
+        rebuildStageTexts();
+      } else if (tool === 'cut') {
+        P.cuts.push({ start: Math.round(cur[0]*10)/10,
+          end: Math.round(cur[1]*10)/10,
+          reason: 'Manuell markiert', active: true, track: track });
+        P.cuts.sort((a,b) => a.start - b.start);
+      } else {
+        // Lautstaerke gilt je Tonspur: 'both'-Spur (eine Videospur) = main
+        P.volumes.push({ track: track === 'both' ? 'main' : track,
+          start: Math.round(cur[0]*10)/10, end: Math.round(cur[1]*10)/10,
+          gain: 0.5 });
+        P.volumes.sort((a,b) => a.start - b.start);
+      }
+      touch();
     } else if (!moved) { v.currentTime = t0; }
     renderTL();
   };
@@ -592,7 +1396,10 @@ document.getElementById('phgrab').addEventListener('pointerdown', e => {
 });
 
 // ---------- Vorschau / Zonen / Zeit ---------------------------------------
-bPrev.onclick = () => { preview = !preview; bPrev.classList.toggle('on', preview); };
+bPrev.onclick = () => { preview = !preview;
+  bPrev.classList.toggle('on', !preview);
+  toast(preview ? '✂ Abspielen zeigt das geschnittene Ergebnis'
+    : '🎞 Rohmaterial: herausgeschnittene Stellen laufen mit'); };
 function drawZones(){ document.querySelectorAll('.zone').forEach(z =>
   z.style.display = zonesOn ? 'block' : 'none');
   bGuides.classList.toggle('on', zonesOn); }
@@ -600,26 +1407,58 @@ bGuides.onclick = () => { zonesOn = !zonesOn; drawZones(); };
 // Nur wenn ALLE aktiven Schnitte beide Videos treffen, laufen die Timelines
 // synchron — sonst driftet das Ergebnis absichtlich (wie im Render).
 const allBoth = () => (P.cuts||[]).every(c =>
-  !c.active || (c.track || 'both') === 'both');
+  !c.active || c.track === 'music' || c.track === 'voice'
+  || (c.track || 'both') === 'both');
+// Zeitleisten-Schnitte -> Quellzeit-Schnitte einer Videospur: nach jedem
+// Sprung laeuft das Material versetzt weiter, spaetere Schnitte treffen
+// also SPAETERES Material (gleiche Formel wie im Render)
+function srcCuts(tracks){
+  const lane = (P.cuts || []).filter(c => c.active
+    && tracks.indexOf(c.track || 'both') >= 0)
+    .sort((a, b) => a.start - b.start);
+  const out = []; let j = 0;
+  lane.forEach(c => { out.push([c.start + j, c.end + j]);
+    j += c.end - c.start; });
+  return out;
+}
+// Zeit-Achse fuer Untertitel/Texte/Musik/Lautstaerke = der Ton-/Zeit-Master
+// (bei aktivem Bild-im-Bild dessen Video, sonst das grosse)
+const masterTime = () => PIP.enabled ? pv.currentTime : v.currentTime;
+// Unterscheidet Nutzer-Spulen von automatischen Vorschau-Spruengen:
+// beim Spulen folgen kleines Video + Musik, beim Vorschau-Sprung nicht
+// (dort laeuft das andere Video absichtlich weiter — wie im Render).
+let autoSeek = false;
 v.addEventListener('timeupdate', () => {
   if (preview) {
-    const c = (P.cuts||[]).find(c => c.active && (c.track||'both') !== 'pip'
-      && v.currentTime >= c.start && v.currentTime < c.end);
-    if (c) v.currentTime = c.end + 0.01;
+    const c = srcCuts(['main', 'both']).find(r =>
+      v.currentTime >= r[0] && v.currentTime < r[1]);
+    if (c) { autoSeek = true;
+      v.currentTime = Math.min(c[1] + 0.01, dur || c[1]); }
   }
   if (allBoth() && Math.abs(pv.currentTime - v.currentTime) > 0.25)
     pv.currentTime = v.currentTime;
-  updPhLabel(); updTC(); drawCap();
+  // Voiceover klebt an der Timeline des grossen Videos
+  if (VO && vo.src && Math.abs(vo.currentTime - v.currentTime) > 0.3)
+    vo.currentTime = v.currentTime;
+  applyAudio();
+  if (!preview) syncMusic();
+  updPhLabel(); updTC(); drawCap(); drawTexts();
 });
 pv.addEventListener('timeupdate', () => {
   if (preview) {
-    const c = (P.cuts||[]).find(c => c.active && (c.track||'both') !== 'main'
-      && pv.currentTime >= c.start && pv.currentTime < c.end);
-    if (c) pv.currentTime = c.end + 0.01;
+    const c = srcCuts(['pip', 'both']).find(r =>
+      pv.currentTime >= r[0] && pv.currentTime < r[1]);
+    if (c) pv.currentTime = c[1] + 0.01;
   }
 });
 v.addEventListener('seeked', () => {
-  if (allBoth()) pv.currentTime = v.currentTime;
+  if (VO && vo.src) vo.currentTime = v.currentTime;
+  if (autoSeek) { autoSeek = false; }   // Vorschau-Sprung: andere laufen weiter
+  else {
+    pv.currentTime = v.currentTime;     // Nutzer spult: ALLE Spuren folgen
+    syncMusic(true);
+  }
+  applyAudio();
   updPhLabel();
 });
 function updTC(){ tc.textContent = fmt(v.currentTime) + ' / ' + fmt(dur); }
@@ -634,18 +1473,27 @@ function drawWave(){
     if (!cv) return;
     cv.style.display = on ? 'block' : 'none';
     if (!on) return;
-    const key = l.dataset.track === 'pip' ? (PIP.source || P.video) : P.video;
+    const isMus = l.dataset.track === 'music';
+    const isVo = l.dataset.track === 'voice';
+    let key = P.video;
+    if (l.dataset.track === 'pip') key = PIP.source || P.video;
+    if (isMus) { if (!MUS) return; key = MUS.file; }
+    if (isVo) { if (!VO) return; key = VO.file; }
     const rec = (window.WAVEFORM || {})[key];
     const w = l.clientWidth, h = l.clientHeight;
     cv.width = w; cv.height = h;
     if (!rec || !rec.p || !rec.p.length || !dur || !rec.d) return;
     const ctx = cv.getContext('2d');
-    ctx.fillStyle = 'rgba(110,205,255,.38)';
+    ctx.fillStyle = isMus ? 'rgba(190,140,255,.42)'
+      : isVo ? 'rgba(255,143,177,.42)' : 'rgba(110,205,255,.38)';
     for (let x = 0; x < w; x++) {
       const t = x / w * dur;
-      if (t > rec.d) break;
+      // Musikspur: Song ab Startpunkt, Musik-Schnitte ruecken auf, Loop
+      let pos = t;
+      if (isMus) pos = songPos(t) % rec.d;
+      else if (t > rec.d) break;
       const p = rec.p[Math.min(rec.p.length - 1,
-        Math.floor(t / rec.d * rec.p.length))] / 100;
+        Math.floor(pos / rec.d * rec.p.length))] / 100;
       const bh = Math.max(1, p * h * 0.9);
       ctx.fillRect(x, (h - bh) / 2, 1, bh);
     }
@@ -653,12 +1501,66 @@ function drawWave(){
 }
 waveOn.oninput = drawWave;
 
+// ---------- Song-Uebersicht: ganzes Lied, Fenster = Reel-Ausschnitt --------
+function drawSongbar(){
+  songwrap.style.display = MUS ? 'block' : 'none';
+  if (!MUS || !dur) return;
+  const rec = (window.WAVEFORM || {})[MUS.file];
+  const w = songwrap.clientWidth, h = songwrap.clientHeight;
+  songwave.width = w; songwave.height = h;
+  if (!rec || !rec.p || !rec.p.length || !rec.d) return;
+  const ctx = songwave.getContext('2d');
+  ctx.fillStyle = 'rgba(190,140,255,.45)';
+  for (let x = 0; x < w; x++) {
+    const p = rec.p[Math.min(rec.p.length - 1,
+      Math.floor(x / w * rec.p.length))] / 100;
+    const bh = Math.max(1, p * h * 0.85);
+    ctx.fillRect(x, (h - bh) / 2, 1, bh);
+  }
+  songwin.style.width = (Math.min(1, dur / rec.d) * w) + 'px';
+  songwin.style.left = (Math.min((MUS.offset || 0) / rec.d,
+    Math.max(0, 1 - dur / rec.d)) * w) + 'px';
+}
+songwin.addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  const rec = MUS && (window.WAVEFORM || {})[MUS.file];
+  if (!rec || !rec.d) return;
+  const r = songwrap.getBoundingClientRect();
+  const grabX = e.clientX - songwin.getBoundingClientRect().left;
+  const move = ev => {
+    let x = ev.clientX - r.left - grabX;
+    x = Math.max(0, Math.min(r.width - songwin.offsetWidth, x));
+    MUS.offset = Math.round((x / r.width) * rec.d * 10) / 10;
+    songwin.style.left = x + 'px';
+    updMusOff(); touch();
+  };
+  const up = () => { window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    drawWave(); syncMusic(true); };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+});
+songwrap.addEventListener('pointerdown', e => {
+  if (e.target === songwin) return;
+  const rec = MUS && (window.WAVEFORM || {})[MUS.file];
+  if (!rec || !rec.d) return;
+  const r = songwrap.getBoundingClientRect();
+  let x = e.clientX - r.left - songwin.offsetWidth / 2;
+  x = Math.max(0, Math.min(r.width - songwin.offsetWidth, x));
+  MUS.offset = Math.round((x / r.width) * rec.d * 10) / 10;
+  drawSongbar(); updMusOff(); drawWave(); syncMusic(true); touch();
+});
+
 // ---------- Speichern -----------------------------------------------------
 bSave.onclick = () => {
   C.enabled = capOn.checked; PIP.enabled = pipOn.checked;
   C.primary = capPrim.value.replace('#',''); C.highlight = capHi.value.replace('#','');
+  (P.texts || []).forEach(computeLines);   // Zeilen fix fuer den Render
+  const out = JSON.parse(JSON.stringify(P));
+  delete out._dateien;        // nur Anzeige-Infos aus build_editor,
+  delete out._audiodateien;   // nicht mitspeichern
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(P, null, 2)],
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)],
     {type:'application/json'}));
   a.download = 'projekt.json'; a.click();
   dirty = false;
@@ -666,8 +1568,87 @@ bSave.onclick = () => {
   setTimeout(() => bSave.textContent = '💾 Speichern für Claude', 4000);
 };
 
+// ---------- Audio hinzufuegen: Datei waehlen / Voiceover aufnehmen ---------
+// Peaks direkt im Browser berechnen -> Waveform sofort sichtbar, ohne Claude
+function peaksFromBuffer(buf, cb){
+  const ac = new (window.AudioContext || window.webkitAudioContext)();
+  ac.decodeAudioData(buf, a => {
+    const ch = a.getChannelData(0), n = ch.length,
+      step = Math.max(1, Math.floor(n / 600)), p = [];
+    for (let i = 0; i < n; i += step) {
+      let m = 0;
+      for (let j = i; j < Math.min(i + step, n); j += 16)
+        m = Math.max(m, Math.abs(ch[j]));
+      p.push(Math.round(m * 100));
+    }
+    cb({ d: Math.round(a.duration * 100) / 100, p: p.slice(0, 600) });
+    ac.close();
+  }, () => { cb(null); ac.close(); });
+}
+function importAudio(file, kind){
+  localBlobs[file.name] = URL.createObjectURL(file);
+  const r = new FileReader();
+  r.onload = () => peaksFromBuffer(r.result, rec => {
+    if (rec) (window.WAVEFORM = window.WAVEFORM || {})[file.name] = rec;
+    if (kind === 'music')
+      P.music = Object.assign({ offset: 0, gain: 0.3 }, P.music || {},
+        { file: file.name });
+    else P.voiceover = Object.assign({ gain: 1.0 }, P.voiceover || {},
+        { file: file.name });
+    // Kopie nach Downloads, falls die Datei noch nicht im Projektordner liegt
+    const known = (P._audiodateien || []).concat(P._dateien || []);
+    if (!known.includes(file.name)) {
+      const a = document.createElement('a');
+      a.href = localBlobs[file.name]; a.download = file.name; a.click();
+      toast('💾 ' + file.name + ' liegt in Downloads — sag Claude Bescheid');
+    } else { toast('✓ ' + file.name + ' eingefügt'); }
+    touch(); adoptAudioUI(); renderTL(); drawSongbar(); applyAudio();
+  });
+  r.readAsArrayBuffer(file);
+}
+bPickMusic.onclick = () => fMusic.click();
+bPickVoice.onclick = () => fVoice.click();
+fMusic.onchange = e => { if (e.target.files[0])
+  importAudio(e.target.files[0], 'music'); e.target.value = ''; };
+fVoice.onchange = e => { if (e.target.files[0])
+  importAudio(e.target.files[0], 'voice'); e.target.value = ''; };
+
+// Mikro-Aufnahme: Video laeuft (stumm) mit, Aufnahme klebt an Timeline 0
+let recorder = null, recActive = false, recChunks = [];
+bRec.onclick = async () => {
+  if (recorder) { recorder.stop(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream);
+    recChunks = [];
+    recorder.ondataavailable = e => recChunks.push(e.data);
+    recorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(recChunks, { type: 'audio/webm' });
+      recorder = null; recActive = false;
+      bRec.textContent = '● Voiceover aufnehmen'; bRec.classList.remove('on');
+      v.pause(); applyAudio();
+      importAudio(new File([blob], 'voiceover.webm'), 'voice');
+    };
+    recActive = true; recorder.start();
+    bRec.textContent = '⏹ Aufnahme stoppen'; bRec.classList.add('on');
+    toast('● Aufnahme läuft — Video startet von vorn (stumm)');
+    v.currentTime = 0; applyAudio(); v.play();
+  } catch (err) { toast('⚠ Kein Mikrofon-Zugriff: ' + err.name); }
+};
+
+// ---------- Kacheln: Auf-/Zuklapp-Zustand merken ---------------------------
+document.querySelectorAll('details.card').forEach(d => {
+  const k = 'scb_card_' + d.id;
+  if (localStorage.getItem(k) === '0') d.open = false;
+  d.addEventListener('toggle', () =>
+    localStorage.setItem(k, d.open ? '1' : '0'));
+});
+
 window.addEventListener('resize', () => { drawCap(); drawPip(); updPhLabel();
-  drawWave(); });
+  drawWave(); drawSongbar(); drawTexts(true); });
 applyProjekt(window.PROJEKT || {});
 drawZones();
-</script></body></html>
+</script>
+<script src="cockpit_custom.js"></script>
+</body></html>

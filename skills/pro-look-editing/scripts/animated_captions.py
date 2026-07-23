@@ -11,6 +11,7 @@ Sprache sichtbar. Safe-Zone-Werte fuer Reel und Story eingebaut.
 Aufruf:
   python animated_captions.py transkript.json out.ass --mode reel
     [--font "Segoe UI"] [--size 0] [--highlight FFD400] [--group 3]
+[--box] [--box-color 000000] [--box-alpha 0.59] [--no-bold]
     [--playresx 1080] [--playresy 1920]
 
 --size 0 = Standardgroesse des Modus (Reel 64 / Story 92).
@@ -24,6 +25,14 @@ def ass_color(rgbhex):
     rgbhex = rgbhex.lstrip('#')
     r, g, b = rgbhex[0:2], rgbhex[2:4], rgbhex[4:6]
     return '&H00{}{}{}&'.format(b, g, r).upper()
+
+
+def _boxcol(args):
+    """Boxfarbe + Deckkraft als ASS-Farbwert (&HAABBGGRR)."""
+    h = args.box_color.lstrip('#')
+    return '&H{:02X}{}{}{}'.format(
+        max(0, min(255, int(round((1 - args.box_alpha) * 255)))),
+        h[4:6], h[2:4], h[0:2]).upper()
 
 
 def fmt_time(sec):
@@ -74,6 +83,15 @@ def main():
                     help='Konturstaerke in px (0 = automatisch)')
     ap.add_argument('--box', action='store_true',
                     help='halbtransparente Box hinter dem Text')
+    ap.add_argument('--box-color', default='000000',
+                    help='Boxfarbe als RRGGBB (mit --box)')
+    ap.add_argument('--box-alpha', type=float, default=0.59,
+                    help='Deckkraft der Box 0-1 (mit --box)')
+    ap.add_argument('--box-style', choices=('line', 'block'), default='line',
+                    help='line = Box schmiegt sich pro Zeile um die Woerter, '
+                         'block = EIN symmetrisches Viereck um den ganzen Text')
+    ap.add_argument('--no-bold', action='store_true',
+                    help='Text nicht fett setzen')
     ap.add_argument('--group', type=int, default=3)
     ap.add_argument('--playresx', type=int, default=1080)
     ap.add_argument('--playresy', type=int, default=1920)
@@ -120,13 +138,25 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,{font},{size},{primary},{primary},&H00000000,&H96000000,-1,0,0,0,100,100,0,0,{borderstyle},{outline},2,2,{ml},{mr},{mv},1
+Style: Cap,{font},{size},{primary},{primary},{outcol},{back},{bold},0,0,0,100,100,0,0,{borderstyle},{outline},{shadow},2,{ml},{mr},{mv},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """.format(px=args.playresx, py=args.playresy, font=args.font, size=size,
            primary=white,
-           borderstyle=3 if args.box else 1,
+           # libass zeichnet die Box je nach BorderStyle aus verschiedenen
+           # Farbfeldern (empirisch verifiziert):
+           #   BorderStyle 3 (pro Zeile)      -> Box = OutlineColour
+           #   BorderStyle 4 (ganzer Block)   -> Box = BackColour,
+           #                                     Textkontur = OutlineColour
+           outcol=('&H00000000' if not args.box or args.box_style == 'block'
+                   else _boxcol(args)),
+           back=_boxcol(args) if args.box and args.box_style == 'block'
+                else '&H96000000',
+           bold=0 if args.no_bold else -1,
+           borderstyle=(4 if args.box_style == 'block' else 3) if args.box
+                       else 1,
+           shadow=0 if args.box else 2,
            outline=args.outline or max(4, size // 10), ml=mode['marginl'],
            mr=mode['marginr'], mv=mode['marginv'])
 
