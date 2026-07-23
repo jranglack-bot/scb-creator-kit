@@ -4,82 +4,116 @@
 * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
 body { font-family:'Segoe UI',sans-serif; background:#16181d; color:#e8e8ee;
   display:flex; flex-direction:column; height:100vh; overflow:hidden; }
-header { display:flex; align-items:center; gap:16px; padding:10px 18px;
+header { display:flex; align-items:center; gap:12px; padding:10px 18px;
   background:#1e2128; border-bottom:1px solid #2c303a; }
-header h1 { font-size:17px; font-weight:700; }
-header .hint { font-size:12px; opacity:.55; flex:1; }
+header h1 { font-size:16px; font-weight:700; white-space:nowrap; }
+header .hint { font-size:11.5px; opacity:.55; flex:1; line-height:1.35; }
 button { background:#2c303a; color:#e8e8ee; border:0; border-radius:8px;
-  padding:8px 14px; font-size:13px; cursor:pointer; }
+  padding:8px 14px; font-size:13px; cursor:pointer; white-space:nowrap; }
 button:hover { background:#3a3f4d; }
 button.primary { background:#FFD400; color:#16181d; font-weight:700; }
 button.on { outline:2px solid #FFD400; }
+#bPlay { font-size:16px; width:46px; }
+#tc { font-variant-numeric:tabular-nums; font-size:13px; opacity:.8;
+  min-width:110px; text-align:center; }
 main { flex:1; display:flex; min-height:0; }
 #stagewrap { flex:1; display:flex; align-items:center; justify-content:center;
   background:#0d0e11; position:relative; }
 #stage { position:relative; height:92%; aspect-ratio:9/16; background:#000;
   overflow:hidden; border-radius:10px; }
-#stage video { position:absolute; inset:0; width:100%; height:100%;
-  object-fit:contain; }
-#pipbox { position:absolute; border:3px solid #FFD400; border-radius:6px;
-  cursor:move; display:none; box-shadow:0 0 0 2000px rgba(0,0,0,.25); }
-#pipbox .rs { position:absolute; right:-8px; bottom:-8px; width:16px;
-  height:16px; background:#FFD400; border-radius:50%; cursor:nwse-resize; }
-#pipbox .lbl { position:absolute; top:-24px; left:0; font-size:11px;
-  color:#FFD400; white-space:nowrap; }
+#stage > video { position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; cursor:pointer; }
+#bigplay { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-size:74px; opacity:.85; pointer-events:none; text-shadow:0 4px 24px #000;
+  transition:opacity .15s; }
+#bigplay.hidden { opacity:0; }
+/* Bild-im-Bild mit echtem Video */
+#pipbox { position:absolute; border:3px solid #FFD400; border-radius:8px;
+  cursor:move; display:none; overflow:visible; background:#000;
+  box-shadow:0 10px 30px rgba(0,0,0,.6); }
+#pipbox video { position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; border-radius:5px; pointer-events:none; }
+#pipbox .rs { position:absolute; right:-11px; bottom:-11px; width:22px;
+  height:22px; background:#FFD400; border-radius:50%; cursor:nwse-resize;
+  border:3px solid #16181d; z-index:3; }
+#pipbox .lbl { position:absolute; top:-26px; left:0; font-size:11px;
+  color:#FFD400; white-space:nowrap; text-shadow:0 1px 3px #000; }
 #capbox { position:absolute; left:5%; width:90%; text-align:center;
-  cursor:ns-resize; font-weight:800; line-height:1.25;
+  cursor:ns-resize; font-weight:800; line-height:1.25; z-index:4;
   text-shadow:0 0 6px #000,0 0 12px #000,2px 2px 2px #000; }
 #capbox em { font-style:normal; }
-.guide { position:absolute; pointer-events:none; border:1px dashed
-  rgba(255,80,80,.55); display:none; }
-#g-top { left:0; right:0; top:15%; border-width:1px 0 0 0; }
-#g-bot { left:0; right:0; top:80%; border-width:1px 0 0 0; }
-#g-right { top:0; bottom:0; right:15%; border-width:0 1px 0 0; }
-aside { width:280px; background:#1e2128; border-left:1px solid #2c303a;
+/* Safe-Zones: Instagram-UI-Bereiche, rot schraffiert, Video bleibt sichtbar */
+.zone { position:absolute; pointer-events:none; display:none; z-index:2;
+  background:repeating-linear-gradient(45deg, rgba(255,60,60,.30) 0px,
+    rgba(255,60,60,.30) 8px, rgba(255,60,60,.08) 8px, rgba(255,60,60,.08) 16px);
+  border:2px solid rgba(255,70,70,.85); }
+.zone span { position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%); font-size:11px; font-weight:700;
+  color:#ff9a9a; background:rgba(0,0,0,.55); padding:2px 8px;
+  border-radius:6px; white-space:nowrap; }
+#z-top { left:0; right:0; top:0; height:15%; }
+#z-right { top:30%; bottom:12%; right:0; width:15%; }
+#z-bottom { left:0; right:0; bottom:0; height:20%; }
+aside { width:300px; background:#1e2128; border-left:1px solid #2c303a;
   padding:14px; overflow-y:auto; font-size:13px; }
 aside h2 { font-size:12px; text-transform:uppercase; letter-spacing:1px;
-  opacity:.6; margin:14px 0 8px; }
+  opacity:.6; margin:16px 0 8px; }
 aside h2:first-child { margin-top:0; }
 .row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
 .row label { flex:1; opacity:.85; }
 input[type=range] { width:110px; }
-input[type=color] { width:34px; height:24px; border:0; background:none;
-  cursor:pointer; }
-#cutlist { font-size:12px; }
-#cutlist .c { padding:7px 8px; border-radius:6px; margin-bottom:5px;
-  background:#262a33; cursor:pointer; display:flex; gap:8px;
-  align-items:center; }
-#cutlist .c.inactive { opacity:.4; text-decoration:line-through; }
-#cutlist .c:hover { background:#303541; }
-#cutlist .t { color:#ff7a7a; font-variant-numeric:tabular-nums; }
-footer { background:#1e2128; border-top:1px solid #2c303a; padding:10px 18px 16px; }
+input[type=color] { width:34px; height:24px; border:0; background:none; cursor:pointer; }
+#cutlist .c { padding:8px; border-radius:8px; margin-bottom:8px; background:#262a33; }
+#cutlist .c.inactive { opacity:.45; }
+#cutlist .top { display:flex; align-items:center; gap:8px; cursor:pointer; }
+#cutlist .t { color:#ff7a7a; font-variant-numeric:tabular-nums; font-size:12px; }
+#cutlist .reason { flex:1; font-size:12px; opacity:.85; }
+#cutlist .nudge { display:flex; gap:6px; margin-top:7px; align-items:center;
+  font-size:11px; }
+#cutlist .nudge b { opacity:.6; font-weight:600; }
+.nb { padding:3px 8px; font-size:11px; border-radius:6px; background:#31364200;
+  background:#313642; }
+footer { background:#1e2128; border-top:1px solid #2c303a; padding:12px 18px 16px; }
 #tlwrap { position:relative; }
-#tl { position:relative; height:56px; background:#262a33; border-radius:8px;
-  cursor:pointer; overflow:hidden; }
+#tl { position:relative; height:72px; background:#262a33; border-radius:8px;
+  cursor:pointer; }
 #tl .cut { position:absolute; top:0; bottom:0;
-  background:rgba(255,70,70,.42); border-left:1px solid #ff5050;
-  border-right:1px solid #ff5050; }
-#tl .cut.inactive { background:rgba(255,70,70,.10); border-color:#7a4040; }
-#tl .h { position:absolute; top:0; bottom:0; width:10px; cursor:ew-resize; }
-#tl .h.l { left:-5px; } #tl .h.r { right:-5px; }
+  background:rgba(255,70,70,.40); border-radius:4px; }
+#tl .cut.inactive { background:rgba(255,70,70,.10); }
+#tl .h { position:absolute; top:0; bottom:0; width:18px; cursor:ew-resize;
+  display:flex; align-items:center; justify-content:center; z-index:2; }
+#tl .h::before { content:''; width:6px; height:60%; border-radius:3px;
+  background:#ff5050; box-shadow:0 0 0 1.5px #16181d; }
+#tl .h.l { left:-9px; } #tl .h.r { right:-9px; }
+#tl .h:hover::before { background:#ffd400; }
+#dragtip { position:absolute; top:-26px; background:#FFD400; color:#16181d;
+  font-size:11px; font-weight:700; padding:2px 7px; border-radius:6px;
+  display:none; pointer-events:none; white-space:nowrap; z-index:5; }
 #playhead { position:absolute; top:-4px; bottom:-4px; width:2px;
-  background:#FFD400; pointer-events:none; }
+  background:#FFD400; pointer-events:none; z-index:3; }
 #tlinfo { display:flex; justify-content:space-between; font-size:11px;
   opacity:.55; margin-top:6px; }
 </style></head><body>
 <header>
   <h1>🎬 SCB Video-Cockpit</h1>
-  <span class="hint">Schnitte: ziehen an den Kanten · Doppelklick = an/aus · Untertitel: hoch/runter ziehen · Bild-im-Bild: ziehen & Ecke skalieren</span>
-  <button id="bPrev">Vorschau: Schnitte überspringen</button>
-  <button id="bGuides">Safe-Zones</button>
+  <button id="bPlay" title="Leertaste">▶</button>
+  <span id="tc">0:00.0 / 0:00.0</span>
+  <span class="hint">Rote Balken = wird herausgeschnitten. Kanten der roten Griffe ziehen oder Feinjustierung in der Liste rechts. Untertitel hoch/runter ziehen · Bild-im-Bild ziehen, Ecke = Größe.</span>
+  <button id="bPrev">Vorschau: wie geschnitten</button>
+  <button id="bGuides">Instagram-Zonen</button>
   <button id="bSave" class="primary">💾 Speichern für Claude</button>
 </header>
 <main>
   <div id="stagewrap"><div id="stage">
     <video id="v"></video>
-    <div id="pipbox"><span class="lbl">Bild-im-Bild — ziehen / Ecke = Größe</span><span class="rs"></span></div>
+    <div id="bigplay">▶</div>
+    <div class="zone" id="z-top"><span>Reels-Kopfzeile</span></div>
+    <div class="zone" id="z-right"><span>Likes · Kommentare · Teilen</span></div>
+    <div class="zone" id="z-bottom"><span>Name + Caption</span></div>
+    <div id="pipbox"><video id="pv" muted></video>
+      <span class="lbl" id="piplbl">Bild-im-Bild — ziehen / Ecke = Größe</span>
+      <span class="rs"></span></div>
     <div id="capbox"></div>
-    <div class="guide" id="g-top"></div><div class="guide" id="g-bot"></div><div class="guide" id="g-right"></div>
   </div></div>
   <aside>
     <h2>Untertitel</h2>
@@ -94,36 +128,48 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:10px 18px 16p
   </aside>
 </main>
 <footer>
-  <div id="tlwrap"><div id="tl"></div><div id="playhead"></div></div>
-  <div id="tlinfo"><span id="tCur">0:00.0</span><span>Rot = wird herausgeschnitten</span><span id="tDur">0:00.0</span></div>
+  <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div></div>
+  <div id="tlinfo"><span>0:00.0</span><span>Klick auf die Leiste = dorthin springen</span><span id="tDur">0:00.0</span></div>
 </footer>
 <script>
 const P = /*__PROJEKT_JSON__*/{};
-const v = document.getElementById('v'), tl = document.getElementById('tl'),
-  stage = document.getElementById('stage'), cap = document.getElementById('capbox'),
-  pip = document.getElementById('pipbox'), ph = document.getElementById('playhead');
+const v = document.getElementById('v'), pv = document.getElementById('pv'),
+  tl = document.getElementById('tl'), stage = document.getElementById('stage'),
+  cap = document.getElementById('capbox'), pip = document.getElementById('pipbox'),
+  ph = document.getElementById('playhead'), tip = document.getElementById('dragtip'),
+  bigplay = document.getElementById('bigplay');
 let dur = P.duration || 0, preview = false, cues = [];
 
-v.src = P.video;
-v.addEventListener('loadedmetadata', () => { dur = v.duration; renderTL(); fmtDur(); });
-v.addEventListener('click', () => v.paused ? v.play() : v.pause());
+v.src = P.video; pv.src = P.video;
+document.getElementById('piplbl').textContent =
+  'Bild-im-Bild (' + (P.video || '') + ') — ziehen / Ecke = Größe';
+v.addEventListener('loadedmetadata', () => { dur = v.duration; renderTL();
+  tDur.textContent = fmtT(dur); updTC(); });
 
-// ---------- Untertitel-Cues aus Wortliste (wie animated_captions.py) ------
-function buildCues() {
-  cues = []; let cur = [];
+// ---------- Play/Pause: Button, Klick aufs Video, Leertaste ---------------
+function togglePlay(){ v.paused ? v.play() : v.pause(); }
+document.getElementById('bPlay').onclick = togglePlay;
+v.addEventListener('click', togglePlay);
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+});
+v.addEventListener('play', () => { bPlay.textContent = '⏸';
+  bigplay.classList.add('hidden'); pv.play(); });
+v.addEventListener('pause', () => { bPlay.textContent = '▶';
+  bigplay.classList.remove('hidden'); pv.pause(); });
+
+// ---------- Untertitel-Cues (wie animated_captions.py) --------------------
+(function(){ let cur = [];
   const words = (P.words || []).filter(w => (w.type || 'word') === 'word');
   const g = (P.captions && P.captions.group) || 3;
   for (const w of words) {
     if (cur.length && (cur.length >= g || w.start - cur[cur.length-1].end > 0.6)) {
-      cues.push(cur); cur = [];
-    }
+      cues.push(cur); cur = []; }
     cur.push(w);
   }
   if (cur.length) cues.push(cur);
-}
-buildCues();
+})();
 
-// ---------- Zustand aus projekt.json --------------------------------------
 const C = P.captions = Object.assign(
   { enabled:true, size:64, y:0.72, primary:'#FFFFFF', highlight:'#FFD400', group:3 },
   P.captions || {});
@@ -131,26 +177,26 @@ const PIP = P.pip = Object.assign(
   { enabled:false, x:0.5, y:0.10, scale:0.58 }, P.pip || {});
 P.cuts = (P.cuts || []).map(c => Object.assign({ active:true }, c));
 
-capOn.checked = C.enabled; capSize.value = C.size; capSizeV.textContent = C.size;
+capOn.checked = C.enabled !== false; capSize.value = C.size;
+capSizeV.textContent = C.size;
 capPrim.value = ('#'+String(C.primary).replace('#','')).slice(0,7);
 capHi.value = ('#'+String(C.highlight).replace('#','')).slice(0,7);
-pipOn.checked = PIP.enabled;
+pipOn.checked = !!PIP.enabled;
 
-// ---------- Anzeige-Updates ----------------------------------------------
-function scaleFactor() { return stage.clientWidth / 1080; }
-function drawCap() {
-  cap.style.display = capOn.checked ? 'block' : 'none';
+function scaleFactor(){ return stage.clientWidth / 1080; }
+function drawCap(){
+  cap.style.display = (capOn.checked && cues.length) ? 'block' : 'none';
   cap.style.fontSize = (capSize.value * scaleFactor()) + 'px';
   cap.style.color = capPrim.value;
   cap.style.top = (C.y * 100) + '%';
   const t = v.currentTime;
   const cue = cues.find(c => t >= c[0].start && t <= c[c.length-1].end + 0.05);
-  if (!cue) { cap.innerHTML = '&nbsp;'; return; }
-  cap.innerHTML = cue.map(w =>
+  cap.innerHTML = cue ? cue.map(w =>
     (t >= w.start && (t <= w.end || w === cue[cue.length-1]))
-      ? `<em style="color:${capHi.value}">${w.text}</em>` : w.text).join(' ');
+      ? `<em style="color:${capHi.value}">${w.text}</em>` : w.text).join(' ')
+    : '&nbsp;';
 }
-function drawPip() {
+function drawPip(){
   pip.style.display = pipOn.checked ? 'block' : 'none';
   const w = PIP.scale * stage.clientWidth;
   pip.style.width = w + 'px'; pip.style.height = (w * 16/9) + 'px';
@@ -158,34 +204,29 @@ function drawPip() {
   pip.style.top = (PIP.y * stage.clientHeight) + 'px';
 }
 capOn.oninput = drawCap;
-capSize.oninput = () => { C.size = +capSize.value; capSizeV.textContent = capSize.value; drawCap(); };
+capSize.oninput = () => { C.size = +capSize.value;
+  capSizeV.textContent = capSize.value; drawCap(); };
 capPrim.oninput = () => { C.primary = capPrim.value; drawCap(); };
 capHi.oninput = () => { C.highlight = capHi.value; drawCap(); };
 pipOn.oninput = () => { PIP.enabled = pipOn.checked; drawPip(); };
 
-// ---------- Dragging: Untertitel (vertikal) -------------------------------
+// ---------- Dragging ------------------------------------------------------
 cap.addEventListener('pointerdown', e => {
   e.preventDefault(); cap.setPointerCapture(e.pointerId);
-  const move = ev => {
-    const r = stage.getBoundingClientRect();
-    C.y = Math.min(0.88, Math.max(0.05, (ev.clientY - r.top) / r.height));
-    drawCap();
-  };
+  const move = ev => { const r = stage.getBoundingClientRect();
+    C.y = Math.min(0.88, Math.max(0.03, (ev.clientY - r.top) / r.height));
+    drawCap(); };
   const up = () => { cap.removeEventListener('pointermove', move);
     cap.removeEventListener('pointerup', up); };
   cap.addEventListener('pointermove', move); cap.addEventListener('pointerup', up);
 });
-
-// ---------- Dragging: PiP (Position + Größe) ------------------------------
 pip.addEventListener('pointerdown', e => {
   if (e.target.classList.contains('rs')) return;
   e.preventDefault(); pip.setPointerCapture(e.pointerId);
-  const move = ev => {
-    const r = stage.getBoundingClientRect();
-    PIP.x = Math.min(0.95, Math.max(0.05, (ev.clientX - r.left) / r.width));
-    PIP.y = Math.min(0.8, Math.max(0.0, (ev.clientY - r.top) / r.height));
-    drawPip();
-  };
+  const move = ev => { const r = stage.getBoundingClientRect();
+    PIP.x = Math.min(0.97, Math.max(0.03, (ev.clientX - r.left) / r.width));
+    PIP.y = Math.min(0.85, Math.max(0.0, (ev.clientY - r.top) / r.height));
+    drawPip(); };
   const up = () => { pip.removeEventListener('pointermove', move);
     pip.removeEventListener('pointerup', up); };
   pip.addEventListener('pointermove', move); pip.addEventListener('pointerup', up);
@@ -193,100 +234,130 @@ pip.addEventListener('pointerdown', e => {
 pip.querySelector('.rs').addEventListener('pointerdown', e => {
   e.preventDefault(); e.stopPropagation();
   const el = e.target; el.setPointerCapture(e.pointerId);
-  const move = ev => {
-    const r = stage.getBoundingClientRect();
+  const move = ev => { const r = stage.getBoundingClientRect();
     const w = Math.abs(ev.clientX - (r.left + PIP.x * r.width - (PIP.scale*r.width)/2));
-    PIP.scale = Math.min(0.95, Math.max(0.2, w / r.width));
-    drawPip();
-  };
+    PIP.scale = Math.min(0.95, Math.max(0.15, w / r.width)); drawPip(); };
   const up = () => { el.removeEventListener('pointermove', move);
     el.removeEventListener('pointerup', up); };
   el.addEventListener('pointermove', move); el.addEventListener('pointerup', up);
 });
 
-// ---------- Timeline ------------------------------------------------------
-function renderTL() {
+// ---------- Timeline mit greifbaren Reglern -------------------------------
+const fmt = t => Math.floor(t/60) + ':' + (t%60).toFixed(1).padStart(4,'0');
+function renderTL(){
   tl.querySelectorAll('.cut').forEach(n => n.remove());
-  P.cuts.forEach((c, i) => {
+  P.cuts.forEach(c => {
     const d = document.createElement('div');
     d.className = 'cut' + (c.active ? '' : ' inactive');
     d.style.left = (c.start / dur * 100) + '%';
-    d.style.width = (Math.max(0.15, c.end - c.start) / dur * 100) + '%';
-    d.title = (c.reason || 'Schnitt') + ' — Doppelklick: an/aus';
-    d.innerHTML = '<span class="h l"></span><span class="h r"></span>';
-    d.addEventListener('dblclick', ev => { ev.stopPropagation();
-      c.active = !c.active; renderTL(); renderList(); });
-    d.addEventListener('pointerdown', ev => {
-      if (!ev.target.classList.contains('h')) return;
-      ev.preventDefault(); ev.stopPropagation();
-      const left = ev.target.classList.contains('l');
-      const h = ev.target; h.setPointerCapture(ev.pointerId);
-      const move = e2 => {
-        const r = tl.getBoundingClientRect();
-        const t = Math.min(dur, Math.max(0, (e2.clientX - r.left) / r.width * dur));
-        if (left) c.start = Math.min(t, c.end - 0.05);
-        else c.end = Math.max(t, c.start + 0.05);
-        renderTL(); renderList();
-      };
-      const up = () => { h.removeEventListener('pointermove', move);
-        h.removeEventListener('pointerup', up); };
-      h.addEventListener('pointermove', move); h.addEventListener('pointerup', up);
+    d.style.width = (Math.max(0.3, c.end - c.start) / dur * 100) + '%';
+    d.title = (c.reason || 'Schnitt');
+    d.innerHTML = '<span class="h l" title="Anfang ziehen"></span>' +
+                  '<span class="h r" title="Ende ziehen"></span>';
+    d.querySelectorAll('.h').forEach(h => {
+      h.addEventListener('pointerdown', ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        const left = h.classList.contains('l');
+        h.setPointerCapture(ev.pointerId);
+        tip.style.display = 'block';
+        const move = e2 => {
+          const r = tl.getBoundingClientRect();
+          const t = Math.min(dur, Math.max(0, (e2.clientX - r.left) / r.width * dur));
+          if (left) c.start = Math.min(Math.round(t*10)/10, c.end - 0.1);
+          else c.end = Math.max(Math.round(t*10)/10, c.start + 0.1);
+          tip.textContent = (left ? 'Anfang: ' : 'Ende: ') + fmt(left ? c.start : c.end);
+          tip.style.left = (e2.clientX - tl.getBoundingClientRect().left - 20) + 'px';
+          v.currentTime = left ? c.start : c.end;
+          renderTL(); renderList();
+        };
+        const up = () => { tip.style.display = 'none';
+          h.removeEventListener('pointermove', move);
+          h.removeEventListener('pointerup', up); };
+        h.addEventListener('pointermove', move);
+        h.addEventListener('pointerup', up);
+      });
     });
     tl.appendChild(d);
   });
   renderList();
 }
-function renderList() {
-  const fmt = t => Math.floor(t/60) + ':' + (t%60).toFixed(1).padStart(4,'0');
+function nudge(c, which, delta){
+  if (which === 's') c.start = Math.max(0, Math.min(Math.round((c.start+delta)*10)/10, c.end - 0.1));
+  else c.end = Math.min(dur, Math.max(Math.round((c.end+delta)*10)/10, c.start + 0.1));
+  v.currentTime = which === 's' ? c.start : c.end;
+  renderTL();
+}
+function renderList(){
   cutcount.textContent = '(' + P.cuts.filter(c=>c.active).length + ' aktiv)';
   cutlist.innerHTML = '';
   P.cuts.forEach(c => {
     const d = document.createElement('div');
     d.className = 'c' + (c.active ? '' : ' inactive');
-    d.innerHTML = `<span class="t">${fmt(c.start)}–${fmt(c.end)}</span>
-      <span style="flex:1">${c.reason || ''}</span>`;
-    d.onclick = () => { v.currentTime = Math.max(0, c.start - 1); v.play(); };
-    d.ondblclick = () => { c.active = !c.active; renderTL(); };
+    d.innerHTML = `
+      <div class="top">
+        <input type="checkbox" ${c.active?'checked':''} title="Schnitt aktiv">
+        <span class="t">${fmt(c.start)}–${fmt(c.end)}</span>
+        <span class="reason">${c.reason || ''}</span>
+      </div>
+      <div class="nudge"><b>Anfang</b>
+        <button class="nb" data-w="s" data-d="-0.5">−0,5</button>
+        <button class="nb" data-w="s" data-d="-0.1">−0,1</button>
+        <button class="nb" data-w="s" data-d="0.1">+0,1</button>
+        <button class="nb" data-w="s" data-d="0.5">+0,5</button>
+      </div>
+      <div class="nudge"><b>Ende&nbsp;&nbsp;&nbsp;</b>
+        <button class="nb" data-w="e" data-d="-0.5">−0,5</button>
+        <button class="nb" data-w="e" data-d="-0.1">−0,1</button>
+        <button class="nb" data-w="e" data-d="0.1">+0,1</button>
+        <button class="nb" data-w="e" data-d="0.5">+0,5</button>
+      </div>`;
+    d.querySelector('input').onchange = ev => { c.active = ev.target.checked; renderTL(); };
+    d.querySelector('.top').onclick = ev => {
+      if (ev.target.tagName !== 'INPUT') { v.currentTime = Math.max(0, c.start - 1); v.play(); } };
+    d.querySelectorAll('.nb').forEach(b => b.onclick = ev => {
+      ev.stopPropagation(); nudge(c, b.dataset.w, parseFloat(b.dataset.d)); });
     cutlist.appendChild(d);
   });
 }
 tl.addEventListener('click', e => {
+  if (e.target !== tl && !e.target.classList.contains('cut')) return;
   const r = tl.getBoundingClientRect();
   v.currentTime = (e.clientX - r.left) / r.width * dur;
 });
 
-// ---------- Wiedergabe: Schnitte überspringen -----------------------------
+// ---------- Vorschau / Zonen ----------------------------------------------
 bPrev.onclick = () => { preview = !preview; bPrev.classList.toggle('on', preview); };
-bGuides.onclick = () => {
-  const show = document.getElementById('g-top').style.display !== 'block';
-  document.querySelectorAll('.guide').forEach(g => g.style.display = show ? 'block' : 'none');
-  bGuides.classList.toggle('on', show);
-};
+let zonesOn = true;
+function drawZones(){ document.querySelectorAll('.zone').forEach(z =>
+  z.style.display = zonesOn ? 'block' : 'none');
+  bGuides.classList.toggle('on', zonesOn); }
+bGuides.onclick = () => { zonesOn = !zonesOn; drawZones(); };
+
 v.addEventListener('timeupdate', () => {
   if (preview) {
     const c = P.cuts.find(c => c.active && v.currentTime >= c.start && v.currentTime < c.end);
     if (c) v.currentTime = c.end + 0.01;
   }
+  if (Math.abs(pv.currentTime - v.currentTime) > 0.25) pv.currentTime = v.currentTime;
   ph.style.left = (v.currentTime / dur * tl.clientWidth) + 'px';
-  tCur.textContent = fmtT(v.currentTime);
-  drawCap();
+  updTC(); drawCap();
 });
+v.addEventListener('seeked', () => { pv.currentTime = v.currentTime; });
 function fmtT(t){ return Math.floor(t/60)+':'+(t%60).toFixed(1).padStart(4,'0'); }
-function fmtDur(){ tDur.textContent = fmtT(dur); }
+function updTC(){ tc.textContent = fmtT(v.currentTime) + ' / ' + fmtT(dur); }
 
 // ---------- Speichern -----------------------------------------------------
 bSave.onclick = () => {
   C.enabled = capOn.checked; PIP.enabled = pipOn.checked;
   C.primary = capPrim.value.replace('#',''); C.highlight = capHi.value.replace('#','');
-  const out = JSON.stringify(P, null, 2);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([out], {type:'application/json'}));
-  a.download = 'projekt.json';
-  a.click();
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(P, null, 2)],
+    {type:'application/json'}));
+  a.download = 'projekt.json'; a.click();
   bSave.textContent = '✓ Gespeichert (Downloads) — sag Claude Bescheid';
   setTimeout(() => bSave.textContent = '💾 Speichern für Claude', 4000);
 };
 
 window.addEventListener('resize', () => { drawCap(); drawPip(); });
-drawCap(); drawPip(); renderTL();
+drawCap(); drawPip(); drawZones(); renderTL();
 </script></body></html>
