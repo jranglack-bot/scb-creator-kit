@@ -73,8 +73,15 @@ input[type=color] { width:34px; height:24px; border:0; background:none; cursor:p
 #cutlist .nudge b { opacity:.6; font-weight:600; }
 .nb { padding:3px 8px; font-size:11px; border-radius:6px; background:#31364200;
   background:#313642; }
-footer { background:#1e2128; border-top:1px solid #2c303a; padding:12px 18px 16px; }
+footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px; }
+#ruler { position:relative; height:16px; font-size:10px; opacity:.55;
+  font-variant-numeric:tabular-nums; }
+#ruler span { position:absolute; transform:translateX(-50%); }
 #tlwrap { position:relative; }
+#tl .cut.creating { background:rgba(255,212,0,.35);
+  border:1px dashed #FFD400; }
+.del { background:none; padding:2px 6px; font-size:13px; opacity:.55; }
+.del:hover { opacity:1; background:none; }
 #tl { position:relative; height:72px; background:#262a33; border-radius:8px;
   cursor:pointer; }
 #tl .cut { position:absolute; top:0; bottom:0;
@@ -99,6 +106,7 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:12px 18px 16p
   <button id="bPlay" title="Leertaste">▶</button>
   <span id="tc">0:00.0 / 0:00.0</span>
   <span class="hint">Rote Balken = wird herausgeschnitten. Kanten der roten Griffe ziehen oder Feinjustierung in der Liste rechts. Untertitel hoch/runter ziehen · Bild-im-Bild ziehen, Ecke = Größe.</span>
+  <button id="bCutHere" title="Setzt einen neuen 1-Sekunden-Schnitt an der aktuellen Stelle — danach mit den Griffen anpassen">✂ Schnitt hier</button>
   <button id="bPrev">Vorschau: wie geschnitten</button>
   <button id="bGuides">Instagram-Zonen</button>
   <button id="bSave" class="primary">💾 Speichern für Claude</button>
@@ -139,8 +147,9 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:12px 18px 16p
   </aside>
 </main>
 <footer>
+  <div id="ruler"></div>
   <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div></div>
-  <div id="tlinfo"><span>0:00.0</span><span>Klick auf die Leiste = dorthin springen</span><span id="tDur">0:00.0</span></div>
+  <div id="tlinfo"><span>Klick = springen · Auf freier Fläche AUFZIEHEN = neuer Schnitt</span><span id="tDur">0:00.0</span></div>
 </footer>
 <script>
 const P = /*__PROJEKT_JSON__*/{};
@@ -155,7 +164,7 @@ v.src = P.video; pv.src = P.video;
 document.getElementById('piplbl').textContent =
   'Bild-im-Bild (' + (P.video || '') + ') — ziehen / Ecke = Größe';
 v.addEventListener('loadedmetadata', () => { dur = v.duration; renderTL();
-  tDur.textContent = fmtT(dur); updTC(); });
+  renderRuler(); tDur.textContent = fmtT(dur); updTC(); });
 
 // ---------- Play/Pause: Button, Klick aufs Video, Leertaste ---------------
 function togglePlay(){ v.paused ? v.play() : v.pause(); }
@@ -326,6 +335,7 @@ function renderList(){
         <input type="checkbox" ${c.active?'checked':''} title="Schnitt aktiv">
         <span class="t">${fmt(c.start)}–${fmt(c.end)}</span>
         <span class="reason">${c.reason || ''}</span>
+        <button class="del" title="Schnitt löschen">🗑</button>
       </div>
       <div class="nudge"><b>Anfang</b>
         <button class="nb" data-w="s" data-d="-0.5">−0,5</button>
@@ -340,18 +350,81 @@ function renderList(){
         <button class="nb" data-w="e" data-d="0.5">+0,5</button>
       </div>`;
     d.querySelector('input').onchange = ev => { c.active = ev.target.checked; renderTL(); };
+    d.querySelector('.del').onclick = ev => { ev.stopPropagation();
+      P.cuts.splice(P.cuts.indexOf(c), 1); renderTL(); };
     d.querySelector('.top').onclick = ev => {
-      if (ev.target.tagName !== 'INPUT') { v.currentTime = Math.max(0, c.start - 1); v.play(); } };
+      if (ev.target.tagName !== 'INPUT' && !ev.target.classList.contains('del'))
+        { v.currentTime = Math.max(0, c.start - 1); v.play(); } };
     d.querySelectorAll('.nb').forEach(b => b.onclick = ev => {
       ev.stopPropagation(); nudge(c, b.dataset.w, parseFloat(b.dataset.d)); });
     cutlist.appendChild(d);
   });
 }
-tl.addEventListener('click', e => {
+// ---------- Zeitleiste: Lineal + Sekunden-Raster --------------------------
+function renderRuler(){
+  const ruler = document.getElementById('ruler');
+  ruler.innerHTML = '';
+  const step = dur > 150 ? 15 : dur > 75 ? 10 : 5;
+  for (let t = 0; t <= dur; t += step) {
+    const s = document.createElement('span');
+    s.style.left = (t / dur * 100) + '%';
+    s.textContent = Math.floor(t/60) + ':' + String(Math.round(t%60)).padStart(2,'0');
+    ruler.appendChild(s);
+  }
+  // dezentes 1-Sekunden-Raster im Balken
+  tl.style.backgroundImage =
+    'linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px)';
+  tl.style.backgroundSize = (100 / dur) + '% 100%';
+}
+
+// ---------- Klick = springen · Aufziehen = neuer Schnitt ------------------
+tl.addEventListener('pointerdown', e => {
   if (e.target !== tl && !e.target.classList.contains('cut')) return;
+  if (e.target.classList.contains('h')) return;
+  e.preventDefault();
   const r = tl.getBoundingClientRect();
-  v.currentTime = (e.clientX - r.left) / r.width * dur;
+  const t0 = (e.clientX - r.left) / r.width * dur;
+  let moved = false, tmp = null, cur = null;
+  const move = ev => {
+    const t1 = Math.min(dur, Math.max(0, (ev.clientX - r.left) / r.width * dur));
+    if (!moved && Math.abs(t1 - t0) < 0.15) return;
+    moved = true;
+    if (!tmp) { tmp = document.createElement('div');
+      tmp.className = 'cut creating'; tl.appendChild(tmp);
+      tip.style.display = 'block'; }
+    const s = Math.min(t0, t1), en = Math.max(t0, t1);
+    cur = [s, en];
+    tmp.style.left = (s / dur * 100) + '%';
+    tmp.style.width = ((en - s) / dur * 100) + '%';
+    tip.textContent = 'Neuer Schnitt: ' + fmt(s) + '–' + fmt(en);
+    tip.style.left = (ev.clientX - r.left - 40) + 'px';
+  };
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    tip.style.display = 'none';
+    if (moved && cur && cur[1] - cur[0] >= 0.2) {
+      P.cuts.push({ start: Math.round(cur[0]*10)/10,
+        end: Math.round(cur[1]*10)/10,
+        reason: 'Manuell markiert', active: true });
+      P.cuts.sort((a,b) => a.start - b.start);
+    } else if (!moved) {
+      v.currentTime = t0;
+    }
+    renderTL();
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
 });
+
+// ---------- Schnitt am Playhead setzen ------------------------------------
+document.getElementById('bCutHere').onclick = () => {
+  const t = Math.round(v.currentTime * 10) / 10;
+  P.cuts.push({ start: t, end: Math.min(Math.round((t+1)*10)/10, dur),
+    reason: 'Manuell markiert', active: true });
+  P.cuts.sort((a,b) => a.start - b.start);
+  renderTL();
+};
 
 // ---------- Vorschau / Zonen ----------------------------------------------
 bPrev.onclick = () => { preview = !preview; bPrev.classList.toggle('on', preview); };
