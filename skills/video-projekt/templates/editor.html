@@ -199,7 +199,11 @@ capFont.oninput = () => { C.font = capFont.value; drawCap(); };
 P.cuts_apply = P.cuts_apply || 'both';
 document.querySelectorAll('input[name=capply]').forEach(r => {
   r.checked = (r.value === P.cuts_apply);
-  r.onchange = () => { if (r.checked) P.cuts_apply = r.value; };
+  r.onchange = () => { if (r.checked) {
+    P.cuts_apply = r.value;
+    // sauber neu aufsetzen: beide Fenster auf denselben Punkt
+    pv.currentTime = v.currentTime;
+  } };
 });
 
 function scaleFactor(){ return stage.clientWidth / 1080; }
@@ -357,16 +361,31 @@ function drawZones(){ document.querySelectorAll('.zone').forEach(z =>
   bGuides.classList.toggle('on', zonesOn); }
 bGuides.onclick = () => { zonesOn = !zonesOn; drawZones(); };
 
+// Vorschau simuliert den Render je nach "Schnitte gelten fuer":
+// both -> beide springen ueber Schnitte (klein bleibt synchron)
+// main -> GROSSES springt (Schnitt), kleines laeuft FREI durch —
+//         entspricht exakt dem Render (grosses endet frueher & friert)
+// pip  -> kleines springt, grosses laeuft frei durch
 v.addEventListener('timeupdate', () => {
-  if (preview) {
+  const mode = P.cuts_apply || 'both';
+  if (preview && mode !== 'pip') {
     const c = P.cuts.find(c => c.active && v.currentTime >= c.start && v.currentTime < c.end);
     if (c) v.currentTime = c.end + 0.01;
   }
-  if (Math.abs(pv.currentTime - v.currentTime) > 0.25) pv.currentTime = v.currentTime;
+  if (mode === 'both' && Math.abs(pv.currentTime - v.currentTime) > 0.25)
+    pv.currentTime = v.currentTime;
   ph.style.left = (v.currentTime / dur * tl.clientWidth) + 'px';
   updTC(); drawCap();
 });
-v.addEventListener('seeked', () => { pv.currentTime = v.currentTime; });
+pv.addEventListener('timeupdate', () => {
+  if (preview && (P.cuts_apply || 'both') === 'pip') {
+    const c = P.cuts.find(c => c.active && pv.currentTime >= c.start && pv.currentTime < c.end);
+    if (c) pv.currentTime = c.end + 0.01;
+  }
+});
+v.addEventListener('seeked', () => {
+  if ((P.cuts_apply || 'both') === 'both') pv.currentTime = v.currentTime;
+});
 function fmtT(t){ return Math.floor(t/60)+':'+(t%60).toFixed(1).padStart(4,'0'); }
 function updTC(){ tc.textContent = fmtT(v.currentTime) + ' / ' + fmtT(dur); }
 
