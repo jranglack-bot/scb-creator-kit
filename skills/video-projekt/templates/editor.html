@@ -157,6 +157,9 @@ footer { background:#1e2128; border-top:1px solid #2c303a; padding:8px 18px 16px
     <div class="row"><label>Highlight</label><input type="color" id="capHi" value="#FFD400"></div>
     <h2>Bild-im-Bild</h2>
     <div class="row"><label>Aktiv</label><input type="checkbox" id="pipOn"></div>
+    <h2>Ton kommt von</h2>
+    <div class="row"><label><input type="radio" name="audiofrom" value="main"> großem Video</label></div>
+    <div class="row"><label><input type="radio" name="audiofrom" value="pip"> kleinem Video (Bild-im-Bild)</label></div>
     <h2>Schnitte gelten für</h2>
     <div class="row"><label><input type="radio" name="capply" value="both"> beide Videos</label></div>
     <div class="row"><label><input type="radio" name="capply" value="main"> nur großes Video<br><span style="font-size:11px;opacity:.55">(kleines läuft ungeschnitten durch)</span></label></div>
@@ -217,6 +220,10 @@ function applyProjekt(data){
   pipOn.checked = !!PIP.enabled;
   document.querySelectorAll('input[name=capply]').forEach(r =>
     r.checked = (r.value === P.cuts_apply));
+  P.audio_from = P.audio_from || 'main';
+  document.querySelectorAll('input[name=audiofrom]').forEach(r =>
+    r.checked = (r.value === P.audio_from));
+  applyAudio();
   buildCues(); drawCap(); drawPip(); renderTL();
   lastApplied = JSON.stringify(data);
   dirty = false;
@@ -301,6 +308,15 @@ pipOn.oninput = () => { PIP.enabled = pipOn.checked; touch(); drawPip(); };
 document.querySelectorAll('input[name=capply]').forEach(r => {
   r.onchange = () => { if (r.checked) { P.cuts_apply = r.value; touch();
     pv.currentTime = v.currentTime; } };
+});
+// Ton-Quelle: stummschalten je nach Auswahl (Vorschau = wie der Render)
+function applyAudio(){
+  v.muted = (P.audio_from === 'pip');
+  pv.muted = (P.audio_from !== 'pip');
+}
+document.querySelectorAll('input[name=audiofrom]').forEach(r => {
+  r.onchange = () => { if (r.checked) { P.audio_from = r.value; touch();
+    applyAudio(); } };
 });
 
 // ---------- Dragging: Untertitel / PiP ------------------------------------

@@ -88,6 +88,13 @@ Das Cockpit speichert, worauf die Schnitte wirken — beim Rendern so mappen:
 Untertitel-Wortzeiten dabei passend wählen: Sie folgen dem TON — also der
 Datei, die als `input` läuft (bei `main` = Original-Zeiten unverändert!).
 
+**Ton-Quelle (`audio_from` aus dem Cockpit):** `main` oder `pip` — beim
+Rendern gilt: Der Ton kommt IMMER aus der prolook-`input`-Datei. Also die
+Datei mit dem gewünschten Ton als `input` setzen und die andere als
+`pip.background` (das Layout — wer groß/klein ist — steuern `pip.x/y/scale`
+unabhängig davon). Die Cockpit-Vorschau schaltet exakt so stumm wie der
+Render.
+
 ### 2c. Claude arbeitet im Projekt mit (Roundtrip)
 
 Sagt der User z. B. „setz noch einen Schnitt bei 20–22" oder „ändere die
