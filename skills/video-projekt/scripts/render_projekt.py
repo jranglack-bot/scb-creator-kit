@@ -54,14 +54,9 @@ def active_cuts(pj, tracks):
 
 
 def to_source_cuts(lane_cuts):
-    """Zeitleisten-Schnitte -> Quellzeit-Schnitte der Spur. Nach jedem
-    uebersprungenen Schnitt laeuft das Material der Spur versetzt weiter,
-    spaetere Schnitte treffen also SPAETERES Material (Aufrueck-Formel)."""
-    out, j = [], 0.0
-    for s, e in lane_cuts:
-        out.append((s + j, e + j))
-        j += e - s
-    return out
+    """Schnitte sind bereits QUELLzeit (so auf der Timeline gezogen) —
+    unveraendert zurueckgeben. KEINE Umrechnung."""
+    return list(lane_cuts)
 
 
 def shift(t, cuts):
@@ -121,35 +116,39 @@ def main():
     render = pj.get('render') or {}
     out_name = render.get('output') or (
         (os.path.basename(projdir) or 'Reel') + '_final.mp4')
-    pip = pj.get('pip') or {}
-    pip_on = bool(pip.get('enabled'))
-    gains = pj.get('gains') or {
-        'main': 0.0 if pj.get('audio_from') == 'pip' else 1.0,
-        'pip': 0.0 if pj.get('audio_from') == 'main' else 1.0}
+    gains = pj.get('gains') or {'main': 1.0}
+    videos = pj.get('videos') or ([pj['video']] if pj.get('video') else [])
+    videos = [v for v in videos if v]
 
-    # --- Videospuren schneiden (+ Lautstaerke-Abschnitte einrechnen) -------
-    g_main, g_pip = float(gains.get('main', 1)), float(gains.get('pip', 1))
+    # --- Videos zusammenfuegen (mehrere Clips nacheinander) ----------------
+    if len(videos) > 1:
+        parts = []
+        for i, v in enumerate(videos):
+            p = 'r_clip{}.mp4'.format(i)
+            run(['ffmpeg', '-y', '-v', 'error', '-i', v,
+                 '-vf', 'scale=1080:1920:force_original_aspect_ratio=decrease,'
+                 'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1', '-r', '30',
+                 '-c:v', 'libx264', '-crf', '20', '-preset', 'medium',
+                 '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', p])
+            parts.append(p)
+        with open('r_concat.txt', 'w', encoding='utf-8') as f:
+            for p in parts:
+                f.write("file '{}'\n".format(p))
+        run(['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0',
+             '-i', 'r_concat.txt', '-c', 'copy', 'r_source.mp4'])
+        source = 'r_source.mp4'
+    else:
+        source = videos[0]
+
+    # --- Schnitte (Quellzeit) + Lautstaerke-Abschnitte einrechnen ----------
+    g_main = float(gains.get('main', 1))
     r_main = regions_for(pj, 'main')
     if r_main:
         g_bake_main, g_main = g_main, 1.0
     main_lane = active_cuts(pj, ('main', 'both'))
-    main_file = prep(pj['video'], 'r_main.mp4',
-                     to_source_cuts(main_lane), r_main,
-                     g_bake_main if r_main else 1.0)
-    input_file = main_file
-    master_lane = main_lane                     # Timeline-Achse des Masters
-    if pip_on:
-        r_pip = regions_for(pj, 'pip')
-        if r_pip:
-            g_bake_pip, g_pip = g_pip, 1.0
-        pip_lane = active_cuts(pj, ('pip', 'both'))
-        pip_file = prep(pip.get('source') or pj['video'], 'r_pip.mp4',
-                        to_source_cuts(pip_lane), r_pip,
-                        g_bake_pip if r_pip else 1.0)
-        # Zeit-/Ton-Master = kleines Fenster (prolook-input)
-        input_file, master_lane = pip_file, pip_lane
-    # Wortzeiten leben in der QUELLZEIT des Masters, texts/music auf der
-    # Timeline — fuer Ein-Schnitt-Faelle identisch, sonst je passend:
+    input_file = prep(source, 'r_main.mp4', to_source_cuts(main_lane),
+                      r_main, g_bake_main if r_main else 1.0)
+    master_lane = main_lane
     master_cuts = to_source_cuts(master_lane)
 
     cfg = {'input': input_file, 'output': out_name,
@@ -157,22 +156,8 @@ def main():
     for k in ('crf', 'preset'):
         if render.get(k):
             cfg[k] = render[k]
-    if pip_on:
-        cfg['pip'] = {'enabled': True, 'background': main_file,
-                      'fg_scale': float(pip.get('scale', 0.35)),
-                      'x': float(pip.get('x', 0.5)),
-                      'y_pos': float(pip.get('y', 0.1)),
-                      'border_px': 5, 'border_color': 'white'}
-        if ffdur(main_file) < ffdur(input_file) - 0.2:
-            cfg['pip']['background_end'] = 'freeze'
-        g_in, g_bg = g_pip, g_main
-    else:
-        g_in, g_bg = g_main, 0.0
-    if abs(g_in - 1.0) > 0.001:
-        cfg['audio_gain'] = g_in
-    if pip_on and g_bg > 0.001:
-        cfg['pip']['mix_audio'] = True
-        cfg['pip']['audio_gain'] = g_bg
+    if abs(g_main - 1.0) > 0.001:
+        cfg['audio_gain'] = g_main
 
     # --- Untertitel (Wortzeiten folgen dem Zeit-Master) --------------------
     cap = pj.get('captions') or {}
@@ -220,6 +205,16 @@ def main():
         run([sys.executable, TO, 'r_texts.json', 'texte.ass'])
         cfg['text_overlays'] = 'texte.ass'
 
+    # --- Zoom-Abschnitte (Zielpunkt-Zoom aus dem Cockpit) ------------------
+    zooms = []
+    for z in (pj.get('zooms') or []):
+        s = shift(float(z['start']), master_lane)
+        e = shift(float(z['end']), master_lane)
+        if e - s >= 0.1:
+            zooms.append(dict(z, start=round(s, 2), end=round(e, 2)))
+    if zooms:
+        cfg['zooms'] = zooms
+
     # --- Musik: Startpunkt + Musik-Schnitte + Abschnitte -------------------
     mus = pj.get('music') or {}
     if mus.get('file') and mus.get('enabled', True):
@@ -248,6 +243,15 @@ def main():
                        regions_for(pj, 'voice') + mutes)
         cfg['voiceover'] = {'file': vo_file,
                            'gain': float(vo.get('gain', 1.0))}
+
+    # --- Effekt-Durchreiche: prolook-Effekte direkt aus der projekt.json ---
+    # z.B. "effekte": {"punchin": {"enabled": true, "zoom": 1.05,
+    #        "cuts": [10, 15], "style": "smooth"}}
+    # Zeitangaben beziehen sich auf das FERTIGE Video (Output-Zeit).
+    for k, v in (pj.get('effekte') or pj.get('effects') or {}).items():
+        if k in ('punchin', 'grade', 'grain', 'transition', 'progressbar',
+                 'broll', 'overlays', 'sfx', 'voice_master', 'loudnorm'):
+            cfg[k] = v
 
     with open('render_config.json', 'w', encoding='utf-8') as f:
         json.dump(cfg, f, indent=1)

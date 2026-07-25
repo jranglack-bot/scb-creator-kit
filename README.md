@@ -34,6 +34,24 @@ kostenlose Community-Tools:
   Terminal-Ausgaben (60–90 % Token-Ersparnis), dein Kontingent hält länger.
   Nach der Installation richtet der Assistent es mit `rtk init -g` direkt ein.
 
+## Empfohlene Reihenfolge & Modellwahl (Kontingent sparen)
+
+Der Setup-Assistent führt dich in dieser Reihenfolge durch — bewusst so
+gewählt, damit dein Kontingent von Anfang an geschont wird:
+
+1. **Token-Sparer (RTK)** — zuerst, dann verbraucht alles Weitere schon weniger
+2. **Obsidian-Gehirn** — Claude merkt sich ab Minute 1 alles über dich
+3. **Video-Editor** — Schneiden, Cockpit, Untertitel, Ein-Klick-Render
+4. **Content-Recherche** — Apify (Audits, Nischen) + /watch (Reels analysieren)
+5. **Auto-Posting** — Airtable + Make
+6. **KI-Generierung** — Higgsfield und alles Weitere
+
+**Modellwahl:** Für den Alltag reicht **Sonnet** völlig (Schneiden, Cockpit,
+Rendern, Posten — die Intelligenz steckt in den Scripts des Kits) und
+verbraucht nur einen Bruchteil des Kontingents. **Opus** lohnt sich punktuell
+für kreative Konzept-Arbeit (Hooks, Content-Strategie) oder wenn etwas
+Ungewöhnliches klemmt. Faustregel: *Alltag = Sonnet, Konzept & Notfall = Opus.*
+
 ## Installation
 
 ### Claude Desktop-App (empfohlen)

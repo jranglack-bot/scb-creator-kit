@@ -5,11 +5,15 @@ description: >
   (Schnitte, Untertitel, Effekte), rendert in Stufen (Korrekturen ohne
   Komplett-Neuanalyse) und bietet das Video-Cockpit — einen lokalen
   Browser-Editor, in dem der Nutzer Schnitte auf der Timeline verschieben,
-  Untertitel ziehen und Bild-im-Bild skalieren kann, bevor gerendert wird.
+  Untertitel/Texte anpassen und Musik/Voiceover einstellen kann, bevor
+  gerendert wird. Mehrere Clips laufen nacheinander (zusammengefügt).
   Verwende diesen Skill bei: "schneide mein Video" (als Ober-Workflow),
+  "füge die Videos zusammen", "mehrere Videos nacheinander",
   "ich will die Schnitte selbst prüfen", "öffne das Cockpit", "mach es
   editierbar", "für Canva exportieren", "Schnitt anpassen", "Untertitel
-  verschieben", oder wenn nach einem Render Korrekturen kommen.
+  verschieben", "Musik ins Video", "Voiceover drüberlegen", "Text/Hook
+  ins Video", "Zoom auf …", "Lautstärke ändern", "render das Video",
+  oder wenn nach einem Render Korrekturen kommen.
 ---
 
 # Video-Projekt-Modus (Cockpit + Stufen-Rendering)
@@ -31,10 +35,15 @@ wird neu analysiert, nie Code neu geschrieben.
   final.mp4           (Stufe 2: mit allen Effekten)
 ```
 
-`projekt.json`-Kern: `video`, `duration`, `cuts` (start/end/reason/active),
-`words` (Transkript der Original-Timeline), `captions` (enabled/size/y/
-primary/highlight/group), `pip` (enabled/x/y/scale) — plus alle
-prolook-Configs (music, transition, broll …).
+`projekt.json`-Kern: `videos` (Liste von Clips, laufen NACHEINANDER =
+zusammengefügt; Altbestand `video` = ein Clip), `duration`, `cuts`
+(start/end/reason/active, `track` `both`/`music`/`voice`), `words`
+(Transkript), `captions` (Stil inkl. box/box_style/group/highlight_on/bold),
+`gains` (`{main}` = Video-Lautstärke), `volumes` (Lautstärke-Abschnitte),
+`music`, `voiceover`, `zooms`, `texts`, `render` (crf/preset/output) und
+`effekte` (prolook-Durchreiche). **Bild-im-Bild wurde entfernt** — ein Reel,
+ein Video (bzw. mehrere Clips hintereinander). Schnitte gelten über die
+zusammengefügte Timeline.
 
 ## Workflow
 
@@ -49,7 +58,7 @@ die Schnittliste.
 ### 2. Kontrolle — den Nutzer WÄHLEN lassen (einmal fragen, Antwort merken)
 > „Willst du die Schnitte selbst prüfen? Ich kann dir (a) die Schnittliste
 > zum Lesen zeigen, (b) das Cockpit öffnen — ein Editor im Browser, wo du
-> Schnitte verschieben, Untertitel ziehen und Bild-im-Bild anpassen kannst
+> Schnitte, Untertitel, Texte und Musik selbst feinjustieren kannst
 > — oder (c) du vertraust mir und ich rendere direkt."
 
 Cockpit-Weg — **EIN-TAB-PRINZIP (wichtig!):**
@@ -63,36 +72,43 @@ Tab" — NIEMALS erneut öffnen (das erzeugt verwirrende Doppel-Tabs). Hat
 der User ungespeicherte Änderungen, zeigt das Cockpit einen
 Übernehmen/Behalten-Banner statt sie zu überschreiben.
 
-Der Nutzer arbeitet dort OHNE Token-Verbrauch. Die Seitenleiste besteht aus
-zusammenklappbaren KACHELN (Zustand merkt sich der Browser). Abspielen zeigt
-IMMER das geschnittene Ergebnis auf ALLEN Spuren (WYSIWYG); der Schalter
-„Rohmaterial zeigen" blendet die herausgeschnittenen Stellen wieder ein.
-Timeline unten zeigt das GANZE Video, Schnitte rot, Kanten ziehbar,
-Doppelklick = Schnitt an/aus. Vorschau-Zoom: Mausrad über dem Video =
-rein-/rauszoomen (auf den Cursor), bei Zoom Bild per Ziehen verschieben,
-−/100%/+ unten links (100% = zurücksetzen) — für Detailkontrolle
-(Untertitel-Sitz usw.) ohne Token. Kachel „Audio hinzufügen": eigenes Lied
-wählen, Voiceover-Datei wählen oder Voiceover direkt mit dem Mikro
-aufnehmen (Video läuft stumm mit, Aufnahme ab Reel-Start) — neue Dateien
-legt das Cockpit automatisch in Downloads (beim „fertig"-Roundtrip wie die
-projekt.json in den Projektordner verschieben, dann `build_editor.py`). Bei aktivem Bild-im-Bild gibt es ZWEI Videospuren
-(Aufziehen auf einer Spur schneidet nur dieses Video), mit Musik zusätzlich
-eine ♪-Spur; „Tonspur anzeigen" blendet die Waveforms ein — die Daten
-(`waveform_data.js`) erzeugt `build_editor.py` automatisch und gecacht
-(braucht ffmpeg). Werkzeug-Button oben: ✂ Aufziehen = Schnitt, 🔊 Aufziehen
-= Lautstärke-Abschnitt (zeitweise lauter/leiser, blau). Seitenleiste:
-Lautstärke-Regler pro Tonspur (großes/kleines Video, Musik). Musik: unter
-der Timeline liegt die SONG-ÜBERSICHT (ganzes Lied als Waveform, lila
-Fenster = Reel-Ausschnitt — ziehen wählt die Stelle im Lied; Feinjustage
-über „Start im Lied"). Untertitel: Live-Vorschau mit Wort-Highlight, per
-Maus vertikal ziehbar, Größe/Farben rechts, Safe-Zones einblendbar — und
-der TEXT ist direkt editierbar („Untertitel-Text"-Liste; Doppelklick auf
-den Untertitel im Video springt zur Zeile). Kachel „Texte": freie
-Text-Overlays (Hook/Titel) mit eigener 📝-Spur, Position per Ziehen,
-Stil + Einflug-Animation je Text (siehe 2b-Texte). Bild-im-Bild: Rahmen ziehen +
-Ecke skalieren + Videodatei per Dropdown wechselbar (Liste `_dateien`
-liefert build_editor.py; PiP aus = auch sein Ton aus). Spur-Farben überall
-gleich: großes Video blau, kleines grün, beide orange, Musik lila.
+**Start & Wiedergabe (server-frei, kinderleicht):** Claude öffnet
+`editor.html` EINMAL (Start-Process). Kein Helfer, kein Server, keine .bat
+zum Starten, keine Verbindung. Das eine Video spielt; beim Abspielen werden
+aktive Schnitte LIVE übersprungen (Button „✂ Schnitte überspringen" an =
+Standard = zeigt das geschnittene Ergebnis; aus = Rohmaterial). Mehrere
+Clips (`videos`) laufen im Cockpit nacheinander (Playlist). Timeline =
+Roh-Zeitachse mit roten Schnitt-Balken, weißer Läufer, ↩/Strg+Z, KACHELN.
+Alles ohne Token. (Es gibt KEINE Vorschau-Dateien/kein cockpit_server mehr.)
+
+**Speichern:** Button „💾 Speichern" → beim ersten Mal wählt der User einmal
+die `projekt.json` (moderner Datei-Dialog), danach speichert das Cockpit
+direkt dorthin (auto beim Bearbeiten) — kein Downloads-Umweg. Kann der
+Browser das nicht (`showSaveFilePicker`), lädt es als Notfall nach Downloads.
+Claude-Änderungen erscheinen weiter live im Tab (projekt_data.js-Polling).
+Wenn Claude Schnitte/Felder ändert: nur `build_editor.py` ausführen.
+
+**Was der Nutzer im Cockpit kann (alles ohne Token):**
+- **Timeline:** ganzes Video, Schnitte rot, Kanten ziehen = trimmen, Mitte
+  ziehen = verschieben, freie Fläche aufziehen = neuer Schnitt, Doppelklick
+  = an/aus. Werkzeug-Button: ✂ Schnitt / 🔊 Lautstärke-Abschnitt / 🔍 Zoom.
+  Spuren: Video (blau), ♪ Musik (lila), 🎙 Voiceover (rosa), 📝 Texte (gelb).
+  „Tonspur anzeigen" blendet Waveforms ein (`waveform_data.js`, erzeugt
+  build_editor.py gecacht, braucht ffmpeg).
+- **Videos-Kachel:** mehrere Clips nacheinander, Reihenfolge ändern (▲),
+  entfernen (🗑), weitere aus dem Projektordner anhängen (`_dateien`).
+- **Untertitel:** Live-Vorschau mit Wort-Highlight, per Maus ziehbar,
+  Schrift/Größe/Farben/Box, und der TEXT ist direkt editierbar
+  („Untertitel-Text"; Doppelklick im Video springt zur Zeile).
+- **Texte-Kachel:** freie Overlays (Hook/Titel) auf der 📝-Spur, Position
+  per Ziehen, Stil + Einflug-Animation je Text (siehe 2b-Texte).
+- **Audio-Kachel:** eigenes Lied oder Voiceover-Datei wählen, Voiceover mit
+  dem Mikro aufnehmen. Neue Dateien landen in Downloads — beim „fertig"
+  in den Projektordner verschieben, dann `build_editor.py`.
+  Musik: SONG-ÜBERSICHT unter der Timeline (ganzes Lied, lila Fenster
+  ziehen = Stelle im Lied) + „Start im Lied".
+- **Vorschau-Zoom:** Mausrad = rein/raus (auf den Cursor), Ziehen =
+  verschieben, −/100%/+ unten links.
 
 **Eigene Cockpit-Erweiterungen NIEMALS in editor.html/das Template bauen**
 (Kit-Updates überschreiben es), sondern IMMER in `cockpit_custom.js` im
@@ -104,10 +120,9 @@ Erweiterung in allen Projekten gelten: zusätzlich unter
 `build_editor.py` kopiert sie in jedes neue Projekt. Wünsche, die für die
 ganze Community taugen, dem Kit-Autor (Julian) melden statt lokal bauen.
 
-**Speichern legt `projekt.json` in den Downloads-Ordner** (Browser können
-lokal nicht direkt zurückschreiben). Wenn der Nutzer „fertig" sagt: neueste
-`projekt.json` aus `%USERPROFILE%\Downloads` in den Projektordner
-verschieben (alte ersetzen), dann rendern.
+Rendern immer per `render_projekt.py` (oder Doppelklick `video_rendern.bat`).
+Nur falls der User über Downloads gespeichert hat (alter Browser): die
+projekt.json aus `%USERPROFILE%\Downloads` in den Projektordner verschieben.
 
 ### 2a-Render. Rendern = EIN Befehl (niemals Pipeline improvisieren)
 
@@ -122,51 +137,36 @@ Kontaktbogen ansehen (1 Bild) und dem User zeigen. `build_editor.py` legt
 zusätzlich `video_rendern.bat` in den Projektordner — der User kann per
 DOPPELKLICK selbst neu rendern (0 Tokens). Qualitätswünsche („bessere
 Qualität") = in projekt.json `"render": {"crf": 18}` setzen (Standard 20,
-kleiner = besser; optional `"preset"`, `"output"`). Die Abschnitte 2b ff.
+kleiner = besser; optional `"preset"`, `"output"`). Zoom-Wünsche
+(„Zoom ab Sekunde 10", „Zoom aufs Gesicht") = `zooms`-Eintrag, siehe
+2b-Zoom (hat Cockpit-Anzeige + Live-Vorschau — NICHT punchin verwenden).
+Sonstige Effekt-Wünsche (Farb-Look, Übergänge, Filmkorn …) =
+`"effekte": {...}` in der projekt.json — die Schlüssel (grade, grain,
+transition, progressbar, broll, overlays, sfx, voice_master, loudnorm,
+punchin) werden 1:1 in die prolook-Config durchgereicht und überleben
+jeden Doppelklick-Render; Zeitangaben in Output-Zeit des fertigen Videos.
+Effekte bleiben Frag-zuerst, und die Cockpit-Vorschau zeigt sie NICHT
+(nur QC-Frames/Render). Die Abschnitte 2b ff.
 beschreiben das Mapping, das render_projekt.py implementiert — nur lesen,
 wenn das Script mal nicht reicht.
 
-### 2b. Schnitte pro Videospur (`track` je Schnitt aus dem Cockpit)
+### 2b. Videos zusammenfügen + Schnitte (macht render_projekt.py)
 
-Bei aktivem Bild-im-Bild zeigt das Cockpit ZWEI Videospuren (oben großes,
-unten kleines Video). Jeder Schnitt trägt `track`: `both` | `main` | `pip` —
-gesetzt beim Aufziehen auf einer Spur bzw. per „Gilt für"-Dropdown in der
-Schnittliste. Altbestand ohne `track`: das alte globale `cuts_apply` gilt
-als Default (das Cockpit stempelt es beim Laden auf jeden Schnitt).
-
-Beim Rendern ZWEI Schnittlisten bilden (nur aktive Schnitte):
-- **Großes Video:** alle Schnitte mit `track` `main` oder `both`
-- **Kleines Video:** alle Schnitte mit `track` `pip` oder `both`
-
-WICHTIG: Die Listen sind ZEITLEISTEN-Zeiten. Vor dem Schneiden je Spur in
-Quellzeit umrechnen (Aufrück-Formel, macht render_projekt.py automatisch):
-Quell-Schnitt_i = [start_i + vorher, end_i + vorher], `vorher` = Summe der
-Längen früherer Schnitte derselben Spur — denn nach jedem übersprungenen
-Schnitt läuft das Material versetzt weiter; spätere Schnitte treffen
-späteres Material. Ohne diese Umrechnung wird der Spur zu viel Material
-abgeschnitten (Standbild am Ende). Jede Quelldatei mit ihrer umgerechneten
-Liste schneiden (leere Liste = Originaldatei unverändert verwenden).
-Danach wie gehabt: Datei laut Ton-Quelle als prolook-`input`, die andere als
-`pip.background`; ist das große Video (Background) am Ende kürzer als das
-kleine → `pip.background_end: "freeze"`.
-
-Untertitel-Wortzeiten dabei passend wählen: Sie folgen dem TON — also der
-Datei, die als `input` läuft (ungeschnittene Datei = Original-Zeiten
-unverändert!).
+`videos` = Liste von Clips, die NACHEINANDER laufen (Talking-Head 1, 2, …).
+render_projekt/vorschau fügen sie zusammen (ffmpeg concat, alle auf
+1080×1920 normalisiert) → EIN Quellvideo. Darauf wirken die `cuts` (nur
+aktive; `track` `both` = Video). **Schnitte sind QUELLzeit** (Zeit im
+zusammengefügten Video, genau wie auf der Cockpit-Timeline gezogen) — DIREKT
+verwenden, KEINE Umrechnung. `music`/`voice`-Schnitte betreffen nur die
+jeweilige Tonspur. Untertitel-Wortzeiten folgen der Videozeit; vor der
+ASS-Erzeugung um die aktiven Video-Schnitte verschieben (`shift`).
 
 ### 2b-Audio. Lautstärke, Abschnitte und Musik (aus dem Cockpit)
 
-**Basis-Lautstärke (`gains` = `{main, pip}`, 0–1.5):** Das Cockpit leitet
-daraus `audio_from` weiter ab (beide > 0 → `both`). Beim Rendern: Die Datei
-mit dem führenden Ton als prolook-`input` (ihr Gain → prolook
-`audio_gain`), die andere als `pip.background` (ihr Gain →
-`pip.audio_gain`); sind beide hörbar zusätzlich `pip.mix_audio: true`.
-Gain 0 = Spur stumm (dann kein mix_audio nötig). Das Layout — wer
-groß/klein ist — steuern `pip.x/y/scale` unabhängig davon. Die
-Cockpit-Vorschau klingt wie der Render.
+**Video-Lautstärke (`gains` = `{main}`, 0–1.5):** → prolook `audio_gain`.
 
 **Lautstärke-Abschnitte (`volumes` = `[{track, start, end, gain}]`,
-track `main`|`pip`|`music`):** zeitweise lauter/leiser. Hat eine Spur
+track `main`|`music`):** zeitweise lauter/leiser. Hat eine Spur
 Abschnitte, ihre KOMPLETTE Lautstärke (Basis + Abschnitte) VOR dem
 Schneiden in die Quelldatei einrechnen (Zeiten = Quellzeiten):
 `ffmpeg -i quelle.mp4 -af "volume='if(between(t,S1,E1),G1,BASIS)':eval=frame" -c:v copy quelle_vol.mp4`
@@ -197,6 +197,22 @@ voice-Spur (gleicher volume-Ausdruck wie oben). Dann prolook
 Mastering/Musik gemischt, das Musik-Ducking reagiert also auch auf das
 Voiceover. Aufnahmen aus dem Cockpit heißen `voiceover.webm` (liegt nach
 der Aufnahme in Downloads).
+
+### 2b-Zoom. Zoom-Abschnitte mit Zielpunkt
+
+`P.zooms` = `[{start, end, zoom, x, y, mode, ramp}]` — Timeline-Zeiten,
+`zoom` 1.05–2.0, `x/y` = Zielpunkt als Anteil, `mode` `fahrt` (sanft
+reinziehen, per zoompan subpixel-flüssig) oder `fest` (harter Punch-In).
+`ramp` = Sekunden bis voller Zoom (Geschwindigkeit; ohne Angabe = ganze
+Abschnittslänge, danach hält der Zoom). „Zoom langsamer/schneller" vom
+User = nur `ramp` ändern. Cockpit: Werkzeug 🔍, Abschnitt auf einer
+Videospur aufziehen, ⌖-Punkt im Video auf das Ziel ziehen — Live-Vorschau
+zoomt Video + PiP (Untertitel/Texte bleiben ungezoomt, exakt wie der
+Render). render_projekt.py reicht sie (Zeiten verschoben) als
+prolook-`zooms` durch. **„Zoom auf mein Gesicht" per Zuruf:** 1 Frame an
+der Stelle ziehen (`ffmpeg -ss <t> -frames:v 1`), ansehen, Gesichtszentrum
+als x/y schätzen (Anteile!), zooms-Eintrag in projekt.json setzen,
+build_editor — der User sieht den ⌖ im Cockpit und kann nachjustieren.
 
 ### 2b-Texte. Freie Text-Overlays (Hook & Titel, B-Roll)
 
@@ -229,7 +245,8 @@ ggf. neueste projekt.json aus Downloads einspielen. Dann projekt.json
 ändern, `build_editor.py` neu ausführen, User drückt F5. Kosten: eine
 JSON-Änderung.
 
-Untertitel-Stil aus dem Cockpit an `animated_captions.py` durchreichen:
+Hintergrund-Wissen (macht render_projekt.py automatisch — nur für
+Sonderfälle): Untertitel-Stil-Mapping an `animated_captions.py`:
 `captions.font` → `--font`, `size` → `--size`, `primary` → `--primary`,
 `group` → `--group`, `bold: false` → `--no-bold`,
 `highlight_on: false` → `--highlight` = gleicher Wert wie `--primary`
@@ -240,27 +257,20 @@ symmetrisches Viereck um den ganzen Text).
 Wörter dabei IMMER aus `projekt.json` nehmen (Cockpit-Textkorrekturen!),
 nie neu transkribieren.
 
-### 3. Stufen-Rendering (Zeit sparen, nichts doppelt tun)
-- **Stufe 1 — Schnitt:** nur wenn sich `cuts` geändert haben (oder noch
-  kein `01_schnitt.mp4` existiert): Keep-Segmente aus den aktiven Cuts
-  berechnen → select/aselect-Render wie in `video-schneiden` Schritt 7.
-- **Stufe 2 — Look:** `prolook.py` auf `01_schnitt.mp4` mit den Werten aus
-  projekt.json. Untertitel: `animated_captions.py` mit angepassten Flags —
-  `--size` aus captions.size, MarginV = `int(1920 * (1 - captions.y))`,
-  Farben aus primary/highlight. WICHTIG: Wortzeiten gelten für die
-  ORIGINAL-Timeline → vor der ASS-Erzeugung auf die geschnittene Timeline
-  umrechnen (je Wort: neue Zeit = alte Zeit − Summe aller aktiven
-  Cut-Längen davor; Wörter innerhalb von Cuts entfallen). Kleines
-  Python-Snippet, deterministisch.
-- **Nur Untertitel/Stil geändert?** → Stufe 1 überspringen, nur Stufe 2
-  (Sekunden statt Minuten).
+### 3. Erneut rendern nach Korrekturen
+
+Immer derselbe EINE Befehl: `python scripts/render_projekt.py
+<projekt.json>` (bzw. der User doppelklickt `video_rendern.bat`). Das
+Script rechnet alle Stufen selbst durch — Schnitt-Umrechnung,
+Wortzeiten-Verschiebung, Audio-Vorbereitung, ASS-Dateien, prolook. KEINE
+Einzelschritte von Hand nachbauen; die Rechenzeit kostet keine Tokens.
 
 ### 4. Export-Ziele (Frag-zuerst, Wahl im Profil merken)
 | Ziel | Ergebnis |
 |---|---|
 | **Fertig-Reel** | final.mp4 mit allem Gewählten (Captions, Effekte, Audio-Suite) |
 | **Cockpit** | Nutzer justiert selbst, dann Fertig-Reel |
-| **Editierbar (Canva/CapCut)** | `01_schnitt.mp4` (+ Stimm-Mastering/Loudness, OHNE eingebrannte Elemente) + `untertitel.srt` aus den umgerechneten Wortzeiten. Hinweis: Canva importiert kein SRT — dort eigene Auto-Captions nutzen; CapCut/Premiere/DaVinci können SRT. Bild-im-Video baut Canva selbst (zwei Spuren). |
+| **Editierbar (Canva/CapCut)** | die geschnittene Zwischenfassung aus render_projekt (`r_main.mp4`/`r_pip.mp4`, OHNE eingebrannte Elemente) + `untertitel.srt` aus den umgerechneten Wortzeiten. Hinweis: Canva importiert kein SRT — dort eigene Auto-Captions nutzen; CapCut/Premiere/DaVinci können SRT. Bild-im-Video baut Canva selbst (zwei Spuren). |
 
 ## Token-Regeln
 
@@ -269,10 +279,14 @@ nie neu transkribieren.
 - Cockpit-Feinarbeit kostet 0 Tokens — dorthin lenken, wenn der Nutzer
   mehrfach Stil-/Positions-/Text-/Musikwünsche äußert (Untertitel-Text,
   Song-Stelle, Lautstärken: alles im Cockpit selbst machbar).
-- **Untertitel anlegen NUR per Script:**
+- **Untertitel anlegen NUR per Script** (Wortliste NIEMALS in den Kontext
+  laden oder ausgeben, auch nicht „zur Kontrolle"). Der API-Key kommt als
+  Umgebungsvariable — beim installierten Kit steckt der Nutzer-Key im
+  Platzhalter, also z. B. in PowerShell:
+  `$env:ELEVENLABS_API_KEY = "~~elevenlabs-api-key"` (bzw. GROQ_API_KEY,
+  falls der Nutzer einen Groq-Key nennt), dann:
   `python scripts/transkript_untertitel.py projekt.json <video>` —
-  schreibt die Wörter direkt in die projekt.json; die Wortliste NIEMALS in
-  den Kontext laden oder ausgeben (auch nicht „zur Kontrolle").
+  schreibt die Wörter direkt in die projekt.json.
 - **Musik anlegen NUR per Script:**
   `python scripts/set_music.py projekt.json <datei-oder-url> [--gain]` —
   holt die Datei, setzt music, baut das Cockpit inkl. Waveform.

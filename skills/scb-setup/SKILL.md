@@ -25,26 +25,57 @@ Begrüße den User und zeige kurz, was das Kit kann:
 
 > Willkommen beim SCB Creator Kit! 🎬 Das steckt drin:
 >
-> 1. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
-> 2. **Videos automatisch schneiden + untertiteln** — Versprecher raus, sprach-synchrone Untertitel und Hook-Texte rein
-> 3. **Reel-Wissen** — Safe-Zones (wo Text sitzen darf) und erprobte Hook-Formeln
-> 4. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
-> 5. **Instagram-Audit & Recherche** — Profil-Analyse und Nischen-Recherche über Apify
-> 6. **Video-Analyse** — Claude kann Videos „ansehen" (virale Reels analysieren, Transkripte ziehen)
-> 7. **Obsidian-Gehirn** — Claude merkt sich alles über dich in deinem eigenen Vault
-> 8. **Token-Sparer (RTK)** — komprimiert Claudes Terminal-Ausgaben, dein Kontingent hält deutlich länger
+> 1. **Token-Sparer (RTK)** — komprimiert Claudes Terminal-Ausgaben, dein Kontingent hält deutlich länger
+> 2. **Obsidian-Gehirn** — Claude merkt sich alles über dich in deinem eigenen Vault
+> 3. **Video-Editor** — Videos automatisch schneiden, Untertitel, Musik, Voiceover, Texte — mit Browser-Cockpit und Ein-Klick-Render
+> 4. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify + virale Reels „ansehen" (/watch)
+> 5. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
+> 6. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
+> 7. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
 >
 > Ich richte jetzt mit dir ein, was du davon nutzen willst — du brauchst
 > nichts vorzubereiten.
 
 Frage dann (mit AskUserQuestion, multiSelect), welche Bereiche eingerichtet
 werden sollen. Richte anschließend NUR die gewählten Bereiche ein, in der
-Reihenfolge unten — **das Obsidian-Gedächtnis kommt immer zuerst**, damit
-sich Claude ab der ersten Minute alles merken kann.
+Reihenfolge unten — **der Token-Sparer kommt immer zuerst** (jeder weitere
+Schritt verbraucht dann schon weniger Kontingent), **direkt danach das
+Obsidian-Gedächtnis**, damit sich Claude ab der ersten Minute alles merkt.
 
-### Schritt 2: Obsidian-Gehirn ZUERST einrichten
+### Schritt 2: RTK — Token-Sparer (ZUERST, empfohlen)
 
-**Warum zuerst:** Alles, was der User ab jetzt erzählt (Zielgruppe, Angebot,
+**Warum als allererstes:** Ab der Installation verbrauchen alle weiteren
+Setup-Schritte und jeder künftige Auftrag spürbar weniger Kontingent.
+
+Frage: „Willst du RTK installieren? Ein kostenloses Open-Source-Tool, das
+Claudes Terminal-Ausgaben filtert und komprimiert, bevor sie deinen Kontext
+erreichen — spart laut Projekt 60–90 % Tokens bei typischen Befehlen. Dein
+Claude-Kontingent hält damit spürbar länger."
+
+Quelle: **https://github.com/rtk-ai/rtk** (offizielle Releases).
+
+Installation für den User übernehmen (nach kurzer Ankündigung des Downloads):
+
+**Windows:**
+1. Offizielles Windows-Paket laden:
+   `https://github.com/rtk-ai/rtk/releases/latest/download/rtk-x86_64-pc-windows-msvc.zip`
+2. Entpacken und die `rtk.exe` in einen PATH-Ordner legen — bewährt:
+   `%LOCALAPPDATA%\Microsoft\WinGet\Links\` (derselbe Ordner wie ffmpeg/yt-dlp).
+3. **WICHTIG — direkt nach der Installation ausführen: `rtk init -g`**
+   Das installiert den automatischen Rewrite-Hook (Befehle wie `git status`
+   werden ab dann transparent zu `rtk git status` umgeschrieben) und legt die
+   RTK-Dokumentation an. Ohne diesen Schritt bleibt RTK wirkungslos!
+4. Prüfen: `rtk --version` und `rtk gain` (zeigt die Token-Ersparnis).
+
+**macOS/Linux:** `brew install rtk` (oder das Quick-Install-Script von der
+Projektseite), danach ebenfalls **`rtk init -g`**.
+
+Hinweis bei Problemen: Schlägt `rtk gain` fehl, ist evtl. ein anderes
+Programm namens „rtk" (Rust Type Kit) installiert — Namenskollision prüfen.
+
+### Schritt 3: Obsidian-Gehirn (direkt danach)
+
+**Warum so früh:** Alles, was der User ab jetzt erzählt (Zielgruppe, Angebot,
 Keyword, Schreibstil), wird sofort dauerhaft gespeichert — und jeder spätere
 Setup-Schritt und jeder künftige Auftrag baut darauf auf.
 
@@ -80,7 +111,7 @@ Claude die Notiz später beim Arbeiten von selbst füllt. Will der User KEIN
 Obsidian: weiter ohne — alles funktioniert, nur ohne sichtbares Gedächtnis;
 das Interview trotzdem anbieten und die Antworten als normale Memories sichern.
 
-### Schritt 3: Basis-Werkzeuge prüfen (immer)
+### Schritt 4: Basis-Werkzeuge prüfen (immer)
 
 Prüfe still im Hintergrund und berichte das Ergebnis in einfacher Sprache:
 
@@ -95,60 +126,16 @@ ffmpeg -version; ffprobe -version
 - Fehlt **ffmpeg**: nur nötig für Video-Schnitt/Posting → `winget install Gyan.FFmpeg`, danach Terminal-Neustart erklären.
 - Führe Installationen erst nach kurzer Rückfrage aus („Darf ich ffmpeg installieren? Ist kostenlos und offiziell.").
 
-### Schritt 4: RTK — Token-Sparer (optional, empfohlen)
+### Schritt 5: Video-Editor — Schneiden, Cockpit & Untertitel
 
-Frage: „Willst du RTK installieren? Ein kostenloses Open-Source-Tool, das
-Claudes Terminal-Ausgaben filtert und komprimiert, bevor sie deinen Kontext
-erreichen — spart laut Projekt 60–90 % Tokens bei typischen Befehlen. Dein
-Claude-Kontingent hält damit spürbar länger."
+Das Herzstück des Kits: automatischer Schnitt, das Browser-Cockpit
+(Timeline, Untertitel, Musik, Voiceover, Texte, Zoom — alles ohne
+Token-Verbrauch) und der Ein-Klick-Render (`video_rendern.bat`). Das
+Cockpit öffnet Claude auf Zuruf; es spielt das Video und überspringt
+Schnitte live. Kein Server, kein Umschalten. Gespeichert wird direkt in die
+projekt.json (Datei beim ersten Speichern einmal wählen).
 
-Quelle: **https://github.com/rtk-ai/rtk** (offizielle Releases).
-
-Installation für den User übernehmen (nach kurzer Ankündigung des Downloads):
-
-**Windows:**
-1. Offizielles Windows-Paket laden:
-   `https://github.com/rtk-ai/rtk/releases/latest/download/rtk-x86_64-pc-windows-msvc.zip`
-2. Entpacken und die `rtk.exe` in einen PATH-Ordner legen — bewährt:
-   `%LOCALAPPDATA%\Microsoft\WinGet\Links\` (derselbe Ordner wie ffmpeg/yt-dlp).
-3. **WICHTIG — direkt nach der Installation ausführen: `rtk init -g`**
-   Das installiert den automatischen Rewrite-Hook (Befehle wie `git status`
-   werden ab dann transparent zu `rtk git status` umgeschrieben) und legt die
-   RTK-Dokumentation an. Ohne diesen Schritt bleibt RTK wirkungslos!
-4. Prüfen: `rtk --version` und `rtk gain` (zeigt die Token-Ersparnis).
-
-**macOS/Linux:** `brew install rtk` (oder das Quick-Install-Script von der
-Projektseite), danach ebenfalls **`rtk init -g`**.
-
-Hinweis bei Problemen: Schlägt `rtk gain` fehl, ist evtl. ein anderes
-Programm namens „rtk" (Rust Type Kit) installiert — Namenskollision prüfen.
-
-### Schritt 5: Higgsfield (KI-Bilder & -Videos)
-
-Frage zuerst: „Hast du einen Higgsfield-Account? (higgsfield.ai — dort laufen
-die KI-Video-Generierungen)"
-
-- **Nein** → Erkläre: Account auf https://higgsfield.ai erstellen (es gibt
-  einen Free-Plan zum Testen). Warte, bis der User bereit ist.
-- **Ja** → Installiere die CLI und verbinde den Account:
-
-```powershell
-npm install -g @higgsfield/cli
-higgsfield auth login
-```
-
-`higgsfield auth login` öffnet den Browser — der User loggt sich dort selbst
-ein (niemals nach Passwort fragen!). Prüfe danach mit `higgsfield auth status`.
-
-Erkläre zum Abschluss die zwei wichtigsten Regeln aus der Community-Praxis:
-- **Nano Banana Pro** (`nano_banana_2`) für Bilder nutzen — auf vielen Plänen
-  unlimited, spart Credits.
-- Vor jeder Generierung zeigt Claude **Idee + Prompt + Modell** und wartet auf
-  ein Okay — jede Generierung kostet Credits.
-
-### Schritt 6: Video-Schneiden & Untertitel
-
-Benötigt: ffmpeg (Schritt 3) + einen **ElevenLabs-API-Key** (kostenloses
+Benötigt: ffmpeg (Schritt 4) + einen **ElevenLabs-API-Key** (kostenloses
 Konto reicht) für die Transkription. So bekommt ihn der User — Schritt für
 Schritt hinführen:
 
@@ -185,7 +172,57 @@ Green-Screen-Clips kostenlos und ohne Account von **pixabay.com/videos**
 Branding.md als `Overlay-Bibliothek: <pfad>` notieren — Claude legt sie
 per Chromakey übers Video, aber nie ungefragt.
 
-### Schritt 7: Auto-Posting (Make + Airtable)
+### Schritt 6: Instagram-Audit & Recherche (Apify)
+
+Frage: „Willst du Profil-Audits und Nischen-Recherche nutzen? Dafür brauchst
+du ein kostenloses Apify-Konto (dein Monats-Freiguthaben reicht für hunderte
+Profil-Abrufe)."
+
+1. Konto auf **https://apify.com** erstellen (Free-Plan)
+2. Mit Claude verbinden: claude.ai → Einstellungen → **Connectoren** → Apify.
+   Alternativ per Token: **console.apify.com** → Settings →
+   **API & Integrations** → Personal API Token kopieren.
+3. Erkläre die Budget-Regel: Claude nennt vor jedem Apify-Lauf die geschätzten
+   Kosten und wartet auf ein Okay — so bleibt es im Freiguthaben.
+
+### Schritt 7: Video-Analyse — /watch (optional, empfohlen)
+
+Frage: „Soll Claude Videos ‚ansehen' können? Damit kannst du z. B. virale
+Reels analysieren lassen (was macht der Hook, wie ist das Video aufgebaut)
+oder Transkripte ziehen."
+
+Das ist ein **kostenloses Community-Plugin eines Drittanbieters**:
+`watch` aus dem GitHub-Repo **bradautomates/claude-video**
+(https://github.com/bradautomates/claude-video).
+
+Installation für den User übernehmen — in `~/.claude/settings.json` mergen
+(bestehende Einträge erhalten!):
+
+```json
+{
+  "enabledPlugins": { "watch@claude-video": true },
+  "extraKnownMarketplaces": {
+    "claude-video": {
+      "source": { "source": "github", "repo": "bradautomates/claude-video" }
+    }
+  }
+}
+```
+
+Danach die Werkzeuge sicherstellen (Windows):
+1. `winget install yt-dlp.yt-dlp` und ffmpeg (Schritt 4). Terminal-Neustart
+   nötig, damit der PATH greift.
+2. **Bekannte Windows-Falle:** das Plugin braucht `yt-dlp` als echte .exe im
+   PATH. Meldet `/watch` später „missing binaries: yt-dlp", die
+   `yt-dlp.exe` nach `%LOCALAPPDATA%\Microsoft\WinGet\Links\` kopieren
+   (gleicher Ordner wie ffmpeg) — das wirkt sofort.
+3. Optional für Videos ohne Untertitel: kostenloser **Groq-API-Key**
+   (console.groq.com → API Keys) für die Whisper-Transkription; der
+   Setup-Check des Plugins fragt danach.
+
+Test: „/watch <YouTube-Link> Worum geht es?" — kommt eine Antwort, läuft alles.
+
+### Schritt 8: Auto-Posting (Make + Airtable)
 
 Frage: „Willst du Reels automatisch auf Instagram posten lassen? Dafür
 brauchst du drei kostenlose/günstige Accounts: **Airtable** (Datenbank),
@@ -214,55 +251,28 @@ Gehe die drei Konten einzeln durch und führe jeweils hin:
 Einstellungen → Konto → auf professionelles Konto wechseln) und mit einer
 Facebook-Seite verknüpft — das verlangt die Instagram-API.
 
-### Schritt 8: Instagram-Audit & Recherche (Apify)
+### Schritt 9: Higgsfield (KI-Bilder & -Videos)
 
-Frage: „Willst du Profil-Audits und Nischen-Recherche nutzen? Dafür brauchst
-du ein kostenloses Apify-Konto (dein Monats-Freiguthaben reicht für hunderte
-Profil-Abrufe)."
+Frage zuerst: „Hast du einen Higgsfield-Account? (higgsfield.ai — dort laufen
+die KI-Video-Generierungen)"
 
-1. Konto auf **https://apify.com** erstellen (Free-Plan)
-2. Mit Claude verbinden: claude.ai → Einstellungen → **Connectoren** → Apify.
-   Alternativ per Token: **console.apify.com** → Settings →
-   **API & Integrations** → Personal API Token kopieren.
-3. Erkläre die Budget-Regel: Claude nennt vor jedem Apify-Lauf die geschätzten
-   Kosten und wartet auf ein Okay — so bleibt es im Freiguthaben.
+- **Nein** → Erkläre: Account auf https://higgsfield.ai erstellen (es gibt
+  einen Free-Plan zum Testen). Warte, bis der User bereit ist.
+- **Ja** → Installiere die CLI und verbinde den Account:
 
-### Schritt 9: Video-Analyse — /watch (optional, empfohlen)
-
-Frage: „Soll Claude Videos ‚ansehen' können? Damit kannst du z. B. virale
-Reels analysieren lassen (was macht der Hook, wie ist das Video aufgebaut)
-oder Transkripte ziehen."
-
-Das ist ein **kostenloses Community-Plugin eines Drittanbieters**:
-`watch` aus dem GitHub-Repo **bradautomates/claude-video**
-(https://github.com/bradautomates/claude-video).
-
-Installation für den User übernehmen — in `~/.claude/settings.json` mergen
-(bestehende Einträge erhalten!):
-
-```json
-{
-  "enabledPlugins": { "watch@claude-video": true },
-  "extraKnownMarketplaces": {
-    "claude-video": {
-      "source": { "source": "github", "repo": "bradautomates/claude-video" }
-    }
-  }
-}
+```powershell
+npm install -g @higgsfield/cli
+higgsfield auth login
 ```
 
-Danach die Werkzeuge sicherstellen (Windows):
-1. `winget install yt-dlp.yt-dlp` und ffmpeg (Schritt 3). Terminal-Neustart
-   nötig, damit der PATH greift.
-2. **Bekannte Windows-Falle:** das Plugin braucht `yt-dlp` als echte .exe im
-   PATH. Meldet `/watch` später „missing binaries: yt-dlp", die
-   `yt-dlp.exe` nach `%LOCALAPPDATA%\Microsoft\WinGet\Links\` kopieren
-   (gleicher Ordner wie ffmpeg) — das wirkt sofort.
-3. Optional für Videos ohne Untertitel: kostenloser **Groq-API-Key**
-   (console.groq.com → API Keys) für die Whisper-Transkription; der
-   Setup-Check des Plugins fragt danach.
+`higgsfield auth login` öffnet den Browser — der User loggt sich dort selbst
+ein (niemals nach Passwort fragen!). Prüfe danach mit `higgsfield auth status`.
 
-Test: „/watch <YouTube-Link> Worum geht es?" — kommt eine Antwort, läuft alles.
+Erkläre zum Abschluss die zwei wichtigsten Regeln aus der Community-Praxis:
+- **Nano Banana Pro** (`nano_banana_2`) für Bilder nutzen — auf vielen Plänen
+  unlimited, spart Credits.
+- Vor jeder Generierung zeigt Claude **Idee + Prompt + Modell** und wartet auf
+  ein Okay — jede Generierung kostet Credits.
 
 ### Schritt 10: GitHub verbinden (optional, zukunftssicher)
 

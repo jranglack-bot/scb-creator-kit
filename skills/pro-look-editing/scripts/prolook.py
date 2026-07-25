@@ -157,6 +157,58 @@ def main():
     else:
         alabel = '0:a'
 
+    # --- Zoom-Abschnitte mit Zielpunkt (Cockpit-Zoom, "Zoom aufs Gesicht") -
+    # cfg['zooms'] = [{start, end, zoom, x, y, mode}] — x/y = Zielpunkt als
+    # Anteil (0-1), mode 'fahrt' (sanft reinziehen) oder 'fest' (harter
+    # Punch-In). Wirkt auf das komponierte Bild VOR Captions/Texten.
+    zooms = sorted((cfg.get('zooms') or []), key=lambda z: float(z['start']))
+    if zooms and alabel == '0:a':
+        segs = []
+        prev = 0.0
+        for z in zooms:
+            s = max(prev, float(z['start']))
+            e = min(dur, float(z['end']))
+            if e - s < 0.1:
+                continue
+            if s - prev >= 0.05:
+                segs.append((prev, s, None))
+            segs.append((s, e, z))
+            prev = e
+        if dur - prev >= 0.05:
+            segs.append((prev, dur, None))
+        fc.append('{}split={}{}'.format(vlabel, len(segs),
+                  ''.join('[zs{}]'.format(i) for i in range(len(segs)))))
+        for i, (a, b, z) in enumerate(segs):
+            # fps vereinheitlichen, damit alle Segmente sauber concat-en
+            zf = ',fps=30'
+            if z:
+                zv = float(z.get('zoom', 1.15))
+                tx = float(z.get('x', 0.5))
+                ty = float(z.get('y', 0.5))
+                if z.get('mode', 'fahrt') == 'fahrt':
+                    # zoompan = subpixelgenau -> wirklich fluessige Fahrt.
+                    # ramp = Sekunden bis voller Zoom (Standard: ganzer
+                    # Abschnitt), danach haelt der Zoom die Staerke.
+                    ramp = float(z.get('ramp') or (b - a))
+                    ramp = max(0.2, min(ramp, b - a))
+                    inc = (zv - 1.0) / (ramp * 30.0)
+                    zf += (",zoompan=z='min(1+{inc}*in,{zv})'"
+                           ":x='(iw-iw/zoom)*{tx}':y='(ih-ih/zoom)*{ty}'"
+                           ':d=1:s={w}x{h}:fps=30'
+                           .format(inc=inc, zv=zv, tx=tx, ty=ty, w=W, h=H))
+                else:
+                    zf += (',scale=ceil(iw*{z}/2)*2:ceil(ih*{z}/2)*2,'
+                           'crop={w}:{h}:(iw-{w})*{tx}:(ih-{h})*{ty}'
+                           .format(z=zv, w=W, h=H, tx=tx, ty=ty))
+            fc.append('[zs{i}]trim={a}:{b},setpts=PTS-STARTPTS{zf},setsar=1'
+                      '[zv{i}]'.format(i=i, a=a, b=b, zf=zf))
+            fc.append('[0:a]atrim={a}:{b},asetpts=PTS-STARTPTS[za{i}]'
+                      .format(i=i, a=a, b=b))
+        fc.append('{}concat=n={}:v=1:a=1[zvc][zac]'.format(
+            ''.join('[zv{i}][za{i}]'.format(i=i) for i in range(len(segs))),
+            len(segs)))
+        vlabel, alabel = '[zvc]', '[zac]'
+
     # Finale Dauer (Uebergaenge verkuerzen die Timeline) — frueh berechnen
     _tr = cfg.get('transition') or {}
     _pi = cfg.get('punchin') or {}
