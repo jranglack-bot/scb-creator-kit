@@ -124,11 +124,89 @@ Rendern immer per `render_projekt.py` (oder Doppelklick `video_rendern.bat`).
 Nur falls der User über Downloads gespeichert hat (alter Browser): die
 projekt.json aus `%USERPROFILE%\Downloads` in den Projektordner verschieben.
 
+### 1. MEHRERE CLIPS: EINMAL zusammenfügen, dann EIN Video
+
+Sollen mehrere Aufnahmen hintereinander laufen, werden sie **beim Anlegen
+des Projekts einmal zu EINER Datei zusammengefügt** (`gesamt.mp4`), und
+`videos` enthält danach nur noch diese eine Datei:
+
+```bash
+printf "file 'clip1.mp4'\nfile 'clip2.mp4'\n" > c.txt
+ffmpeg -y -v error -f concat -safe 0 -i c.txt -c copy gesamt.mp4
+# (schlaegt -c copy fehl, weil die Clips unterschiedliche Formate haben:
+#  jeden Clip einzeln auf 1080x1920/30fps normalisieren, dann concat)
+```
+
+NICHT mehrere Clips als Playlist im Cockpit lassen — die Wiedergabe über
+Dateigrenzen hinweg ist im Browser unzuverlässig (Clip-Längen werden bei
+lokalen Dateien oft nicht gemeldet, die Wiedergabe bleibt beim ersten Clip
+hängen). Mit einer Datei ist die Zeitachse eindeutig und alles läuft stabil.
+Die Videos-Kachel im Cockpit bleibt nur für nachträgliches Anhängen — nach
+so einer Änderung erneut zusammenfügen.
+
+### 1a. WARTEZEIT-REGEL (wichtigste Regel für das Nutzererlebnis)
+
+**Der Nutzer wartet NIE auf einen Render, bevor er etwas sehen kann.**
+Das Cockpit spielt das Rohmaterial und überspringt Schnitte live — es
+braucht KEIN gerendertes Video. Deshalb gilt diese Reihenfolge zwingend:
+
+1. Videos zusammenfügen (Sekunden), transkribieren, analysieren, Schnitte
+   setzen, `build_editor.py` → **Cockpit öffnen und den Nutzer schauen
+   lassen.** Bis hier: rund eine Minute.
+2. **Erst wenn der Nutzer zufrieden ist:** stabilisieren + rendern.
+
+NIEMALS vorab „zur Sicherheit" rendern — jeder Render, der danach noch
+korrigiert wird, ist verlorene Wartezeit. Rechenintensives (Stabilisierung,
+finaler Render) kommt ans ENDE und läuft im Hintergrund, während der Nutzer
+schon im Cockpit arbeitet.
+
+### 1b. Schnitt-Analyse — PFLICHTABLAUF (Reihenfolge einhalten!)
+
+1. **Transkript** per `scripts/transkript_untertitel.py` (Wortliste nie in
+   den Kontext laden).
+2. **Pausen per LAUTSTÄRKE finden:**
+   `python scripts/pausen_finden.py projekt.json` — liefert FERTIGE
+   Schnittvorschläge mit bereits abgesicherten Grenzen (kein Wort wird
+   angeschnitten) plus Sprachkontext je Vorschlag. Diese Werte direkt
+   übernehmen — NICHT selbst nachmessen, NICHT die Lautstärke roh ausgeben
+   lassen (das kostet ein Vielfaches an Tokens ohne Mehrwert).
+   NIEMALS auf die Wortlücken des Transkripts verlassen! Transkriptionen
+   dehnen Wörter über Pausen hinweg (ein gemurmeltes „das" läuft dann laut
+   Transkript 1,4 s), dadurch bleiben Pausen unsichtbar.
+3. **Inhalt lesen** (kompakter Fließtext mit Zeit-Ankern, siehe
+   `video-schneiden`): Versprecher, verbale Fehlersignale und vor allem
+   DOPPELTE AUSSAGEN suchen. Sagt der Sprecher denselben Gedanken zweimal
+   (auch anders formuliert), fliegt der schwächere Anlauf KOMPLETT raus —
+   nicht nur der abgebrochene Zwischenteil.
+4. **Video muss mit dem ersten gesprochenen Wort beginnen** — Anlauf,
+   Räuspern, gemurmelte Wortfetzen und „genervt dastehen" gehören in den
+   ersten Schnitt. Prüfen: erster Ton direkt bei 0,00 s.
+5. **PFLICHT-Endkontrolle:** `python scripts/pruef_text.py projekt.json` —
+   den ausgegebenen Text LESEN: vollständig? flüssig? keine zerschnittenen
+   Wörter, keine Dopplungen an den Nähten?
+
+6. **DANN FRAGEN — nicht einfach rendern!** Kurz zusammenfassen, was
+   geschnitten wurde (1–3 Sätze), und dem Nutzer die Wahl lassen:
+   > „Soll ich das Video jetzt fertig rendern, oder willst du vorher im
+   > Cockpit drüberschauen und noch etwas anpassen?"
+   Antwort merken. Bei „rendern" → `render_projekt.py`, danach EIN
+   QC-Kontaktbogen. Bei „Cockpit" → `build_editor.py` + Cockpit öffnen und
+   erst nach seinem Okay rendern. Hat der Nutzer vorher schon gesagt „mach
+   fertig" / „render direkt", nicht erneut fragen.
+
 ### 2a-Render. Rendern = EIN Befehl (niemals Pipeline improvisieren)
 
 ```
 python scripts/render_projekt.py <projekt.json>
 ```
+
+**Tempo:** Der Render nutzt automatisch den **Hardware-Encoder** der
+Grafikkarte (NVIDIA/Intel/AMD), wenn vorhanden — 5–10× schneller als CPU,
+gleiche Sichtqualität. Erzwingen von CPU: `"render": {"hardware": false}`.
+**Bildstabilisierung** als Projekt-Option: `"stabilisieren": true` (oder
+`{"staerke": 10, "glaettung": 60, "randbeschnitt": 6}`) — 2-Pass-vidstab,
+Ergebnis wird gecacht (läuft nur neu, wenn sich die Quelle ändert).
+**Mehrere Clips** (`videos`) fügt das Script selbst zusammen.
 
 Das Script macht ALLES selbst (Schnittlisten pro Spur, Dateien schneiden,
 Lautstärke-Abschnitte, Musik/Voiceover-Vorbereitung, Untertitel- und
@@ -291,6 +369,13 @@ Einzelschritte von Hand nachbauen; die Rechenzeit kostet keine Tokens.
   `python scripts/set_music.py projekt.json <datei-oder-url> [--gain]` —
   holt die Datei, setzt music, baut das Cockpit inkl. Waveform.
 - projekt.json nie im Ganzen ausgeben/anzeigen — Scripts melden Zählwerte.
+- **NIEMALS Rohdaten ausgeben lassen** (Lautstärke-Verläufe, Wortlisten mit
+  Zeitstempeln, Frame-Tabellen). Das sind schnell 100+ Zeilen, die danach in
+  JEDER weiteren Antwort erneut mitlaufen. Die Scripts liefern fertige
+  Ergebnisse — diese übernehmen, nicht selbst nachmessen. Braucht man doch
+  einen Wert, gezielt EINE Zeile ausgeben (`... | tail -1`).
+- Analyse-Schritte bündeln: ein Script-Aufruf statt sich in mehreren
+  Teilabfragen vorzutasten.
 - QC im Cockpit-Workflow macht der NUTZER im offenen Tab (er sieht alles
   live); Claude prüft nur auf ausdrücklichen Wunsch, dann 1 Frame/
   Screenshot, nie mehrere pro Runde. Nach finalem Render: 1–2 Frames.

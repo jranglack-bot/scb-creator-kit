@@ -98,6 +98,25 @@ def main():
         f for f in os.listdir(projdir)
         if f.lower().endswith(('.mp3', '.wav', '.m4a', '.aac', '.ogg',
                                '.webm', '.flac')))
+    # Laenge jedes Clips gleich mitliefern — das Cockpit kann sie im Browser
+    # nicht zuverlaessig messen (Metadaten laden bei file:// oft nicht) und
+    # wuesste sonst nicht, wo Clip 1 endet und Clip 2 beginnt.
+    vids = projekt.get('videos') or ([projekt['video']]
+                                     if projekt.get('video') else [])
+    dauern = []
+    for v in vids:
+        p = os.path.join(projdir, v)
+        try:
+            out = subprocess.run(
+                ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                 '-of', 'csv=p=0', p], capture_output=True, text=True,
+                check=True).stdout.strip()
+            dauern.append(round(float(out), 3))
+        except Exception:
+            dauern.append(0)
+    projekt['_clipdauern'] = dauern
+    if dauern and all(d > 0 for d in dauern):
+        projekt['duration'] = round(sum(dauern), 2)
 
     payload = json.dumps(projekt, ensure_ascii=False)
     payload = payload.replace('</', '<\\/')

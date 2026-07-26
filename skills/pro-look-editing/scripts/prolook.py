@@ -35,6 +35,60 @@ import subprocess
 import sys
 
 
+_HW_CACHE = {}
+
+
+def hw_encoder():
+    """Schnellsten verfuegbaren Hardware-Encoder finden (5-10x schneller als
+    CPU). Ergebnis wird gecacht; None = nur CPU verfuegbar."""
+    if 'enc' in _HW_CACHE:
+        return _HW_CACHE['enc']
+    found = None
+    have = subprocess.run(['ffmpeg', '-hide_banner', '-encoders'],
+                          capture_output=True, text=True).stdout
+    for enc in ('h264_nvenc', 'h264_qsv', 'h264_amf'):
+        if enc not in have:
+            continue
+        test = subprocess.run(
+            ['ffmpeg', '-y', '-v', 'error', '-f', 'lavfi',
+             '-i', 'testsrc=size=320x240:duration=1:rate=30',
+             '-c:v', enc, '-f', 'null', '-'],
+            capture_output=True, timeout=90)
+        if test.returncode == 0:
+            found = enc
+            break
+    _HW_CACHE['enc'] = found
+    return found
+
+
+def video_encoder(cfg, zwischenstufe=False):
+    """Encoder-Argumente: Hardware wenn moeglich, sonst CPU (x264).
+    cfg['hardware'] = False erzwingt CPU.
+    zwischenstufe=True -> schnellste Einstellungen bei hoher Qualitaet
+    (Datei wird ohnehin nochmal verarbeitet, also zaehlt nur Tempo)."""
+    crf = 18 if zwischenstufe else int(cfg.get('crf', 20))
+    if cfg.get('hardware') is not False:
+        enc = hw_encoder()
+        if enc == 'h264_nvenc':
+            a = ['-c:v', enc, '-preset', 'p1' if zwischenstufe else 'p5',
+                 '-rc', 'vbr', '-cq', str(crf), '-b:v', '0']
+            if not zwischenstufe:
+                a += ['-maxrate', '8M', '-bufsize', '16M']
+            return a
+        if enc == 'h264_qsv':
+            a = ['-c:v', enc, '-global_quality', str(crf),
+                 '-preset', 'veryfast' if zwischenstufe else 'medium']
+            if not zwischenstufe:      # Dateigroesse zuegeln (Instagram)
+                a += ['-maxrate', '8M', '-bufsize', '16M']
+            return a
+        if enc == 'h264_amf':
+            return ['-c:v', enc, '-quality',
+                    'speed' if zwischenstufe else 'balanced',
+                    '-rc', 'cqp', '-qp_i', str(crf), '-qp_p', str(crf)]
+    return ['-c:v', 'libx264', '-crf', str(crf), '-preset',
+            'veryfast' if zwischenstufe else str(cfg.get('preset', 'medium'))]
+
+
 def ffprobe_duration(path):
     out = subprocess.run(
         ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', path],
@@ -162,52 +216,51 @@ def main():
     # Anteil (0-1), mode 'fahrt' (sanft reinziehen) oder 'fest' (harter
     # Punch-In). Wirkt auf das komponierte Bild VOR Captions/Texten.
     zooms = sorted((cfg.get('zooms') or []), key=lambda z: float(z['start']))
-    if zooms and alabel == '0:a':
-        segs = []
-        prev = 0.0
-        for z in zooms:
-            s = max(prev, float(z['start']))
-            e = min(dur, float(z['end']))
+    if zooms:
+        # WICHTIG: EIN durchgehender zoompan ueber das ganze Video — NIEMALS
+        # in Segmente schneiden und wieder zusammensetzen (das verschiebt die
+        # Zeitachse: Frames doppeln sich, Bild springt, Untertitel verrutschen).
+        # Der z-Ausdruck schaltet zeitabhaengig zwischen den Phasen um.
+        # Technik: crop mit eval=frame auf der ZEIT-Variable t (zuverlaessig),
+        # danach zurueck auf Zielgroesse skalieren. KEIN zoompan (dessen
+        # Frame-Zaehler laeuft nicht synchron zur Zeitachse -> Bildspruenge)
+        # und KEIN Segment-Split (verschiebt die Zeitachse).
+        # EIN Abschnitt je Zoom: reinfahren (ramp_in) -> halten -> rausfahren
+        # (ramp_out). ramp 0 = sofortiger, harter Zoom.
+        z_expr, x_expr, y_expr = '1', '0.5', '0.5'
+        for z in reversed(zooms):
+            s, e = float(z['start']), float(z['end'])
             if e - s < 0.1:
                 continue
-            if s - prev >= 0.05:
-                segs.append((prev, s, None))
-            segs.append((s, e, z))
-            prev = e
-        if dur - prev >= 0.05:
-            segs.append((prev, dur, None))
-        fc.append('{}split={}{}'.format(vlabel, len(segs),
-                  ''.join('[zs{}]'.format(i) for i in range(len(segs)))))
-        for i, (a, b, z) in enumerate(segs):
-            # fps vereinheitlichen, damit alle Segmente sauber concat-en
-            zf = ',fps=30'
-            if z:
-                zv = float(z.get('zoom', 1.15))
-                tx = float(z.get('x', 0.5))
-                ty = float(z.get('y', 0.5))
-                if z.get('mode', 'fahrt') == 'fahrt':
-                    # zoompan = subpixelgenau -> wirklich fluessige Fahrt.
-                    # ramp = Sekunden bis voller Zoom (Standard: ganzer
-                    # Abschnitt), danach haelt der Zoom die Staerke.
-                    ramp = float(z.get('ramp') or (b - a))
-                    ramp = max(0.2, min(ramp, b - a))
-                    inc = (zv - 1.0) / (ramp * 30.0)
-                    zf += (",zoompan=z='min(1+{inc}*in,{zv})'"
-                           ":x='(iw-iw/zoom)*{tx}':y='(ih-ih/zoom)*{ty}'"
-                           ':d=1:s={w}x{h}:fps=30'
-                           .format(inc=inc, zv=zv, tx=tx, ty=ty, w=W, h=H))
-                else:
-                    zf += (',scale=ceil(iw*{z}/2)*2:ceil(ih*{z}/2)*2,'
-                           'crop={w}:{h}:(iw-{w})*{tx}:(ih-{h})*{ty}'
-                           .format(z=zv, w=W, h=H, tx=tx, ty=ty))
-            fc.append('[zs{i}]trim={a}:{b},setpts=PTS-STARTPTS{zf},setsar=1'
-                      '[zv{i}]'.format(i=i, a=a, b=b, zf=zf))
-            fc.append('[0:a]atrim={a}:{b},asetpts=PTS-STARTPTS[za{i}]'
-                      .format(i=i, a=a, b=b))
-        fc.append('{}concat=n={}:v=1:a=1[zvc][zac]'.format(
-            ''.join('[zv{i}][za{i}]'.format(i=i) for i in range(len(segs))),
-            len(segs)))
-        vlabel, alabel = '[zvc]', '[zac]'
+            zv = float(z.get('zoom', 1.15))
+            tx, ty = float(z.get('x', 0.5)), float(z.get('y', 0.5))
+            ri = max(0.03, float(z.get('ramp_in', z.get('ramp', 0.6)) or 0.03))
+            ro = max(0.03, float(z.get('ramp_out', 0.6) or 0.03))
+            ri = min(ri, (e - s) / 2)
+            ro = min(ro, (e - s) / 2)
+            prog = 'max(0,min(1,min((t-{s})/{ri},({e}-t)/{ro})))'.format(
+                s=s, e=e, ri=ri, ro=ro)
+            this_z = '(1+({zv}-1)*{p})'.format(zv=zv, p=prog)
+            cond = 'between(t,{s},{e})'.format(s=s, e=e)
+            z_expr = 'if({c},{a},{b})'.format(c=cond, a=this_z, b=z_expr)
+            x_expr = 'if({c},{v},{b})'.format(c=cond, v=tx, b=x_expr)
+            y_expr = 'if({c},{v},{b})'.format(c=cond, v=ty, b=y_expr)
+        # scale wertet pro Frame aus (eval=frame), crop schneidet daraus das
+        # Zielfenster heraus. Die Formel (iw-W)*x ist mathematisch IDENTISCH
+        # zur Cockpit-Vorschau (CSS transform-origin) — nachgerechnet:
+        # beide zeigen bei y=0.26 und 2x-Zoom den Bereich 0.130-0.630.
+        # NICHT auf "Punkt ins Zentrum" umbauen, das weicht ab!
+        # ACHTUNG: crop kennt iw/ih nur vom ERSTEN Frame (da ist der Zoom noch
+        # 1.0) -> mit (iw-W)*x landet der Ausschnitt immer in der Ecke.
+        # Deshalb die Position direkt aus dem Zoomfaktor rechnen.
+        # Bedeutung von x/y: der Bildpunkt, der in die MITTE kommt.
+        fc.append("{v}scale=w='trunc(iw*({z})/2)*2':h='trunc(ih*({z})/2)*2'"
+                  ":eval=frame,crop={w}:{h}"
+                  ":'clip({w}*({z})*({x})-{w}/2,0,{w}*(({z})-1))'"
+                  ":'clip({h}*({z})*({y})-{h}/2,0,{h}*(({z})-1))'"
+                  ',setsar=1[zvc]'
+                  .format(v=vlabel, z=z_expr, x=x_expr, y=y_expr, w=W, h=H))
+        vlabel = '[zvc]'
 
     # Finale Dauer (Uebergaenge verkuerzen die Timeline) — frueh berechnen
     _tr = cfg.get('transition') or {}
@@ -376,10 +429,9 @@ def main():
     amap = alabel if alabel.startswith('[') else '{}'.format(alabel)
     cmd = (['ffmpeg', '-y'] + inputs +
            ['-filter_complex', ';'.join(fc),
-            '-map', vlabel, '-map', amap,
-            '-c:v', 'libx264', '-crf', str(cfg.get('crf', 20)),
-            '-preset', str(cfg.get('preset', 'medium')),
-            '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k',
+            '-map', vlabel, '-map', amap] +
+           video_encoder(cfg) +
+           ['-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k',
             '-movflags', '+faststart', cfg['output']])
     print('FFMPEG:', ' '.join(cmd))
     subprocess.run(cmd, check=True,

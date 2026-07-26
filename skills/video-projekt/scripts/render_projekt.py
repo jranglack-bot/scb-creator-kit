@@ -25,6 +25,12 @@ PRO = os.path.join(HERE, '..', '..', 'pro-look-editing', 'scripts')
 AC = os.path.join(PRO, 'animated_captions.py')
 TO = os.path.join(PRO, 'text_overlays.py')
 PL = os.path.join(PRO, 'prolook.py')
+sys.path.insert(0, PRO)
+try:
+    from prolook import video_encoder   # Hardware-Encoder (5-10x schneller)
+except Exception:
+    def video_encoder(cfg):
+        return ['-c:v', 'libx264', '-crf', '20', '-preset', 'medium']
 
 
 def run(cmd):
@@ -92,8 +98,8 @@ def prep(src, out, cuts, regions, base=1.0):
             cmd += ['-vf', vf]
         if af:
             cmd += ['-af', ','.join(af)]
-        cmd += ['-c:v', 'libx264', '-crf', '20', '-preset', 'medium',
-                '-c:a', 'aac', '-b:a', '192k', out]
+        cmd += (video_encoder({}, zwischenstufe=True)
+                + ['-c:a', 'aac', '-b:a', '192k', out])
     else:
         out = os.path.splitext(out)[0] + '.m4a'
         if af:
@@ -122,23 +128,55 @@ def main():
 
     # --- Videos zusammenfuegen (mehrere Clips nacheinander) ----------------
     if len(videos) > 1:
-        parts = []
-        for i, v in enumerate(videos):
-            p = 'r_clip{}.mp4'.format(i)
-            run(['ffmpeg', '-y', '-v', 'error', '-i', v,
-                 '-vf', 'scale=1080:1920:force_original_aspect_ratio=decrease,'
-                 'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1', '-r', '30',
-                 '-c:v', 'libx264', '-crf', '20', '-preset', 'medium',
-                 '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', p])
-            parts.append(p)
+        # SCHNELLWEG: Haben alle Clips dieselben Parameter, koennen sie ohne
+        # Neuberechnung aneinandergehaengt werden (Sekunden statt Minuten).
         with open('r_concat.txt', 'w', encoding='utf-8') as f:
-            for p in parts:
-                f.write("file '{}'\n".format(p))
-        run(['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0',
-             '-i', 'r_concat.txt', '-c', 'copy', 'r_source.mp4'])
+            for v in videos:
+                f.write("file '{}'\n".format(v))
+        schnell = subprocess.run(
+            ['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0',
+             '-i', 'r_concat.txt', '-c', 'copy', 'r_source.mp4'],
+            capture_output=True)
+        if schnell.returncode != 0 or not os.path.exists('r_source.mp4'):
+            parts = []
+            for i, v in enumerate(videos):
+                p = 'r_clip{}.mp4'.format(i)
+                run(['ffmpeg', '-y', '-v', 'error', '-i', v, '-vf',
+                     'scale=1080:1920:force_original_aspect_ratio=decrease,'
+                     'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1', '-r', '30']
+                    + video_encoder({}, zwischenstufe=True)
+                    + ['-c:a', 'aac', '-b:a', '192k', '-ar', '48000', p])
+                parts.append(p)
+            with open('r_concat.txt', 'w', encoding='utf-8') as f:
+                for p in parts:
+                    f.write("file '{}'\n".format(p))
+            run(['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0',
+                 '-i', 'r_concat.txt', '-c', 'copy', 'r_source.mp4'])
         source = 'r_source.mp4'
     else:
         source = videos[0]
+
+    # --- Bildstabilisierung (optional: "stabilisieren": true) --------------
+    # 2-Pass vidstab; Ergebnis wird gecacht (nur neu bei geaenderter Quelle).
+    stab = pj.get('stabilisieren')
+    if stab:
+        opt = stab if isinstance(stab, dict) else {}
+        out_st = 'r_stabil.mp4'
+        trf = 'r_transforms.trf'
+        fresh = (os.path.exists(out_st) and os.path.exists(trf)
+                 and os.path.getmtime(out_st) >= os.path.getmtime(source))
+        if not fresh:
+            run(['ffmpeg', '-y', '-v', 'error', '-i', source, '-vf',
+                 'vidstabdetect=shakiness={}:accuracy=15:result={}'.format(
+                     int(opt.get('staerke', 10)), trf), '-f', 'null', '-'])
+            run(['ffmpeg', '-y', '-v', 'error', '-i', source, '-vf',
+                 'vidstabtransform=input={}:smoothing={}:optzoom=0:zoom={}'
+                 ':interpol=bicubic,unsharp=5:5:0.6:3:3:0.3'.format(
+                     trf, int(opt.get('glaettung', 60)),
+                     int(opt.get('randbeschnitt', 6)))]
+                + video_encoder({}, zwischenstufe=True)
+                + ['-c:a', 'copy', out_st])
+        source = out_st
 
     # --- Schnitte (Quellzeit) + Lautstaerke-Abschnitte einrechnen ----------
     g_main = float(gains.get('main', 1))
@@ -162,15 +200,27 @@ def main():
     # --- Untertitel (Wortzeiten folgen dem Zeit-Master) --------------------
     cap = pj.get('captions') or {}
     if cap.get('enabled') and pj.get('words'):
+        # ASR-Zeitstempel sind an Pausen oft ungenau (ein Wort "beginnt"
+        # laut Transkript oft schon in der vorangehenden Stille). Ein Wort
+        # nur dann KOMPLETT verwerfen, wenn auch sein ENDE im Schnitt liegt
+        # — liegt nur der (unzuverlaessige) Start im Schnitt, das Ende aber
+        # dahinter, gilt das Wort als erhalten (Start wird auf Schnittende
+        # geklemmt), sonst verschwaende es faelschlich aus den Untertiteln.
         words = []
         for w in pj['words']:
-            if any(s <= float(w['start']) < e for s, e in master_cuts):
+            ws, we = float(w['start']), float(w['end'])
+            voll_im_schnitt = any(s <= ws and we <= e for s, e in master_cuts)
+            if voll_im_schnitt:
+                continue
+            for s, e in master_cuts:
+                if s <= ws < e:
+                    ws = e
+                    break
+            if ws >= we:
                 continue
             words.append({'text': w['text'], 'type': 'word',
-                          'start': round(shift(float(w['start']),
-                                               master_cuts), 3),
-                          'end': round(shift(float(w['end']),
-                                             master_cuts), 3)})
+                          'start': round(shift(ws, master_cuts), 3),
+                          'end': round(shift(we, master_cuts), 3)})
         with open('r_words.json', 'w', encoding='utf-8') as f:
             json.dump({'words': words}, f, ensure_ascii=False)
         cmd = [sys.executable, AC, 'r_words.json', 'untertitel.ass',

@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+
+# Testmaterial (nicht ausliefern)
+Test*.mp4
+*.mp4
