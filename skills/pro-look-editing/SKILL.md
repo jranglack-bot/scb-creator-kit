@@ -183,6 +183,12 @@ sobald du sprichst." Bei Ja:
    episch→`epic`/`cinematic`, fröhlich→`happy`/`uplifting`. Alternativen:
    mixkit.co/free-stock-music, freebeats.io. Runtergeladene Tracks in den
    passenden Stimmungs-Ordner → für immer verfügbar.
+4. **User hat einen Song auf Instagram gehört und will genau den?** Skill
+   `instagram-musik-finden` nutzen: Titel/Künstler kostenlos aus den
+   Seiten-Metadaten der Audio-URL lesen, dann in der Meta Sound Collection
+   (facebook.com/sound) laden. Achtung, RF-Kennzeichnung auf Instagram heißt
+   nicht automatisch herunterladbar, und die Lizenz gilt nur für
+   Meta-Plattformen (nicht TikTok/YouTube). Details im Skill.
 
 **Chart-/Trend-Musik — der richtige Weg (User aktiv beraten!):**
 Trend-Sounds und Chartmusik sind für Instagram-Reels ausdrücklich eine gute
