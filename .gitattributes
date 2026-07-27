@@ -1,0 +1,4 @@
+# Diese Pfade sind zwar versioniert (Backup auf GitHub),
+# landen aber NICHT im ausgelieferten .plugin-Paket (git archive).
+tools/         export-ignore
+.gitattributes export-ignore

@@ -62,16 +62,31 @@ angemeldet).
 Beim allerersten Aufruf verlangt Meta eine einmalige Zustimmung zu den
 Nutzungsbedingungen. **Diesen Haken setzt der User selbst, niemals Claude.**
 
-## Schritt 5 — Herunterladen und ablegen
+## Schritt 5 — Herunterladen, nach MP3 wandeln, ablegen
 
 Download-Button (Kreis mit Pfeil nach unten) in der Trefferzeile.
 
-Die Datei kommt als **Audio-only-MP4 (AAC)**. Die Endung `.mp4` ist korrekt und
-kein Fehler, ffmpeg und `set_music.py` verarbeiten sie direkt, nichts
-konvertieren. Referenzwerte aus dem Test: 4:26 Länge, 48 kHz Stereo, ~49 kbps,
-1,55 MB. Also der **vollständige Song**, nicht der kurze App-Ausschnitt.
+Die Datei kommt als **Audio-only-MP4 (AAC)**, das ist kein Fehler. Referenzwerte
+aus dem Test: 4:26 Länge, 48 kHz Stereo, ~49 kbps, 1,55 MB. Also der
+**vollständige Song**, nicht der kurze App-Ausschnitt.
 
-Datei in den in Schritt 3 geklärten Ordner verschieben, passender
+**Immer automatisch nach MP3 wandeln** (Kit-Konvention, wie bei `sfx-extraktion`):
+
+```
+ffmpeg -y -v error -i "<download>.mp4" -vn -c:a libmp3lame -b:a 192k "<ziel>.mp3"
+```
+
+192 kbps ist bewusst großzügig gewählt: Die Quelle hat nur ~49 kbps, mit
+Reserve geht beim Umkodieren praktisch nichts Hörbares verloren. Danach die
+MP4-Datei löschen, damit die Bibliothek sauber bleibt (vorher kurz beim User
+rückfragen, wenn er sie behalten will).
+
+Ehrlich sagen, falls der User nachfragt: MP3 ist ein Neu-Kodieren von bereits
+komprimiertem Material, also technisch ein kleiner Qualitätsverlust. Als
+geducktes Musikbett unter einer Stimme nicht hörbar. Wer verlustfrei arbeiten
+will, benennt stattdessen nach `.m4a` um (`-c:a copy`, reiner Container-Wechsel).
+
+Fertige MP3 in den in Schritt 3 geklärten Ordner verschieben, passender
 Stimmungs-Unterordner.
 
 ## Schritt 6 — Ins Video
