@@ -63,10 +63,19 @@ Ungewöhnliches klemmt. Faustregel: *Alltag = Sonnet, Konzept & Notfall = Opus.*
 
 ### Claude Code (Terminal)
 
+Diese zwei Befehle **direkt eintippen** (nacheinander):
+
 ```
 /plugin marketplace add jranglack-bot/scb-creator-kit
 /plugin install scb-creator-kit@scb-creator-kit
 ```
+
+Danach sagen: **„Richte das SCB Kit ein"**
+
+> ℹ️ **Häufiger Stolperstein:** Es reicht nicht, Claude die GitHub-Adresse in
+> den Chat zu schreiben und um Installation zu bitten. Claude kann Plugins
+> nicht aus einer URL installieren — nur über die beiden Befehle oben. Wenn
+> Claude sagt, er könne das nicht, liegt es fast immer daran.
 
 ## Was du brauchst (je nach Funktion)
 

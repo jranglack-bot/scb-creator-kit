@@ -44,22 +44,30 @@ Obsidian-Gedächtnis**, damit sich Claude ab der ersten Minute alles merkt.
 
 ### Grundregel für dieses Setup (gilt überall)
 
-**Fremdsoftware und globale Einstellungen installiert der USER selbst, nicht
-Claude.** Konkret: Programme aus dem Internet herunterladen und in den
-Suchpfad legen, globale Hooks einrichten, `~/.claude/settings.json`
-umschreiben, Fremd-Plugins freischalten. Bei all dem erklärt Claude, was
-passiert und warum, stellt den fertigen Befehl bereit und prüft danach das
-Ergebnis — ausführen tut es der User.
+**Erst informiert fragen, dann selbst erledigen.** Der User soll genau eine
+Entscheidung treffen müssen: ja oder nein. Danach macht Claude die Arbeit.
 
-Das hat zwei Gründe. Erstens gehört diese Vertrauensentscheidung dem User,
-denn es ist sein Rechner. Zweitens funktioniert es so auf **jedem** Account
-gleich, unabhängig von dessen Freigabe-Einstellungen. Ein Setup, das darauf
-baut, dass Claude solche Schritte selbst ausführt, bleibt bei manchen Nutzern
-hängen — und das zu Recht.
+Wenn ein Schritt Fremdsoftware installiert, einen globalen Hook einrichtet
+oder die Claude-Konfiguration verändert, gilt:
 
-Unkritisch und von Claude direkt ausführbar sind dagegen: Ordner im
-Nutzer-Vault anlegen, Paketmanager-Installationen wie `winget install ffmpeg`,
-sowie reine Prüfbefehle wie `rtk --version` oder `ffmpeg -version`.
+1. **Vorher erklären**, was konkret passiert — in einfachen Worten, ohne
+   Fachjargon: was wird geladen, woher, was verändert sich, wie macht man es
+   rückgängig. Nur so ist die Zustimmung überhaupt etwas wert.
+2. **Mit AskUserQuestion klar fragen**, ja oder nein.
+3. **Bei Ja: ausführen.** Nicht an den User zurückdelegieren, nicht ein
+   zweites Mal rückversichern. Jeder Befehl läuft ohnehin durch die normale
+   Berechtigungsabfrage von Claude Code, die Schutzebene bleibt also da.
+4. **Bei Nein: sofort weiter.** Kein Nachhaken, kein Überreden. Nichts im Kit
+   setzt diese Extras voraus.
+5. **Wenn es technisch scheitert** (Firewall, Rechte, kein Netz): den fertigen
+   Befehl zum Selbst-Ausführen hinlegen und weitermachen.
+
+Was NIE passieren darf: ungefragt installieren, die Erklärung weglassen,
+Warnungen kleinreden oder nach einem Nein weiterbohren. Der Unterschied
+zwischen „hilfreich" und „übergriffig" ist genau diese eine Frage vorher.
+
+Ordner anlegen, `winget install ffmpeg` und Prüfbefehle wie `ffmpeg -version`
+brauchen keine eigene Zustimmungsfrage, die laufen einfach mit.
 
 ### Schritt 2: RTK — Token-Sparer (optional, aber sinnvoll zuerst)
 
@@ -73,25 +81,25 @@ Claude-Kontingent hält damit spürbar länger."
 
 Quelle: **https://github.com/rtk-ai/rtk** (offizielle Releases).
 
-> **Wichtig: Diesen Schritt führt der USER selbst aus, nicht Claude.**
-> RTK ist ein Programm eines Drittanbieters, das in den Suchpfad gelegt wird
-> und einen globalen Hook einrichtet, der ab dann alle Terminal-Befehle
-> umschreibt. Das ist eine bewusste Vertrauensentscheidung, die dem User
-> gehört. Claude erklärt, stellt den Befehl bereit und prüft danach das
-> Ergebnis — Claude lädt die Datei nicht selbst herunter und installiert
-> den Hook nicht selbst. Das ist keine Schikane, sondern der Grund, warum
-> dieser Schritt auf jedem Rechner zuverlässig funktioniert: Er hängt nicht
-> von den Freigabe-Einstellungen des jeweiligen Accounts ab.
+**Ablauf: erst informiert fragen, bei Ja selbst erledigen.**
 
-Erkläre dem User in zwei Sätzen, was passiert, bevor du den Befehl zeigst:
+Sage dem User VOR der Frage in schlichten Worten, was passieren wird — das
+ist die Grundlage für seine Entscheidung und macht die Zustimmung gültig:
 
-> RTK legt ein kleines Programm in deinen Suchpfad und richtet einen Hook
-> ein. Der schreibt Befehle wie `git status` im Hintergrund zu `rtk git
-> status` um, damit die Ausgabe gefiltert bei Claude ankommt. Du kannst das
-> jederzeit mit `rtk init -g --uninstall` wieder entfernen.
+> Ich würde dafür ein kleines Programm von der offiziellen Projektseite
+> herunterladen, es in deinen Suchpfad legen und einen Hook einrichten.
+> Der schreibt Befehle wie `git status` im Hintergrund zu `rtk git status`
+> um, damit die Ausgabe gefiltert bei mir ankommt. Rückgängig machst du das
+> jederzeit mit `rtk init -g --uninstall`.
 
-**Windows** — diesen Block dem User zum Selbst-Ausführen geben:
+Dann mit **AskUserQuestion** klar fragen: **installieren — ja oder nein?**
 
+**Bei Ja: Claude führt die Installation aus.** Der User hat zugestimmt, und
+jeder einzelne Befehl läuft ohnehin noch durch die normale
+Berechtigungsabfrage von Claude Code. Nicht zurückdelegieren, nicht
+zusätzlich rückversichern, einfach machen und danach Vollzug melden.
+
+**Windows:**
 ```powershell
 $dest = "$env:LOCALAPPDATA\Microsoft\WinGet\Links"
 $zip  = "$env:TEMP\rtk.zip"
@@ -104,10 +112,15 @@ rtk init -g
 **macOS/Linux:** `brew install rtk` (oder das Quick-Install-Script von der
 Projektseite), danach ebenfalls **`rtk init -g`**.
 
-**Ohne `rtk init -g` bleibt RTK wirkungslos** — darauf hinweisen.
+**Ohne `rtk init -g` bleibt RTK wirkungslos** — dieser Schritt gehört dazu.
 
-Danach darf Claude selbst prüfen (reine Lesebefehle):
-`rtk --version` und `rtk gain`. Melde dem User kurz das Ergebnis.
+Danach prüfen: `rtk --version` und `rtk gain`. Ergebnis kurz melden.
+
+**Bei Nein: sofort weiter zum nächsten Schritt.** Kein Nachhaken, kein
+zweiter Anlauf. RTK ist Komfort, für nichts im Kit Voraussetzung.
+
+Falls der Download scheitert (Firewall, kein Netz, Rechteproblem): dem User
+den Block zum Selbst-Ausführen geben und weitermachen. Nicht daran aufhalten.
 
 **Wenn der User ablehnt oder es nicht klappt: einfach weitermachen.** RTK ist
 komfortabel, aber für nichts im Kit Voraussetzung. Niemals drängen und den
@@ -238,24 +251,38 @@ Das ist ein **kostenloses Community-Plugin eines Drittanbieters**:
 `watch` aus dem GitHub-Repo **bradautomates/claude-video**
 (https://github.com/bradautomates/claude-video).
 
-> **Wichtig: Die Installation macht der USER, nicht Claude.**
-> Claude darf `~/.claude/settings.json` NICHT direkt umschreiben, um ein
-> fremdes Plugin und einen fremden Marketplace freizuschalten. Das würde die
-> normale Installation umgehen, bei der der User sieht, was er sich holt.
-> Es ist ohnehin ein Slash-Befehl, den nur der User ausführen kann.
+**Ablauf: erst informiert fragen, bei Ja selbst erledigen.**
 
-Nenne dem User diese zwei Befehle zum Selbst-Eingeben:
+Sag vor der Frage offen dazu, dass das Plugin **nicht** aus dem SCB Kit
+stammt, sondern von einem anderen Entwickler, und dass du dafür einen
+Eintrag in seiner Claude-Konfiguration ergänzen würdest. Wer will, kann sich
+das Repo vorher ansehen. Dann mit **AskUserQuestion** fragen: ja oder nein?
 
+**Bei Ja: Claude richtet es ein.** In `~/.claude/settings.json` mergen —
+**bestehende Einträge dabei unbedingt erhalten**, niemals die Datei
+überschreiben:
+
+```json
+{
+  "enabledPlugins": { "watch@claude-video": true },
+  "extraKnownMarketplaces": {
+    "claude-video": {
+      "source": { "source": "github", "repo": "bradautomates/claude-video" }
+    }
+  }
+}
+```
+
+Danach dem User sagen, dass er Claude Code einmal neu starten muss, damit
+`/watch` erscheint.
+
+Alternative, falls der User es lieber selbst macht oder das Mergen scheitert:
 ```
 /plugin marketplace add bradautomates/claude-video
-```
-```
 /plugin install watch@claude-video
 ```
 
-Sag dazu offen: Das Plugin stammt nicht aus dem SCB Kit, sondern von einem
-anderen Entwickler. Der User kann sich das Repo vorher ansehen. Nach der
-Installation ist `/watch` verfügbar.
+**Bei Nein: weiter, ohne Nachhaken.**
 
 Danach die Werkzeuge sicherstellen (Windows):
 1. `winget install yt-dlp.yt-dlp` und ffmpeg (Schritt 4). Terminal-Neustart
