@@ -38,11 +38,30 @@ Begrüße den User und zeige kurz, was das Kit kann:
 
 Frage dann (mit AskUserQuestion, multiSelect), welche Bereiche eingerichtet
 werden sollen. Richte anschließend NUR die gewählten Bereiche ein, in der
-Reihenfolge unten — **der Token-Sparer kommt immer zuerst** (jeder weitere
+Reihenfolge unten — **der Token-Sparer sinnvollerweise zuerst** (jeder weitere
 Schritt verbraucht dann schon weniger Kontingent), **direkt danach das
 Obsidian-Gedächtnis**, damit sich Claude ab der ersten Minute alles merkt.
 
-### Schritt 2: RTK — Token-Sparer (ZUERST, empfohlen)
+### Grundregel für dieses Setup (gilt überall)
+
+**Fremdsoftware und globale Einstellungen installiert der USER selbst, nicht
+Claude.** Konkret: Programme aus dem Internet herunterladen und in den
+Suchpfad legen, globale Hooks einrichten, `~/.claude/settings.json`
+umschreiben, Fremd-Plugins freischalten. Bei all dem erklärt Claude, was
+passiert und warum, stellt den fertigen Befehl bereit und prüft danach das
+Ergebnis — ausführen tut es der User.
+
+Das hat zwei Gründe. Erstens gehört diese Vertrauensentscheidung dem User,
+denn es ist sein Rechner. Zweitens funktioniert es so auf **jedem** Account
+gleich, unabhängig von dessen Freigabe-Einstellungen. Ein Setup, das darauf
+baut, dass Claude solche Schritte selbst ausführt, bleibt bei manchen Nutzern
+hängen — und das zu Recht.
+
+Unkritisch und von Claude direkt ausführbar sind dagegen: Ordner im
+Nutzer-Vault anlegen, Paketmanager-Installationen wie `winget install ffmpeg`,
+sowie reine Prüfbefehle wie `rtk --version` oder `ffmpeg -version`.
+
+### Schritt 2: RTK — Token-Sparer (optional, aber sinnvoll zuerst)
 
 **Warum als allererstes:** Ab der Installation verbrauchen alle weiteren
 Setup-Schritte und jeder künftige Auftrag spürbar weniger Kontingent.
@@ -54,21 +73,45 @@ Claude-Kontingent hält damit spürbar länger."
 
 Quelle: **https://github.com/rtk-ai/rtk** (offizielle Releases).
 
-Installation für den User übernehmen (nach kurzer Ankündigung des Downloads):
+> **Wichtig: Diesen Schritt führt der USER selbst aus, nicht Claude.**
+> RTK ist ein Programm eines Drittanbieters, das in den Suchpfad gelegt wird
+> und einen globalen Hook einrichtet, der ab dann alle Terminal-Befehle
+> umschreibt. Das ist eine bewusste Vertrauensentscheidung, die dem User
+> gehört. Claude erklärt, stellt den Befehl bereit und prüft danach das
+> Ergebnis — Claude lädt die Datei nicht selbst herunter und installiert
+> den Hook nicht selbst. Das ist keine Schikane, sondern der Grund, warum
+> dieser Schritt auf jedem Rechner zuverlässig funktioniert: Er hängt nicht
+> von den Freigabe-Einstellungen des jeweiligen Accounts ab.
 
-**Windows:**
-1. Offizielles Windows-Paket laden:
-   `https://github.com/rtk-ai/rtk/releases/latest/download/rtk-x86_64-pc-windows-msvc.zip`
-2. Entpacken und die `rtk.exe` in einen PATH-Ordner legen — bewährt:
-   `%LOCALAPPDATA%\Microsoft\WinGet\Links\` (derselbe Ordner wie ffmpeg/yt-dlp).
-3. **WICHTIG — direkt nach der Installation ausführen: `rtk init -g`**
-   Das installiert den automatischen Rewrite-Hook (Befehle wie `git status`
-   werden ab dann transparent zu `rtk git status` umgeschrieben) und legt die
-   RTK-Dokumentation an. Ohne diesen Schritt bleibt RTK wirkungslos!
-4. Prüfen: `rtk --version` und `rtk gain` (zeigt die Token-Ersparnis).
+Erkläre dem User in zwei Sätzen, was passiert, bevor du den Befehl zeigst:
+
+> RTK legt ein kleines Programm in deinen Suchpfad und richtet einen Hook
+> ein. Der schreibt Befehle wie `git status` im Hintergrund zu `rtk git
+> status` um, damit die Ausgabe gefiltert bei Claude ankommt. Du kannst das
+> jederzeit mit `rtk init -g --uninstall` wieder entfernen.
+
+**Windows** — diesen Block dem User zum Selbst-Ausführen geben:
+
+```powershell
+$dest = "$env:LOCALAPPDATA\Microsoft\WinGet\Links"
+$zip  = "$env:TEMP\rtk.zip"
+Invoke-WebRequest "https://github.com/rtk-ai/rtk/releases/latest/download/rtk-x86_64-pc-windows-msvc.zip" -OutFile $zip
+Expand-Archive $zip -DestinationPath $env:TEMP\rtk -Force
+Copy-Item "$env:TEMP\rtk\rtk.exe" $dest -Force
+rtk init -g
+```
 
 **macOS/Linux:** `brew install rtk` (oder das Quick-Install-Script von der
 Projektseite), danach ebenfalls **`rtk init -g`**.
+
+**Ohne `rtk init -g` bleibt RTK wirkungslos** — darauf hinweisen.
+
+Danach darf Claude selbst prüfen (reine Lesebefehle):
+`rtk --version` und `rtk gain`. Melde dem User kurz das Ergebnis.
+
+**Wenn der User ablehnt oder es nicht klappt: einfach weitermachen.** RTK ist
+komfortabel, aber für nichts im Kit Voraussetzung. Niemals drängen und den
+Setup-Ablauf nicht daran aufhängen.
 
 Hinweis bei Problemen: Schlägt `rtk gain` fehl, ist evtl. ein anderes
 Programm namens „rtk" (Rust Type Kit) installiert — Namenskollision prüfen.
@@ -195,19 +238,24 @@ Das ist ein **kostenloses Community-Plugin eines Drittanbieters**:
 `watch` aus dem GitHub-Repo **bradautomates/claude-video**
 (https://github.com/bradautomates/claude-video).
 
-Installation für den User übernehmen — in `~/.claude/settings.json` mergen
-(bestehende Einträge erhalten!):
+> **Wichtig: Die Installation macht der USER, nicht Claude.**
+> Claude darf `~/.claude/settings.json` NICHT direkt umschreiben, um ein
+> fremdes Plugin und einen fremden Marketplace freizuschalten. Das würde die
+> normale Installation umgehen, bei der der User sieht, was er sich holt.
+> Es ist ohnehin ein Slash-Befehl, den nur der User ausführen kann.
 
-```json
-{
-  "enabledPlugins": { "watch@claude-video": true },
-  "extraKnownMarketplaces": {
-    "claude-video": {
-      "source": { "source": "github", "repo": "bradautomates/claude-video" }
-    }
-  }
-}
+Nenne dem User diese zwei Befehle zum Selbst-Eingeben:
+
 ```
+/plugin marketplace add bradautomates/claude-video
+```
+```
+/plugin install watch@claude-video
+```
+
+Sag dazu offen: Das Plugin stammt nicht aus dem SCB Kit, sondern von einem
+anderen Entwickler. Der User kann sich das Repo vorher ansehen. Nach der
+Installation ist `/watch` verfügbar.
 
 Danach die Werkzeuge sicherstellen (Windows):
 1. `winget install yt-dlp.yt-dlp` und ffmpeg (Schritt 4). Terminal-Neustart
