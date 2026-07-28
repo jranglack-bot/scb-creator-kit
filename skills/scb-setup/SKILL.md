@@ -175,9 +175,22 @@ node --version; npm --version
 ffmpeg -version; ffprobe -version
 ```
 
-- Fehlt **Node.js**: nur nötig, wenn Higgsfield gewählt wurde → `winget install OpenJS.NodeJS.LTS`, danach Terminal-Neustart erklären.
-- Fehlt **ffmpeg**: nur nötig für Video-Schnitt/Posting → `winget install Gyan.FFmpeg`, danach Terminal-Neustart erklären.
-- Führe Installationen erst nach kurzer Rückfrage aus („Darf ich ffmpeg installieren? Ist kostenlos und offiziell.").
+Fehlt etwas, kurz fragen („Darf ich ffmpeg installieren? Kostenlos und
+offiziell.") und dann **selbst** installieren — das Script kennt Windows,
+macOS und Linux:
+
+    python scripts/install_tools.py ffmpeg node
+
+- **Node.js** nur nötig, wenn Higgsfield gewählt wurde
+- **ffmpeg** nur nötig für Video-Schnitt und Posting
+- Prüfen ohne zu installieren: `python scripts/install_tools.py --pruefen ffmpeg node`
+
+Endet das Script mit **Exit 2**, fehlt auf einem Mac Homebrew. Dann dem User
+erklären, dass das der übliche Weg für solche Programme auf dem Mac ist, den
+vom Script ausgegebenen offiziellen Befehl anbieten, nach seinem Ja selbst
+ausführen und das Script danach erneut aufrufen.
+
+Nach Installationen unter Windows: neue Sitzung nötig, damit der Suchpfad greift.
 
 ### Schritt 5: Video-Editor — Schneiden, Cockpit & Untertitel
 
@@ -270,13 +283,16 @@ Danach dem User sagen, dass er Claude Code einmal neu starten muss, damit
 
 **Bei Nein: weiter, ohne Nachhaken.**
 
-Danach die Werkzeuge sicherstellen (Windows):
-1. `winget install yt-dlp.yt-dlp` und ffmpeg (Schritt 4). Terminal-Neustart
-   nötig, damit der PATH greift.
+Danach die Werkzeuge sicherstellen — Claude führt das selbst aus:
+
+    python scripts/install_tools.py yt-dlp ffmpeg
+
+1. Unter Windows danach eine neue Sitzung nötig, damit der Suchpfad greift.
 2. **Bekannte Windows-Falle:** das Plugin braucht `yt-dlp` als echte .exe im
    PATH. Meldet `/watch` später „missing binaries: yt-dlp", die
    `yt-dlp.exe` nach `%LOCALAPPDATA%\Microsoft\WinGet\Links\` kopieren
-   (gleicher Ordner wie ffmpeg) — das wirkt sofort.
+   (gleicher Ordner wie ffmpeg) — das wirkt sofort. Auf macOS und Linux
+   tritt das nicht auf.
 3. Optional für Videos ohne Untertitel: kostenloser **Groq-API-Key**
    (console.groq.com → API Keys) für die Whisper-Transkription; der
    Setup-Check des Plugins fragt danach.
@@ -344,8 +360,8 @@ GitHub mit einem Satz installieren."
 Wenn ja:
 1. Konto (falls noch keins): **https://github.com/signup** — kostenlos,
    2 Minuten. Der User erstellt es selbst im Browser.
-2. GitHub-CLI installieren: `winget install GitHub.cli` (danach Terminal-
-   Neustart).
+2. GitHub-CLI installieren — Claude führt das selbst aus:
+   `python scripts/install_tools.py gh` (danach neue Sitzung nötig).
 3. Verbinden: Öffne für den User ein sichtbares Terminal-Fenster mit
    `gh auth login` — er wählt „GitHub.com" → „HTTPS" → „Login with a web
    browser" und loggt sich selbst im Browser ein. Claude gibt niemals

@@ -28,25 +28,47 @@ config.json:
 import glob
 import json
 import os
+import platform
+import shutil
 import subprocess
 import sys
 
-BROWSERS = [
+BROWSERS_WINDOWS = [
     r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
     r'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
     r'C:\Program Files\Google\Chrome\Application\chrome.exe',
     r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
 ]
+BROWSERS_MACOS = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+]
+# Linux und als Notnagel ueberall: ueber den Suchpfad finden
+BROWSERS_PATH = ['google-chrome', 'google-chrome-stable', 'chromium',
+                 'chromium-browser', 'microsoft-edge', 'brave-browser']
 
 DEFAULT_BRAND = {'bg1': '#1F2430', 'bg2': '#3B2F63', 'accent': '#FFD400',
                  'text': '#FFFFFF', 'font': 'Segoe UI', 'account': ''}
 
 
 def find_browser():
-    for b in BROWSERS:
+    system = platform.system()
+    feste = (BROWSERS_WINDOWS if system == 'Windows'
+             else BROWSERS_MACOS if system == 'Darwin' else [])
+    for b in feste:
         if os.path.exists(b):
             return b
-    raise SystemExit('Kein Edge/Chrome gefunden — Pfade in BROWSERS pruefen.')
+    for name in BROWSERS_PATH:
+        gefunden = shutil.which(name)
+        if gefunden:
+            return gefunden
+    raise SystemExit(
+        'Kein Chrome/Edge/Chromium gefunden.\n'
+        'Windows: Edge ist normalerweise vorinstalliert.\n'
+        'macOS: Chrome von google.com/chrome installieren.\n'
+        'Linux: z. B. chromium ueber den Paketmanager installieren.')
 
 
 def main():

@@ -65,15 +65,20 @@ Cockpit-Weg — **EIN-TAB-PRINZIP (wichtig!):**
 `python scripts/build_editor.py <projekt.json>` erzeugt `editor.html`
 (statisch) + `projekt_data.js` (die Daten). Das offene Cockpit lädt die
 Daten-Datei alle 2,5 s selbst nach — **Änderungen von Claude erscheinen im
-offenen Tab von allein.** Deshalb: `Start-Process editor.html` NUR beim
-allerersten Erstellen des Cockpits. Bei jeder späteren Änderung NUR
+offenen Tab von allein.** Deshalb das Cockpit NUR beim allerersten Erstellen
+öffnen. Bei jeder späteren Änderung NUR
 `build_editor.py` ausführen und dem User sagen „schau in deinen offenen
 Tab" — NIEMALS erneut öffnen (das erzeugt verwirrende Doppel-Tabs). Hat
 der User ungespeicherte Änderungen, zeigt das Cockpit einen
 Übernehmen/Behalten-Banner statt sie zu überschreiben.
 
+**Öffnen je nach System** (Claude wählt das passende, nicht raten):
+- Windows: `Start-Process editor.html`
+- macOS: `open editor.html`
+- Linux: `xdg-open editor.html`
+
 **Start & Wiedergabe (server-frei, kinderleicht):** Claude öffnet
-`editor.html` EINMAL (Start-Process). Kein Helfer, kein Server, keine .bat
+`editor.html` EINMAL. Kein Helfer, kein Server, keine .bat
 zum Starten, keine Verbindung. Das eine Video spielt; beim Abspielen werden
 aktive Schnitte LIVE übersprungen (Button „✂ Schnitte überspringen" an =
 Standard = zeigt das geschnittene Ergebnis; aus = Rohmaterial). Mehrere
