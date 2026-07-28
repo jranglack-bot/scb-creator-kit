@@ -44,27 +44,29 @@ Obsidian-Gedächtnis**, damit sich Claude ab der ersten Minute alles merkt.
 
 ### Grundregel für dieses Setup (gilt überall)
 
-**Erst informiert fragen, dann selbst erledigen.** Der User soll genau eine
-Entscheidung treffen müssen: ja oder nein. Danach macht Claude die Arbeit.
+> **Die Zielgruppe kann nicht programmieren und will kein Terminal sehen.**
+> Wer dieses Kit einrichtet, ist Creator, nicht Entwickler. Jede Antwort, die
+> mit „öffne dein Terminal", „führe bitte selbst aus" oder „tippe folgenden
+> Befehl" beginnt, ist ein Fehlschlag des Setups.
 
-Wenn ein Schritt Fremdsoftware installiert, einen globalen Hook einrichtet
-oder die Claude-Konfiguration verändert, gilt:
+**Erst erklären, dann fragen, dann selbst ausführen.** Der User trifft genau
+eine Entscheidung: ja oder nein. Danach macht Claude die Arbeit.
 
-1. **Vorher erklären**, was konkret passiert — in einfachen Worten, ohne
-   Fachjargon: was wird geladen, woher, was verändert sich, wie macht man es
-   rückgängig. Nur so ist die Zustimmung überhaupt etwas wert.
-2. **Mit AskUserQuestion klar fragen**, ja oder nein.
-3. **Bei Ja: ausführen.** Nicht an den User zurückdelegieren, nicht ein
-   zweites Mal rückversichern. Jeder Befehl läuft ohnehin durch die normale
-   Berechtigungsabfrage von Claude Code, die Schutzebene bleibt also da.
-4. **Bei Nein: sofort weiter.** Kein Nachhaken, kein Überreden. Nichts im Kit
-   setzt diese Extras voraus.
-5. **Wenn es technisch scheitert** (Firewall, Rechte, kein Netz): den fertigen
-   Befehl zum Selbst-Ausführen hinlegen und weitermachen.
+1. **Vorher erklären**, was konkret passiert — in einfachen Worten: was wird
+   geladen, woher, was verändert sich, wie macht man es rückgängig.
+2. **Mit AskUserQuestion fragen**, ja oder nein.
+3. **Bei Ja: selbst ausführen**, mit dem eigenen Bash/PowerShell-Werkzeug.
+   Nicht zurückdelegieren, nicht ein zweites Mal rückversichern. Die
+   Berechtigungsabfrage von Claude Code erscheint ohnehin — sie ist die
+   Kontrollinstanz, nicht der User als Abtipper.
+4. **Bei Nein: sofort weiter.** Kein Nachhaken, kein Überreden.
+5. **Nur bei echtem Fehler** (Firewall, Rechte, kein Netz): Grund
+   verständlich erklären, später nochmal anbieten, weitermachen.
 
-Was NIE passieren darf: ungefragt installieren, die Erklärung weglassen,
-Warnungen kleinreden oder nach einem Nein weiterbohren. Der Unterschied
-zwischen „hilfreich" und „übergriffig" ist genau diese eine Frage vorher.
+**Installationen laufen über die mitgelieferten Scripts in `scripts/`**, nicht
+über selbst zusammengebaute Befehlsketten. Das ist im ganzen Kit so (siehe
+`pro-look-editing`: die Scripts machen die Arbeit, Claude trifft nur
+Entscheidungen). Ein Script ist ein Aufruf, getestet und nachvollziehbar.
 
 Ordner anlegen, `winget install ffmpeg` und Prüfbefehle wie `ffmpeg -version`
 brauchen keine eigene Zustimmungsfrage, die laufen einfach mit.
@@ -81,46 +83,41 @@ Claude-Kontingent hält damit spürbar länger."
 
 Quelle: **https://github.com/rtk-ai/rtk** (offizielle Releases).
 
-**Ablauf: erst informiert fragen, bei Ja selbst erledigen.**
+**Ablauf: erklären, fragen, selbst ausführen.**
 
-Sage dem User VOR der Frage in schlichten Worten, was passieren wird — das
-ist die Grundlage für seine Entscheidung und macht die Zustimmung gültig:
+Sage dem User VOR der Frage in schlichten Worten, was passieren wird:
 
 > Ich würde dafür ein kleines Programm von der offiziellen Projektseite
 > herunterladen, es in deinen Suchpfad legen und einen Hook einrichten.
 > Der schreibt Befehle wie `git status` im Hintergrund zu `rtk git status`
 > um, damit die Ausgabe gefiltert bei mir ankommt. Rückgängig machst du das
-> jederzeit mit `rtk init -g --uninstall`.
+> jederzeit mit `rtk init -g --uninstall`. Ich erledige das komplett, du
+> musst nichts eintippen.
 
-Dann mit **AskUserQuestion** klar fragen: **installieren — ja oder nein?**
+Dann mit **AskUserQuestion** fragen: **installieren — ja oder nein?**
 
-**Bei Ja: Claude führt die Installation aus.** Der User hat zugestimmt, und
-jeder einzelne Befehl läuft ohnehin noch durch die normale
-Berechtigungsabfrage von Claude Code. Nicht zurückdelegieren, nicht
-zusätzlich rückversichern, einfach machen und danach Vollzug melden.
+**Bei Ja: Claude führt dieses Script mit dem eigenen Bash/PowerShell-Werkzeug
+aus** (Pfad relativ zu diesem Skill-Ordner):
 
-**Windows:**
-```powershell
-$dest = "$env:LOCALAPPDATA\Microsoft\WinGet\Links"
-$zip  = "$env:TEMP\rtk.zip"
-Invoke-WebRequest "https://github.com/rtk-ai/rtk/releases/latest/download/rtk-x86_64-pc-windows-msvc.zip" -OutFile $zip
-Expand-Archive $zip -DestinationPath $env:TEMP\rtk -Force
-Copy-Item "$env:TEMP\rtk\rtk.exe" $dest -Force
-rtk init -g
-```
+    python scripts/install_rtk.py
 
-**macOS/Linux:** `brew install rtk` (oder das Quick-Install-Script von der
-Projektseite), danach ebenfalls **`rtk init -g`**.
+Das Script erledigt alles: Download vom offiziellen Release, Entpacken,
+Ablage im Suchpfad, `rtk init -g` und die Prüfung. Es erkennt auch, wenn RTK
+schon installiert ist. Melde dem User anschließend nur das Ergebnis in einem
+Satz.
 
-**Ohne `rtk init -g` bleibt RTK wirkungslos** — dieser Schritt gehört dazu.
+> ⚠️ **Der User öffnet KEIN Terminal und tippt NICHTS ab.** Das ist der
+> ganze Sinn dieses Kits: Die Zielgruppe hat mit Coding nichts am Hut.
+> Claude führt den Befehl selbst aus. Die Berechtigungsabfrage von Claude
+> Code erscheint dabei ganz normal, das genügt als Kontrolle. Niemals
+> antworten mit „öffne dein Terminal" oder „führe bitte selbst aus".
 
-Danach prüfen: `rtk --version` und `rtk gain`. Ergebnis kurz melden.
+**Bei Nein: sofort weiter.** Kein Nachhaken. RTK ist Komfort, für nichts im
+Kit Voraussetzung.
 
-**Bei Nein: sofort weiter zum nächsten Schritt.** Kein Nachhaken, kein
-zweiter Anlauf. RTK ist Komfort, für nichts im Kit Voraussetzung.
-
-Falls der Download scheitert (Firewall, kein Netz, Rechteproblem): dem User
-den Block zum Selbst-Ausführen geben und weitermachen. Nicht daran aufhalten.
+**Nur wenn das Script mit Fehler abbricht** (Firewall, keine Rechte, kein
+Netz): den gemeldeten Grund verständlich weitergeben, anbieten es später
+nochmal zu versuchen, und mit dem nächsten Schritt weitermachen.
 
 **Wenn der User ablehnt oder es nicht klappt: einfach weitermachen.** RTK ist
 komfortabel, aber für nichts im Kit Voraussetzung. Niemals drängen und den
@@ -251,36 +248,25 @@ Das ist ein **kostenloses Community-Plugin eines Drittanbieters**:
 `watch` aus dem GitHub-Repo **bradautomates/claude-video**
 (https://github.com/bradautomates/claude-video).
 
-**Ablauf: erst informiert fragen, bei Ja selbst erledigen.**
+**Ablauf: erklären, fragen, selbst ausführen.**
 
 Sag vor der Frage offen dazu, dass das Plugin **nicht** aus dem SCB Kit
 stammt, sondern von einem anderen Entwickler, und dass du dafür einen
 Eintrag in seiner Claude-Konfiguration ergänzen würdest. Wer will, kann sich
 das Repo vorher ansehen. Dann mit **AskUserQuestion** fragen: ja oder nein?
 
-**Bei Ja: Claude richtet es ein.** In `~/.claude/settings.json` mergen —
-**bestehende Einträge dabei unbedingt erhalten**, niemals die Datei
-überschreiben:
+**Bei Ja: Claude führt dieses Script mit dem eigenen Werkzeug aus:**
 
-```json
-{
-  "enabledPlugins": { "watch@claude-video": true },
-  "extraKnownMarketplaces": {
-    "claude-video": {
-      "source": { "source": "github", "repo": "bradautomates/claude-video" }
-    }
-  }
-}
-```
+    python scripts/install_watch.py
 
+Das Script legt vorher eine Sicherung an, merged nur die beiden nötigen
+Schlüssel in `~/.claude/settings.json` und lässt alles andere unangetastet.
 Danach dem User sagen, dass er Claude Code einmal neu starten muss, damit
 `/watch` erscheint.
 
-Alternative, falls der User es lieber selbst macht oder das Mergen scheitert:
-```
-/plugin marketplace add bradautomates/claude-video
-/plugin install watch@claude-video
-```
+> ⚠️ **Auch hier: kein Terminal, kein Abtippen, kein Slash-Befehl für den
+> User.** Claude erledigt es. Nur wenn das Script mit Fehler abbricht (z. B.
+> defektes JSON in der settings.json), den Grund verständlich weitergeben.
 
 **Bei Nein: weiter, ohne Nachhaken.**
 
