@@ -25,22 +25,26 @@ Begrüße den User und zeige kurz, was das Kit kann:
 
 > Willkommen beim SCB Creator Kit! 🎬 Das steckt drin:
 >
-> 1. **Token-Sparer (RTK)** — komprimiert Claudes Terminal-Ausgaben, dein Kontingent hält deutlich länger
-> 2. **Obsidian-Gehirn** — Claude merkt sich alles über dich in deinem eigenen Vault
-> 3. **Video-Editor** — Videos automatisch schneiden, Untertitel, Musik, Voiceover, Texte — mit Browser-Cockpit und Ein-Klick-Render
-> 4. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify + virale Reels „ansehen" (/watch)
-> 5. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
-> 6. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
-> 7. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
+> 1. **Obsidian-Gehirn** — Claude merkt sich alles über dich in deinem eigenen Vault
+> 2. **Video-Editor** — Videos automatisch schneiden, Untertitel, Musik, Voiceover, Texte — mit Browser-Cockpit und Ein-Klick-Render
+> 3. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify
+> 4. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
+> 5. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
+> 6. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
 >
 > Ich richte jetzt mit dir ein, was du davon nutzen willst — du brauchst
 > nichts vorzubereiten.
 
 Frage dann (mit AskUserQuestion, multiSelect), welche Bereiche eingerichtet
 werden sollen. Richte anschließend NUR die gewählten Bereiche ein, in der
-Reihenfolge unten — **der Token-Sparer sinnvollerweise zuerst** (jeder weitere
-Schritt verbraucht dann schon weniger Kontingent), **direkt danach das
-Obsidian-Gedächtnis**, damit sich Claude ab der ersten Minute alles merkt.
+Reihenfolge unten — **das Obsidian-Gedächtnis zuerst**, damit sich Claude ab
+der ersten Minute alles merkt.
+
+**Zwei optionale Extras (RTK, /watch) gehören bewusst NICHT ins Setup.**
+Sie sind Fremdsoftware, nichts im Kit braucht sie, und sie haben den
+Einstieg früher zuverlässig blockiert. Erwähne sie hier nicht. Nur wenn der
+User von sich aus danach fragt, siehe den Abschnitt „Optionale Extras" ganz
+unten.
 
 ### Grundregel für dieses Setup (gilt überall)
 
@@ -71,60 +75,42 @@ Entscheidungen). Ein Script ist ein Aufruf, getestet und nachvollziehbar.
 Ordner anlegen, `winget install ffmpeg` und Prüfbefehle wie `ffmpeg -version`
 brauchen keine eigene Zustimmungsfrage, die laufen einfach mit.
 
-### Schritt 2: RTK — Token-Sparer (optional, aber sinnvoll zuerst)
+### Schritt 2: Python sicherstellen (Fundament, IMMER zuerst)
 
-**Warum als allererstes:** Ab der Installation verbrauchen alle weiteren
-Setup-Schritte und jeder künftige Auftrag spürbar weniger Kontingent.
+**Ohne Python läuft kein einziges Script des Kits** — nicht der Video-Schnitt,
+nicht das Cockpit, nicht die Karussells. Deshalb steht das ganz am Anfang und
+wird nicht abgefragt, sondern still erledigt.
 
-Frage: „Willst du RTK installieren? Ein kostenloses Open-Source-Tool, das
-Claudes Terminal-Ausgaben filtert und komprimiert, bevor sie deinen Kontext
-erreichen — spart laut Projekt 60–90 % Tokens bei typischen Befehlen. Dein
-Claude-Kontingent hält damit spürbar länger."
+Dieser eine Schritt darf **nicht** über ein Python-Script laufen (Henne und Ei).
+Claude führt die Befehle direkt aus.
 
-Quelle: **https://github.com/rtk-ai/rtk** (offizielle Releases).
+**1. Prüfen** — welcher Aufruf funktioniert:
 
-**Ablauf: erklären, fragen, selbst ausführen.**
+    python --version
+    python3 --version
 
-Sage dem User VOR der Frage in schlichten Worten, was passieren wird:
+> ⚠️ **Wichtig für den Rest des Setups:** Unter Windows heißt der Befehl
+> meist `python`, auf macOS und Linux fast immer `python3`. **Merke dir,
+> welcher hier funktioniert hat, und benutze ab dann durchgehend genau
+> diesen** für alle Script-Aufrufe des Kits.
+>
+> Windows-Falle: Wenn `python --version` nichts ausgibt oder den Microsoft
+> Store öffnet, ist Python NICHT installiert — das ist nur ein Platzhalter
+> von Windows. Dann behandeln wie „fehlt".
 
-> Ich würde dafür ein kleines Programm von der offiziellen Projektseite
-> herunterladen, es in deinen Suchpfad legen und einen Hook einrichten.
-> Der schreibt Befehle wie `git status` im Hintergrund zu `rtk git status`
-> um, damit die Ausgabe gefiltert bei mir ankommt. Rückgängig machst du das
-> jederzeit mit `rtk init -g --uninstall`. Ich erledige das komplett, du
-> musst nichts eintippen.
+**2. Fehlt Python**, kurz erklären („Für die Video- und Bildfunktionen brauche
+ich Python. Kostenlos und offiziell, ich installiere es eben.") und selbst
+installieren:
 
-Dann mit **AskUserQuestion** fragen: **installieren — ja oder nein?**
+- Windows: `winget install -e --id Python.Python.3.12 --silent --accept-package-agreements --accept-source-agreements`
+- macOS: `brew install python` — fehlt Homebrew, stattdessen `xcode-select --install` anbieten (bringt python3 mit)
+- Linux: `sudo apt-get install -y python3` bzw. `sudo dnf install -y python3`
 
-**Bei Ja: Claude führt dieses Script mit dem eigenen Bash/PowerShell-Werkzeug
-aus** (Pfad relativ zu diesem Skill-Ordner):
+**3. Danach erneut prüfen.** Unter Windows greift der Suchpfad oft erst in
+einer neuen Sitzung — falls der Aufruf noch fehlschlägt, dem User sagen, dass
+er Claude Code einmal neu startet, und dort weitermachen.
 
-    python scripts/install_rtk.py
-
-Das Script erledigt alles: Download vom offiziellen Release, Entpacken,
-Ablage im Suchpfad, `rtk init -g` und die Prüfung. Es erkennt auch, wenn RTK
-schon installiert ist. Melde dem User anschließend nur das Ergebnis in einem
-Satz.
-
-> ⚠️ **Der User öffnet KEIN Terminal und tippt NICHTS ab.** Das ist der
-> ganze Sinn dieses Kits: Die Zielgruppe hat mit Coding nichts am Hut.
-> Claude führt den Befehl selbst aus. Die Berechtigungsabfrage von Claude
-> Code erscheint dabei ganz normal, das genügt als Kontrolle. Niemals
-> antworten mit „öffne dein Terminal" oder „führe bitte selbst aus".
-
-**Bei Nein: sofort weiter.** Kein Nachhaken. RTK ist Komfort, für nichts im
-Kit Voraussetzung.
-
-**Nur wenn das Script mit Fehler abbricht** (Firewall, keine Rechte, kein
-Netz): den gemeldeten Grund verständlich weitergeben, anbieten es später
-nochmal zu versuchen, und mit dem nächsten Schritt weitermachen.
-
-**Wenn der User ablehnt oder es nicht klappt: einfach weitermachen.** RTK ist
-komfortabel, aber für nichts im Kit Voraussetzung. Niemals drängen und den
-Setup-Ablauf nicht daran aufhängen.
-
-Hinweis bei Problemen: Schlägt `rtk gain` fehl, ist evtl. ein anderes
-Programm namens „rtk" (Rust Type Kit) installiert — Namenskollision prüfen.
+Erst wenn Python läuft, mit dem nächsten Schritt fortfahren.
 
 ### Schritt 3: Obsidian-Gehirn (direkt danach)
 
@@ -179,11 +165,13 @@ Fehlt etwas, kurz fragen („Darf ich ffmpeg installieren? Kostenlos und
 offiziell.") und dann **selbst** installieren — das Script kennt Windows,
 macOS und Linux:
 
-    python scripts/install_tools.py ffmpeg node
+    <python> scripts/install_tools.py ffmpeg node
+
+(`<python>` = der Aufruf, der in Schritt 2 funktioniert hat.)
 
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde
 - **ffmpeg** nur nötig für Video-Schnitt und Posting
-- Prüfen ohne zu installieren: `python scripts/install_tools.py --pruefen ffmpeg node`
+- Prüfen ohne zu installieren: `<python> scripts/install_tools.py --pruefen ffmpeg node`
 
 Endet das Script mit **Exit 2**, fehlt auf einem Mac Homebrew. Dann dem User
 erklären, dass das der übliche Weg für solche Programme auf dem Mac ist, den
@@ -251,55 +239,7 @@ Profil-Abrufe)."
 3. Erkläre die Budget-Regel: Claude nennt vor jedem Apify-Lauf die geschätzten
    Kosten und wartet auf ein Okay — so bleibt es im Freiguthaben.
 
-### Schritt 7: Video-Analyse — /watch (optional, empfohlen)
-
-Frage: „Soll Claude Videos ‚ansehen' können? Damit kannst du z. B. virale
-Reels analysieren lassen (was macht der Hook, wie ist das Video aufgebaut)
-oder Transkripte ziehen."
-
-Das ist ein **kostenloses Community-Plugin eines Drittanbieters**:
-`watch` aus dem GitHub-Repo **bradautomates/claude-video**
-(https://github.com/bradautomates/claude-video).
-
-**Ablauf: erklären, fragen, selbst ausführen.**
-
-Sag vor der Frage offen dazu, dass das Plugin **nicht** aus dem SCB Kit
-stammt, sondern von einem anderen Entwickler, und dass du dafür einen
-Eintrag in seiner Claude-Konfiguration ergänzen würdest. Wer will, kann sich
-das Repo vorher ansehen. Dann mit **AskUserQuestion** fragen: ja oder nein?
-
-**Bei Ja: Claude führt dieses Script mit dem eigenen Werkzeug aus:**
-
-    python scripts/install_watch.py
-
-Das Script legt vorher eine Sicherung an, merged nur die beiden nötigen
-Schlüssel in `~/.claude/settings.json` und lässt alles andere unangetastet.
-Danach dem User sagen, dass er Claude Code einmal neu starten muss, damit
-`/watch` erscheint.
-
-> ⚠️ **Auch hier: kein Terminal, kein Abtippen, kein Slash-Befehl für den
-> User.** Claude erledigt es. Nur wenn das Script mit Fehler abbricht (z. B.
-> defektes JSON in der settings.json), den Grund verständlich weitergeben.
-
-**Bei Nein: weiter, ohne Nachhaken.**
-
-Danach die Werkzeuge sicherstellen — Claude führt das selbst aus:
-
-    python scripts/install_tools.py yt-dlp ffmpeg
-
-1. Unter Windows danach eine neue Sitzung nötig, damit der Suchpfad greift.
-2. **Bekannte Windows-Falle:** das Plugin braucht `yt-dlp` als echte .exe im
-   PATH. Meldet `/watch` später „missing binaries: yt-dlp", die
-   `yt-dlp.exe` nach `%LOCALAPPDATA%\Microsoft\WinGet\Links\` kopieren
-   (gleicher Ordner wie ffmpeg) — das wirkt sofort. Auf macOS und Linux
-   tritt das nicht auf.
-3. Optional für Videos ohne Untertitel: kostenloser **Groq-API-Key**
-   (console.groq.com → API Keys) für die Whisper-Transkription; der
-   Setup-Check des Plugins fragt danach.
-
-Test: „/watch <YouTube-Link> Worum geht es?" — kommt eine Antwort, läuft alles.
-
-### Schritt 8: Auto-Posting (Make + Airtable)
+### Schritt 7: Auto-Posting (Make + Airtable)
 
 Frage: „Willst du Reels automatisch auf Instagram posten lassen? Dafür
 brauchst du drei kostenlose/günstige Accounts: **Airtable** (Datenbank),
@@ -328,7 +268,7 @@ Gehe die drei Konten einzeln durch und führe jeweils hin:
 Einstellungen → Konto → auf professionelles Konto wechseln) und mit einer
 Facebook-Seite verknüpft — das verlangt die Instagram-API.
 
-### Schritt 9: Higgsfield (KI-Bilder & -Videos)
+### Schritt 8: Higgsfield (KI-Bilder & -Videos)
 
 Frage zuerst: „Hast du einen Higgsfield-Account? (higgsfield.ai — dort laufen
 die KI-Video-Generierungen)"
@@ -351,7 +291,7 @@ Erkläre zum Abschluss die zwei wichtigsten Regeln aus der Community-Praxis:
 - Vor jeder Generierung zeigt Claude **Idee + Prompt + Modell** und wartet auf
   ein Okay — jede Generierung kostet Credits.
 
-### Schritt 10: GitHub verbinden (optional, zukunftssicher)
+### Schritt 9: GitHub verbinden (optional, zukunftssicher)
 
 Frage: „Willst du dein Claude Code mit GitHub verbinden? Brauchst du nicht
 zwingend — aber dann kann Claude dir künftig weitere Tools und Updates aus
@@ -361,14 +301,14 @@ Wenn ja:
 1. Konto (falls noch keins): **https://github.com/signup** — kostenlos,
    2 Minuten. Der User erstellt es selbst im Browser.
 2. GitHub-CLI installieren — Claude führt das selbst aus:
-   `python scripts/install_tools.py gh` (danach neue Sitzung nötig).
+   `<python> scripts/install_tools.py gh` (danach neue Sitzung nötig).
 3. Verbinden: Öffne für den User ein sichtbares Terminal-Fenster mit
    `gh auth login` — er wählt „GitHub.com" → „HTTPS" → „Login with a web
    browser" und loggt sich selbst im Browser ein. Claude gibt niemals
    Passwörter oder Tokens ein.
 4. Prüfen: `gh auth status` → „Logged in" = fertig.
 
-### Schritt 11: Abschluss
+### Schritt 10: Abschluss
 
 Fasse zusammen, was eingerichtet wurde und was der User jetzt sagen kann:
 
@@ -378,18 +318,48 @@ Fasse zusammen, was eingerichtet wurde und was der User jetzt sagen kann:
 > - „Mach Untertitel drauf" → sprach-synchrone Untertitel in der Safe-Zone
 > - „Schreib mir ein Reel" → Hook-Formeln & Reel-Struktur (fragt nach deinem Keyword)
 > - „Mach ein Audit von meinem Profil" → Apify-Analyse + Verbesserungen
-> - „/watch <Link> — warum ist das Reel viral?" → Video-Analyse
 > - „Richte mein Auto-Posting ein" → Airtable + Make Aufbau
 > - „Merk dir: …" → landet in deinem Obsidian-Gehirn
-> - „Wie viel hat RTK gespart?" → Claude zeigt deine Token-Ersparnis (`rtk gain`)
 
 Wenn etwas übersprungen wurde: erwähnen, dass `scb-setup` jederzeit erneut
 gestartet werden kann.
 
+## Optionale Extras (NICHT im Setup anbieten)
+
+Zwei Fremdprogramme, die das Kit **nicht** braucht. Sie waren früher Teil des
+Setups und haben dort den Einstieg blockiert. Deshalb: **von sich aus nie
+vorschlagen.** Nur einrichten, wenn der User ausdrücklich danach fragt.
+
+Wenn er fragt, gilt der übliche Ablauf: erklären, mit AskUserQuestion fragen,
+bei Ja selbst ausführen, bei Nein sofort weiter.
+
+**RTK (Token-Sparer)** — Quelle: https://github.com/rtk-ai/rtk
+Vorher erklären: Ein kleines Programm wird von der offiziellen Projektseite
+geladen und ein Hook eingerichtet, der Befehle wie `git status` im
+Hintergrund zu `rtk git status` umschreibt, damit die Ausgabe gefiltert
+ankommt. Rückgängig mit `rtk init -g --uninstall`.
+Bei Ja: `<python> scripts/install_rtk.py` (Windows, macOS und Linux; erkennt
+eine vorhandene Installation).
+
+**/watch (Video-Analyse)** — Fremd-Plugin: https://github.com/bradautomates/claude-video
+Vorher erklären: Stammt nicht aus dem SCB Kit, sondern von einem anderen
+Entwickler. Es wird ein Eintrag in der Claude-Konfiguration ergänzt.
+Bei Ja: `<python> scripts/install_watch.py` (legt vorher eine Sicherung an).
+Danach: `<python> scripts/install_tools.py yt-dlp ffmpeg`, und Claude Code
+einmal neu starten.
+Windows-Falle: Meldet `/watch` später „missing binaries: yt-dlp", die
+`yt-dlp.exe` nach `%LOCALAPPDATA%\Microsoft\WinGet\Links\` kopieren.
+Optional für Videos ohne Untertitel: kostenloser Groq-API-Key
+(console.groq.com → API Keys).
+
+`<python>` = der Aufruf, der in Schritt 2 funktioniert hat.
+
 ## Wichtige Regeln
 
+- **Script-Aufrufe immer mit dem in Schritt 2 ermittelten Python-Befehl**
+  (`python` unter Windows, meist `python3` auf macOS/Linux). Nie raten.
 - Niemals nach Passwörtern fragen; Logins macht der User immer selbst im Browser.
 - API-Keys nie im Chat wiederholen oder in Cloud-synchronisierte Notizen schreiben.
-- Installationen (npm, winget) immer kurz ankündigen und bestätigen lassen.
+- Installationen immer kurz ankündigen und bestätigen lassen.
 - Bei Fehlern: Fehlermeldung in einfacher Sprache erklären und Lösung anbieten,
   nicht den rohen Log zumuten.

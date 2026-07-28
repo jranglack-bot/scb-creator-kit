@@ -26,13 +26,18 @@ einem Setup-Assistenten.
 | **video-projekt** | Projekt-Modus mit Video-Cockpit: Browser-Editor zum Schnitte-Verschieben (Timeline mit rot markierten Schnitten), Untertitel-Ziehen und Bild-im-Bild-Skalieren — Feinarbeit kostet 0 Tokens; Stufen-Rendering + Editierbar-Export für Canva/CapCut (Master + SRT) | „Ich will die Schnitte selbst prüfen" / „Mach es editierbar" |
 | **obsidian-gehirn** | Claude merkt sich alles über dich in deinem Obsidian-Vault | „Verbinde Obsidian" |
 
-Zusätzlich empfiehlt und installiert der Setup-Assistent auf Wunsch zwei
-kostenlose Community-Tools:
+### Optionale Extras (bewusst nicht Teil der Einrichtung)
+
+Zwei kostenlose Programme von anderen Entwicklern. Das Kit braucht sie
+**nicht**, deshalb halten sie deinen Einstieg auch nicht auf. Wenn du sie
+später haben willst, sag es Claude einfach — er richtet sie dann ein:
+
 - **/watch** ([bradautomates/claude-video](https://github.com/bradautomates/claude-video)) —
   Claude kann Videos „ansehen" und z. B. virale Reels analysieren.
+  Sag dann: *„Richte mir /watch ein"*
 - **RTK** ([rtk-ai/rtk](https://github.com/rtk-ai/rtk)) — komprimiert Claudes
   Terminal-Ausgaben (60–90 % Token-Ersparnis), dein Kontingent hält länger.
-  Nach der Installation richtet der Assistent es mit `rtk init -g` direkt ein.
+  Sag dann: *„Richte mir RTK ein"*
 
 ## Empfohlene Reihenfolge & Modellwahl (Kontingent sparen)
 
