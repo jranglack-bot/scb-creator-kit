@@ -85,9 +85,12 @@ Schritt 0 beschrieben einrichten.
 ffmpeg -i "VIDEO" -vn -ac 1 -acodec libmp3lame -q:a 4 "audio_temp.mp3" -y -loglevel error
 ```
 
-Transkription mit Wort-Zeitstempeln (ElevenLabs Speech-to-Text, wie im Skill
-`video-schneiden` Schritt 4 — gleiche .bat-Methode, `timestamps_granularity=word`,
-`language_code=de`).
+Transkription mit Wort-Zeitstempeln über das Script aus dem Skill
+`video-schneiden` (läuft auf Windows, macOS und Linux):
+
+    <python> ../video-schneiden/scripts/transkribieren.py "audio_temp.mp3" "~~elevenlabs-api-key" -o "transkript.json"
+
+(`<python>` = `python` unter Windows, meist `python3` auf macOS/Linux.)
 
 ## Schritt 2: Untertitel-Datei (ASS) erzeugen
 

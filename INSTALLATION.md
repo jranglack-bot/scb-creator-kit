@@ -58,6 +58,13 @@ gefragt hat, wo er sie speichern soll, dort nachsehen.
 Das sagen Browser bei allen Dateiendungen, die sie nicht kennen. Auf
 „Behalten" beziehungsweise „Trotzdem herunterladen" klicken.
 
+**Mac: „Statt einer Datei habe ich einen Ordner bekommen."**
+Safari entpackt manche Downloads automatisch. Zwei Lösungen: entweder in
+Safari unter *Einstellungen → Allgemein* den Haken bei „Sichere Dateien nach
+dem Laden öffnen" entfernen und erneut herunterladen, oder den Link mit
+Rechtsklick und *„Verknüpfte Datei laden unter"* speichern. Mit Chrome oder
+Firefox tritt das nicht auf.
+
 **„Ich nutze Claude Code im Terminal, nicht die App."**
 Dann tipp diese zwei Zeilen nacheinander dorthin, wo du sonst mit Claude
 schreibst:

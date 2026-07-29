@@ -120,14 +120,15 @@ Wenn Claude Schnitte/Felder ändert: nur `build_editor.py` ausführen.
 Projektordner — die lädt das Cockpit automatisch als letztes Script, alle
 Funktionen/Variablen sind global und dort ergänz- oder ersetzbar (danach
 ggf. `renderTL()` aufrufen). Die Datei überlebt jedes Update. Soll eine
-Erweiterung in allen Projekten gelten: zusätzlich unter
-`%USERPROFILE%\.scb-creator-kit\cockpit_custom.js` ablegen —
-`build_editor.py` kopiert sie in jedes neue Projekt. Wünsche, die für die
-ganze Community taugen, dem Kit-Autor (Julian) melden statt lokal bauen.
+Erweiterung in allen Projekten gelten: zusätzlich im Benutzerordner unter
+`.scb-creator-kit/cockpit_custom.js` ablegen (Windows `%USERPROFILE%`,
+macOS/Linux `~`) — `build_editor.py` kopiert sie in jedes neue Projekt.
+Wünsche, die für die ganze Community taugen, dem Kit-Autor (Julian) melden
+statt lokal bauen.
 
-Rendern immer per `render_projekt.py` (oder Doppelklick `video_rendern.bat`).
-Nur falls der User über Downloads gespeichert hat (alter Browser): die
-projekt.json aus `%USERPROFILE%\Downloads` in den Projektordner verschieben.
+Rendern immer per `render_projekt.py`. Nur falls der User über Downloads
+gespeichert hat (alter Browser): die projekt.json aus dem Downloads-Ordner
+des Benutzers in den Projektordner verschieben.
 
 ### 1. MEHRERE CLIPS: EINMAL zusammenfügen, dann EIN Video
 
@@ -217,8 +218,10 @@ Das Script macht ALLES selbst (Schnittlisten pro Spur, Dateien schneiden,
 Lautstärke-Abschnitte, Musik/Voiceover-Vorbereitung, Untertitel- und
 Text-ASS, prolook, QC-Kontaktbogen `qc_final.png`). Danach nur den
 Kontaktbogen ansehen (1 Bild) und dem User zeigen. `build_editor.py` legt
-zusätzlich `video_rendern.bat` in den Projektordner — der User kann per
-DOPPELKLICK selbst neu rendern (0 Tokens). Qualitätswünsche („bessere
+unter Windows zusätzlich `video_rendern.bat` in den Projektordner — dort kann
+der User per DOPPELKLICK selbst neu rendern (0 Tokens). Auf macOS und Linux
+gibt es diese Datei nicht, dort einfach Claude ums Rendern bitten.
+Qualitätswünsche („bessere
 Qualität") = in projekt.json `"render": {"crf": 18}` setzen (Standard 20,
 kleiner = besser; optional `"preset"`, `"output"`). Zoom-Wünsche
 („Zoom ab Sekunde 10", „Zoom aufs Gesicht") = `zooms`-Eintrag, siehe
@@ -342,8 +345,9 @@ nie neu transkribieren.
 
 ### 3. Erneut rendern nach Korrekturen
 
-Immer derselbe EINE Befehl: `python scripts/render_projekt.py
-<projekt.json>` (bzw. der User doppelklickt `video_rendern.bat`). Das
+Immer derselbe EINE Befehl: `<python> scripts/render_projekt.py
+<projekt.json>` (unter Windows kann der User alternativ
+`video_rendern.bat` doppelklicken). Das
 Script rechnet alle Stufen selbst durch — Schnitt-Umrechnung,
 Wortzeiten-Verschiebung, Audio-Vorbereitung, ASS-Dateien, prolook. KEINE
 Einzelschritte von Hand nachbauen; die Rechenzeit kostet keine Tokens.

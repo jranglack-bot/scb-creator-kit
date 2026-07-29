@@ -184,7 +184,8 @@ Nach Installationen unter Windows: neue Sitzung nötig, damit der Suchpfad greif
 
 Das Herzstück des Kits: automatischer Schnitt, das Browser-Cockpit
 (Timeline, Untertitel, Musik, Voiceover, Texte, Zoom — alles ohne
-Token-Verbrauch) und der Ein-Klick-Render (`video_rendern.bat`). Das
+Token-Verbrauch) und der Ein-Klick-Render (unter Windows als Doppelklick-
+Datei, auf macOS und Linux auf Zuruf durch Claude). Das
 Cockpit öffnet Claude auf Zuruf; es spielt das Video und überspringt
 Schnitte live. Kein Server, kein Umschalten. Gespeichert wird direkt in die
 projekt.json (Datei beim ersten Speichern einmal wählen).

@@ -68,37 +68,31 @@ ffmpeg -i "EINGABE" -vn -acodec libmp3lame -q:a 4 "WORKSPACE/audio_temp.mp3" -y 
 
 ---
 
-## Schritt 4: Transkriptions-Skript erstellen (nur Modus B)
+## Schritt 4: Transkription starten (nur Modus B)
 
-Erstelle `transkription_starten.bat` im Workspace-Ordner. Ersetze `WORKSPACE_PFAD` mit dem tatsächlichen Windows-Pfad. Der ElevenLabs API-Key wird automatisch als `~~elevenlabs-api-key` eingesetzt.
+Claude führt das mitgelieferte Script selbst aus — läuft auf Windows, macOS
+und Linux gleichermaßen. Es gibt **keine .bat-Datei mehr**, die war
+Windows-only und auf dem Mac nicht lauffähig.
 
-**Wichtig:** curl schreibt in `AppData\Local\Temp` (kein OneDrive-Konflikt), dann wird die fertige Datei mit `move` verschoben.
+    <python> scripts/transkribieren.py "<workspace>/audio_temp.mp3" "~~elevenlabs-api-key" -o "<workspace>/transkript.json"
 
-```bat
-@echo off
-echo KI-Video-Cutter: Transkription laeuft...
-echo Bitte warten - Fenster NICHT schliessen!
-echo.
-curl -X POST "https://api.elevenlabs.io/v1/speech-to-text" ^
-  -H "xi-api-key: ~~elevenlabs-api-key" ^
-  -F "file=@WORKSPACE_PFAD\audio_temp.mp3" ^
-  -F "model_id=scribe_v1" ^
-  -F "language_code=de" ^
-  -F "timestamps_granularity=word" ^
-  -o "%USERPROFILE%\AppData\Local\Temp\transkript_ki.json"
-echo.
-echo Verschiebe Ergebnis...
-move /Y "%USERPROFILE%\AppData\Local\Temp\transkript_ki.json" "WORKSPACE_PFAD\transkript.json"
-echo.
-echo Fertig! Du kannst dieses Fenster jetzt schliessen.
-pause
-```
+(`<python>` = `python` unter Windows, meist `python3` auf macOS/Linux.)
 
-Weise den Nutzer an: "Bitte doppelklicke auf `transkription_starten.bat` und warte bis **Fertig!** erscheint."
+Optionen: `--sprache de` (Standard), `--modell scribe_v1` (Standard).
+Der Key kann alternativ über die Umgebungsvariable `ELEVENLABS_API_KEY`
+kommen, dann entfällt das zweite Argument.
+
+Das Script schreibt direkt ans Ziel, meldet die Anzahl der Wortmarken und
+erklärt Fehler verständlich (abgelehnter Key, aufgebrauchtes Guthaben, keine
+Verbindung). Kommen **0 Wortmarken**, ist der Schnitt nicht möglich — dann
+prüfen, ob die Tonspur überhaupt Sprache enthält.
+
+Der User muss dabei nichts tun und nichts anklicken — Claude startet das
+Script und wartet auf die Rückmeldung.
 
 ---
 
-## Schritt 5: Auf Transkript warten (nur Modus B)
+## Schritt 5: Transkript prüfen (nur Modus B)
 
 ```bash
 python3 -c "import json; d=json.load(open('PFAD/transkript.json')); print('OK', len(d.get('words',[])), 'Woerter')"
