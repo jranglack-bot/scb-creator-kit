@@ -57,30 +57,46 @@ verbraucht nur einen Bruchteil des Kontingents. **Opus** lohnt sich punktuell
 für kreative Konzept-Arbeit (Hooks, Content-Strategie) oder wenn etwas
 Ungewöhnliches klemmt. Faustregel: *Alltag = Sonnet, Konzept & Notfall = Opus.*
 
-## Installation
+## Installation — 3 Schritte, ca. 1 Minute
 
-### Claude Desktop-App (empfohlen)
+**[⬇️ HIER KLICKEN: scb-creator-kit.plugin herunterladen](https://github.com/jranglack-bot/scb-creator-kit/releases/latest/download/scb-creator-kit.plugin)**
 
-1. Lade die Datei **`scb-creator-kit.plugin`** herunter:
-   **[⬇️ Direkt-Download (neueste Version)](https://github.com/jranglack-bot/scb-creator-kit/releases/latest/download/scb-creator-kit.plugin)**
-2. Ziehe sie in ein Claude-Gespräch und bestätige die Installation.
-3. Sag: **„Richte das SCB Kit ein"** — der Assistent übernimmt den Rest.
+1. **Datei herunterladen** — auf den Link oben klicken
+2. **Datei in Claude ziehen** — die heruntergeladene Datei mit der Maus in ein
+   Claude-Gespräch ziehen und die Rückfrage bestätigen
+3. **Schreiben:** „Richte das SCB Kit ein"
 
-### Claude Code (Terminal)
+Fertig. Der Assistent führt dich durch alles Weitere.
 
-Diese zwei Befehle **direkt eintippen** (nacheinander):
+> 💡 Du brauchst die **Claude Desktop-App**. Kostenlos hier:
+> [claude.ai/download](https://claude.ai/download)
+
+---
+
+### Wenn es nicht klappt
+
+**„Claude sagt, er kann das nicht installieren"**
+Du hast Claude vermutlich gebeten, das Plugin zu installieren, oder ihm die
+GitHub-Adresse geschickt. Das funktioniert nicht, und zwar bei niemandem.
+Claude installiert keine Plugins. **Du ziehst die Datei selbst ins Fenster** —
+Schritt 2 oben. Das ist alles.
+
+**„Ich finde die heruntergeladene Datei nicht"**
+Sie liegt in deinem Downloads-Ordner und heißt `scb-creator-kit.plugin`.
+
+<details>
+<summary><b>Für Fortgeschrittene: Installation im Terminal (Claude Code)</b></summary>
+
+Diese zwei Zeilen nacheinander in die Claude-Eingabe tippen (nicht ins
+Betriebssystem-Terminal, sondern dorthin, wo du sonst mit Claude schreibst):
 
 ```
 /plugin marketplace add jranglack-bot/scb-creator-kit
 /plugin install scb-creator-kit@scb-creator-kit
 ```
 
-Danach sagen: **„Richte das SCB Kit ein"**
-
-> ℹ️ **Häufiger Stolperstein:** Es reicht nicht, Claude die GitHub-Adresse in
-> den Chat zu schreiben und um Installation zu bitten. Claude kann Plugins
-> nicht aus einer URL installieren — nur über die beiden Befehle oben. Wenn
-> Claude sagt, er könne das nicht, liegt es fast immer daran.
+Danach: „Richte das SCB Kit ein"
+</details>
 
 ## Was du brauchst (je nach Funktion)
 
