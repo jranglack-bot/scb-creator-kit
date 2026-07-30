@@ -241,6 +241,10 @@ def main():
             json.dump({'words': words}, f, ensure_ascii=False)
         cmd = [sys.executable, AC, 'r_words.json', 'untertitel.ass',
                '--font', cap.get('font', standard_schrift()),
+               # Position aus dem Cockpit (Oberkante, Anteil der Bildhoehe) —
+               # ohne diese Uebergabe landet der Untertitel IMMER auf der
+               # festen Standard-Hoehe, egal wohin der User ihn zieht
+               '--y', str(float(cap.get('y', 0.72))),
                '--size', str(int(cap.get('size', 64))),
                '--primary', str(cap.get('primary', 'FFFFFF')).lstrip('#'),
                '--highlight',

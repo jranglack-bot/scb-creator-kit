@@ -107,6 +107,10 @@ def main():
     ap.add_argument('--no-bold', action='store_true',
                     help='Text nicht fett setzen')
     ap.add_argument('--group', type=int, default=3)
+    ap.add_argument('--y', type=float, default=-1,
+                    help='Vertikale Position aus dem Cockpit: Oberkante des '
+                         'Untertitel-Blocks als Anteil der Bildhoehe (0-1). '
+                         'Ohne Angabe gilt die feste Safe-Zone des Modus.')
     ap.add_argument('--playresx', type=int, default=1080)
     ap.add_argument('--playresy', type=int, default=1920)
     ap.add_argument('--transition-cuts', default='',
@@ -123,6 +127,18 @@ def main():
     size = args.size or mode['size']
     hi = ass_color(args.highlight)
     white = ass_color(args.primary)
+
+    # Position: Das Cockpit speichert die OBERKANTE des Untertitel-Blocks
+    # als Anteil der Bildhoehe (captions.y). Damit der Render exakt dort
+    # brennt, wo die Vorschau den Text zeigt, ankern wir bei --y OBEN
+    # (Alignment 8, MarginV = Abstand von oben) statt unten — sonst
+    # wuerde die Blockhoehe (1 vs. 2 Zeilen) die Lage verschieben.
+    if args.y >= 0:
+        alignment = 8
+        marginv = int(round(min(0.95, max(0.0, args.y)) * args.playresy))
+    else:
+        alignment = 2
+        marginv = mode['marginv']
 
     with open(args.transcript, encoding='utf-8') as f:
         data = json.load(f)
@@ -152,7 +168,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,{font},{size},{primary},{primary},{outcol},{back},{bold},0,0,0,100,100,0,0,{borderstyle},{outline},{shadow},2,{ml},{mr},{mv},1
+Style: Cap,{font},{size},{primary},{primary},{outcol},{back},{bold},0,0,0,100,100,0,0,{borderstyle},{outline},{shadow},{align},{ml},{mr},{mv},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -171,8 +187,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
            borderstyle=(4 if args.box_style == 'block' else 3) if args.box
                        else 1,
            shadow=0 if args.box else 2,
-           outline=args.outline or max(4, size // 10), ml=mode['marginl'],
-           mr=mode['marginr'], mv=mode['marginv'])
+           outline=args.outline or max(4, size // 10), align=alignment,
+           ml=mode['marginl'], mr=mode['marginr'], mv=marginv)
 
     lines = [header]
     for cue in build_cues(words, args.group):
