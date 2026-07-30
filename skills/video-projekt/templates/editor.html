@@ -2,7 +2,7 @@
 <title>SCB Video-Cockpit</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
-body { font-family:'Segoe UI',system-ui,sans-serif; color:#e9eaf0;
+body { font-family:system-ui,'Segoe UI','Helvetica Neue',sans-serif; color:#e9eaf0;
   background:radial-gradient(1200px 800px at 20% -10%,#1d2028 0%,#141619 55%),
     #121317;
   display:flex; flex-direction:column; height:100vh; overflow:hidden;
@@ -328,21 +328,8 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
     <details class="card" id="cardCap" open><summary>Untertitel</summary>
       <div class="row"><label>Anzeigen</label><input type="checkbox" id="capOn"></div>
       <div class="row"><label>Schrift</label>
-        <select id="capFont">
-          <option>Segoe UI</option><option>Segoe UI Black</option>
-          <option>Arial</option><option>Arial Black</option>
-          <option>Arial Rounded MT Bold</option><option>Bahnschrift</option>
-          <option>Calibri</option><option>Cambria</option>
-          <option>Candara</option><option>Comic Sans MS</option>
-          <option>Consolas</option><option>Corbel</option>
-          <option>Courier New</option><option>Franklin Gothic Demi</option>
-          <option>Gabriola</option><option>Garamond</option>
-          <option>Georgia</option><option>Impact</option>
-          <option>Lucida Sans</option><option>Palatino Linotype</option>
-          <option>Rockwell</option><option>Sitka Display</option>
-          <option>Tahoma</option><option>Times New Roman</option>
-          <option>Trebuchet MS</option><option>Verdana</option>
-        </select></div>
+        <select id="capFont"><!-- wird aus P._schriften gefuellt: Windows
+          und Mac haben komplett verschiedene Schriften --></select></div>
       <div class="row"><label>Größe</label><input type="range" id="capSize" min="36" max="110" value="64"><span id="capSizeV">64</span></div>
       <div class="row"><label>Fett</label><input type="checkbox" id="capBold" checked></div>
       <div class="row"><label>Wörter pro Einblendung</label><input type="range" id="capGroup" min="1" max="6" value="3" style="width:70px"><span id="capGroupV">3</span></div>
@@ -423,6 +410,21 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
 <script src="projekt_data.js"></script>
 <script>
 let P = window.PROJEKT || {};
+// Schriften kommen von build_editor.py — das kennt das laufende System.
+// Untertitel werden ins Video gebrannt; eine Schrift, die es hier nicht
+// gibt, ersetzt ffmpeg stillschweigend durch eine andere.
+const FONTS = (P._schriften && P._schriften.length) ? P._schriften.slice()
+  : ['Arial', 'Arial Black', 'Impact', 'Georgia', 'Verdana', 'Tahoma',
+     'Trebuchet MS', 'Times New Roman', 'Courier New', 'Comic Sans MS'];
+const STDFONT = P._standardschrift || FONTS[0];
+// aktuell = Schrift aus dem Projekt; stammt es von einem anderen System,
+// wird sie oben angehaengt, damit die Auswahl sie nicht verschluckt.
+function fuelleSchriften(aktuell) {
+  const liste = FONTS.slice();
+  if (aktuell && liste.indexOf(aktuell) < 0) liste.unshift(aktuell);
+  capFont.innerHTML = liste.map(f => '<option>' + f + '</option>').join('');
+}
+fuelleSchriften();
 let lastApplied = '', pendingData = null, dirty = false;
 const v = document.getElementById('v'), pv = document.getElementById('pv'),
   tl = document.getElementById('tl'), stage = document.getElementById('stage'),
@@ -444,7 +446,7 @@ const ANIMS = { fade:'Einblenden', left:'Von links', right:'Von rechts',
 const esc = s => String(s).replace(/[&<>"]/g,
   ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const newText = (s, e) => ({ text:'Dein Text', start:Math.round(s*10)/10,
-  end:Math.round(e*10)/10, x:0.5, y:0.3, font:'Segoe UI', size:72,
+  end:Math.round(e*10)/10, x:0.5, y:0.3, font:STDFONT, size:72,
   color:'#FFFFFF', bold:true, box:true, box_color:'000000', box_alpha:0.55,
   box_style:'line', anim:'fade', width:0 });
 const fmt = t => Math.floor(t/60) + ':' + (t%60).toFixed(1).padStart(4,'0');
@@ -523,7 +525,7 @@ function applyProjekt(data){
   P = JSON.parse(JSON.stringify(data));
   C = P.captions = Object.assign(
     { enabled:true, size:64, y:0.72, primary:'#FFFFFF', highlight:'#FFD400',
-      group:3, font:'Segoe UI', bold:true, highlight_on:true,
+      group:3, font:STDFONT, bold:true, highlight_on:true,
       box:false, box_color:'000000', box_alpha:0.55, box_style:'line' },
     P.captions || {});
   PIP = { enabled:false };               // Bild-im-Bild entfernt
@@ -540,6 +542,7 @@ function applyProjekt(data){
   // (Videoquellen setzt loadClipDurations/loadClip weiter unten)
   // Bedienelemente
   capOn.checked = C.enabled !== false;
+  fuelleSchriften(C.font);
   capFont.value = C.font; capSize.value = C.size;
   capSizeV.textContent = C.size;
   capPrim.value = ('#'+String(C.primary).replace('#','')).slice(0,7);
@@ -560,7 +563,7 @@ function applyProjekt(data){
   P.zooms = (P.zooms || []).map(z => Object.assign(
     { start:0, end:3, zoom:1.15, x:0.5, y:0.35 }, z));
   P.texts = (P.texts || []).map(tx => Object.assign(
-    { text:'Dein Text', start:0, end:3, x:0.5, y:0.3, font:'Segoe UI',
+    { text:'Dein Text', start:0, end:3, x:0.5, y:0.3, font:STDFONT,
       size:72, color:'#FFFFFF', bold:true, box:true, box_color:'000000',
       box_alpha:0.55, box_style:'line', anim:'fade', width:0 }, tx));
   adoptAudioUI();

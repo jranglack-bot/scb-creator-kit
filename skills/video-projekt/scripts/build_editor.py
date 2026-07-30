@@ -9,19 +9,59 @@ Schreibt zwei Dateien neben die projekt.json:
                        IM OFFENEN TAB von selbst, kein neues Fenster noetig)
 
 Aufruf:
-  python build_editor.py <projekt.json>
+  Windows:   python  build_editor.py <projekt.json>
+  Mac/Linux: python3 build_editor.py <projekt.json>
 
-WICHTIG fuer Claude: editor.html nur beim ERSTEN Mal oeffnen
-(Start-Process). Danach reicht dieses Script — der offene Tab holt sich
-die neuen Daten automatisch.
+WICHTIG fuer Claude: editor.html nur beim ERSTEN Mal oeffnen — je nach
+System mit Start-Process (Windows), open (macOS) oder xdg-open (Linux).
+Danach reicht dieses Script — der offene Tab holt sich die neuen Daten
+automatisch.
 """
 import array
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
 import time
+
+
+# Schriften, die auf dem jeweiligen System wirklich installiert sind.
+# WICHTIG: Untertitel werden ins Video GEBRANNT. Steht dort eine Schrift,
+# die es auf dem System nicht gibt, ersetzt ffmpeg sie stillschweigend
+# durch irgendeine andere — das Ergebnis sieht dann anders aus als die
+# Vorschau im Cockpit. Deshalb bekommt jedes System nur seine eigenen.
+FONTS_GEMEINSAM = ['Arial', 'Arial Black', 'Impact', 'Georgia', 'Verdana',
+                   'Tahoma', 'Trebuchet MS', 'Times New Roman',
+                   'Courier New', 'Comic Sans MS']
+FONTS_WINDOWS = ['Segoe UI', 'Segoe UI Black', 'Bahnschrift', 'Calibri',
+                 'Cambria', 'Candara', 'Consolas', 'Corbel',
+                 'Franklin Gothic Demi', 'Gabriola', 'Garamond',
+                 'Lucida Sans', 'Palatino Linotype', 'Rockwell',
+                 'Sitka Display', 'Arial Rounded MT Bold']
+FONTS_MACOS = ['Helvetica Neue', 'Helvetica', 'Avenir Next', 'Avenir',
+               'Futura', 'Gill Sans', 'Optima', 'Baskerville', 'Didot',
+               'American Typewriter', 'Chalkboard SE', 'Marker Felt',
+               'Copperplate', 'Menlo', 'Monaco']
+FONTS_LINUX = ['DejaVu Sans', 'DejaVu Serif', 'Liberation Sans',
+               'Liberation Serif', 'Ubuntu', 'Noto Sans', 'FreeSans']
+
+
+def schriften():
+    """(Liste, Standardschrift) fuer das laufende System."""
+    sys_name = platform.system()
+    if sys_name == 'Windows':
+        eigen, std = FONTS_WINDOWS, 'Segoe UI'
+    elif sys_name == 'Darwin':
+        eigen, std = FONTS_MACOS, 'Helvetica Neue'
+    else:
+        eigen, std = FONTS_LINUX, 'DejaVu Sans'
+    liste = []
+    for f in [std] + eigen + FONTS_GEMEINSAM:
+        if f not in liste:
+            liste.append(f)
+    return liste, std
 
 
 def waveform_peaks(path, buckets=600):
@@ -117,6 +157,7 @@ def main():
     projekt['_clipdauern'] = dauern
     if dauern and all(d > 0 for d in dauern):
         projekt['duration'] = round(sum(dauern), 2)
+    projekt['_schriften'], projekt['_standardschrift'] = schriften()
 
     payload = json.dumps(projekt, ensure_ascii=False)
     payload = payload.replace('</', '<\\/')
@@ -152,19 +193,38 @@ def main():
                     '// ersetzt werden (danach ggf. renderTL() aufrufen).\n'
                     '// Soll eine Erweiterung in ALLEN Projekten gelten:\n'
                     '// Datei ablegen unter\n'
-                    '//   %USERPROFILE%\\.scb-creator-kit\\cockpit_custom.js\n')
+                    '//   Windows:   %USERPROFILE%\\.scb-creator-kit\\'
+                    'cockpit_custom.js\n'
+                    '//   Mac/Linux: ~/.scb-creator-kit/cockpit_custom.js\n')
 
-    # Doppelklick-Render: rendert das fertige MP4 ohne Claude (0 Tokens)
-    bat = os.path.join(projdir, 'video_rendern.bat')
+    # Doppelklick-Render: rendert das fertige MP4 ohne Claude (0 Tokens).
+    # BEIDE Systeme muessen das koennen — Windows bekommt eine .bat,
+    # Mac/Linux eine ausfuehrbare .command. Siehe SKILL.md, Grundregel
+    # "Windows UND Mac": nie einen Weg bauen, den nur ein System hat.
     rp = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                       'render_projekt.py')
-    with open(bat, 'w', encoding='cp1252', errors='replace', newline='') as f:
-        f.write('@echo off\r\n'
-                'echo SCB Video-Render laeuft - Fenster offen lassen ...\r\n'
-                'python "{}" "%~dp0projekt.json"\r\n'
-                'echo.\r\n'
-                'echo Fertig! Das Video liegt in diesem Ordner.\r\n'
-                'pause\r\n'.format(rp))
+    if platform.system() == 'Windows':
+        starter = os.path.join(projdir, 'video_rendern.bat')
+        with open(starter, 'w', encoding='cp1252', errors='replace',
+                  newline='') as f:
+            f.write('@echo off\r\n'
+                    'echo SCB Video-Render laeuft - Fenster offen lassen ...\r\n'
+                    'python "{}" "%~dp0projekt.json"\r\n'
+                    'echo.\r\n'
+                    'echo Fertig! Das Video liegt in diesem Ordner.\r\n'
+                    'pause\r\n'.format(rp))
+    else:
+        starter = os.path.join(projdir, 'video_rendern.command')
+        with open(starter, 'w', encoding='utf-8', newline='\n') as f:
+            f.write('#!/bin/bash\n'
+                    'cd "$(dirname "$0")"\n'
+                    'echo "SCB Video-Render laeuft - Fenster offen lassen ..."\n'
+                    'python3 "{}" "$(pwd)/projekt.json"\n'
+                    'echo ""\n'
+                    'echo "Fertig! Das Video liegt in diesem Ordner."\n'
+                    'read -n 1 -s -r -p "Zum Schliessen eine Taste druecken"\n'
+                    .format(rp))
+        os.chmod(starter, 0o755)
 
     print('OK: Daten aktualisiert ->', os.path.join(projdir, 'projekt_data.js'))
     if existed:

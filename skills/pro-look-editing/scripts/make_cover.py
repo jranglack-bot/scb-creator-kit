@@ -8,7 +8,7 @@ die Captions (Untertitel-Profil), Text sitzt gross im oberen Drittel
 
 Aufruf:
   python make_cover.py video.mp4 cover.jpg --time 1.5 --text "DEIN HOOK|IN ZWEI ZEILEN"
-    [--font "Segoe UI"] [--size 96] [--primary FFFFFF] [--highlight FFD400]
+    [--font "..."] (Standard: Systemschrift) [--size 96] [--primary FFFFFF] [--highlight FFD400]
     [--box]
 
 "|" im Text = Zeilenumbruch. Das ERSTE Wort nach jedem "*" wird in der
@@ -16,8 +16,22 @@ Highlight-Farbe gesetzt (z.B. "So sparst du *TOKENS").
 """
 import argparse
 import os
+import platform
 import subprocess
 import tempfile
+
+
+def standard_schrift():
+    """Schrift, die es auf dem laufenden System wirklich gibt — 'Segoe UI'
+    existiert auf einem Mac nicht; ffmpeg wuerde beim Einbrennen still
+    irgendeine Ersatzschrift nehmen."""
+    s = platform.system()
+    if s == 'Windows':
+        return 'Segoe UI'
+    if s == 'Darwin':
+        return 'Helvetica Neue'
+    return 'DejaVu Sans'
+
 
 
 def ass_color(rgbhex):
@@ -32,7 +46,7 @@ def main():
     ap.add_argument('output')
     ap.add_argument('--time', type=float, default=1.0)
     ap.add_argument('--text', required=True)
-    ap.add_argument('--font', default='Segoe UI')
+    ap.add_argument('--font', default=standard_schrift())
     ap.add_argument('--size', type=int, default=96)
     ap.add_argument('--primary', default='FFFFFF')
     ap.add_argument('--highlight', default='FFD400')

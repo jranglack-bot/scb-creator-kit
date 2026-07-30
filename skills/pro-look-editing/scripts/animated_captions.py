@@ -10,14 +10,28 @@ Sprache sichtbar. Safe-Zone-Werte fuer Reel und Story eingebaut.
 
 Aufruf:
   python animated_captions.py transkript.json out.ass --mode reel
-    [--font "Segoe UI"] [--size 0] [--highlight FFD400] [--group 3]
+    [--font "..."] (Standard: Systemschrift) [--size 0] [--highlight FFD400] [--group 3]
 [--box] [--box-color 000000] [--box-alpha 0.59] [--no-bold]
     [--playresx 1080] [--playresy 1920]
 
 --size 0 = Standardgroesse des Modus (Reel 64 / Story 92).
 """
-import json
 import argparse
+import json
+import platform
+
+
+def standard_schrift():
+    """Schrift, die es auf dem laufenden System wirklich gibt — 'Segoe UI'
+    existiert auf einem Mac nicht; ffmpeg wuerde beim Einbrennen still
+    irgendeine Ersatzschrift nehmen."""
+    s = platform.system()
+    if s == 'Windows':
+        return 'Segoe UI'
+    if s == 'Darwin':
+        return 'Helvetica Neue'
+    return 'DejaVu Sans'
+
 
 
 def ass_color(rgbhex):
@@ -74,7 +88,7 @@ def main():
     ap.add_argument('transcript')
     ap.add_argument('output')
     ap.add_argument('--mode', choices=('reel', 'story'), default='reel')
-    ap.add_argument('--font', default='Segoe UI')
+    ap.add_argument('--font', default=standard_schrift())
     ap.add_argument('--size', type=int, default=0)
     ap.add_argument('--primary', default='FFFFFF',
                     help='Textfarbe als RGB-Hex')

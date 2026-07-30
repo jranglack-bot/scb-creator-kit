@@ -154,7 +154,7 @@ das Interview trotzdem anbieten und die Antworten als normale Memories sichern.
 
 Prüfe still im Hintergrund und berichte das Ergebnis in einfacher Sprache:
 
-```powershell
+```bash
 # Node.js / npm (für Higgsfield-CLI)
 node --version; npm --version
 # ffmpeg / ffprobe (für Video-Schnitt)
@@ -278,7 +278,7 @@ die KI-Video-Generierungen)"
   einen Free-Plan zum Testen). Warte, bis der User bereit ist.
 - **Ja** → Installiere die CLI und verbinde den Account:
 
-```powershell
+```bash
 npm install -g @higgsfield/cli
 higgsfield auth login
 ```

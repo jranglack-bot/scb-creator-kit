@@ -92,7 +92,7 @@ Stimmungs-Unterordner.
 ## Schritt 6 — Ins Video
 
 ```
-python scripts/set_music.py projekt.json "<pfad zur datei>" [--gain 0.3]
+<python> scripts/set_music.py projekt.json "<pfad zur datei>" [--gain 0.3]
 ```
 (Script liegt im `video-projekt`-Skill.) Ducking und Loudness laufen wie
 gewohnt, siehe pro-look-editing.

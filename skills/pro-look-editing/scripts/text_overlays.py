@@ -11,7 +11,21 @@ Einbrennen: prolook-Config  "text_overlays": "<output.ass>"
 Animations-Mapping (Cockpit "anim"): fade | left | right | up | pop | none
 """
 import json
+import platform
 import sys
+
+
+def standard_schrift():
+    """Schrift, die es auf dem laufenden System wirklich gibt — 'Segoe UI'
+    existiert auf einem Mac nicht; ffmpeg wuerde beim Einbrennen still
+    irgendeine Ersatzschrift nehmen."""
+    s = platform.system()
+    if s == 'Windows':
+        return 'Segoe UI'
+    if s == 'Darwin':
+        return 'Helvetica Neue'
+    return 'DejaVu Sans'
+
 
 
 def bgr(rgbhex):
@@ -43,7 +57,7 @@ def main():
         styles.append(
             'Style: T{i},{font},{size},&H00{col},&H00{col},{outcol},{back},'
             '{bold},0,0,0,100,100,0,0,{bs},{out},{shadow},5,20,20,20,1'.format(
-                i=i, font=tx.get('font', 'Segoe UI'),
+                i=i, font=tx.get('font', standard_schrift()),
                 size=int(tx.get('size', 72)),
                 col=bgr(tx.get('color', 'FFFFFF')),
                 outcol='&H00000000' if (not box or block) else boxcol,

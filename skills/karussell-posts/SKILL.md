@@ -51,7 +51,7 @@ persönliche Vorlage; ab dann nie wieder fragen, nur anwenden.
 ### 3. Rendern & prüfen
 
 ```
-python scripts/build_carousel.py config.json
+<python> scripts/build_carousel.py config.json
 ```
 
 (Config-Schema steht im Script-Kopf. Rendert per vorinstalliertem

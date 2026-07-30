@@ -3,8 +3,10 @@
 """Ein-Befehl-Render: baut das fertige Reel KOMPLETT aus der projekt.json.
 
 Aufruf:
-  python render_projekt.py <projekt.json>
-oder Doppelklick auf video_rendern.bat im Projektordner (legt build_editor an).
+  Windows:   python  render_projekt.py <projekt.json>
+  Mac/Linux: python3 render_projekt.py <projekt.json>
+oder Doppelklick auf die Startdatei im Projektordner, die build_editor.py
+anlegt: video_rendern.bat (Windows) bzw. video_rendern.command (Mac/Linux).
 
 Macht alles selbst: Schnittlisten pro Spur, Dateien schneiden,
 Lautstaerke-Abschnitte einrechnen, Musik/Voiceover vorbereiten,
@@ -17,6 +19,7 @@ Qualitaet steuern (optional, in projekt.json):
 """
 import json
 import os
+import platform
 import subprocess
 import sys
 
@@ -26,6 +29,19 @@ AC = os.path.join(PRO, 'animated_captions.py')
 TO = os.path.join(PRO, 'text_overlays.py')
 PL = os.path.join(PRO, 'prolook.py')
 sys.path.insert(0, PRO)
+
+
+def standard_schrift():
+    """Schrift, die es auf dem laufenden System wirklich gibt — 'Segoe UI'
+    existiert auf einem Mac nicht; ffmpeg wuerde beim Einbrennen still
+    irgendeine Ersatzschrift nehmen."""
+    s = platform.system()
+    if s == 'Windows':
+        return 'Segoe UI'
+    if s == 'Darwin':
+        return 'Helvetica Neue'
+    return 'DejaVu Sans'
+
 try:
     from prolook import video_encoder   # Hardware-Encoder (5-10x schneller)
 except Exception:
@@ -224,7 +240,7 @@ def main():
         with open('r_words.json', 'w', encoding='utf-8') as f:
             json.dump({'words': words}, f, ensure_ascii=False)
         cmd = [sys.executable, AC, 'r_words.json', 'untertitel.ass',
-               '--font', cap.get('font', 'Segoe UI'),
+               '--font', cap.get('font', standard_schrift()),
                '--size', str(int(cap.get('size', 64))),
                '--primary', str(cap.get('primary', 'FFFFFF')).lstrip('#'),
                '--highlight',

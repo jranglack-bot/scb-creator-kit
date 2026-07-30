@@ -19,12 +19,21 @@ erklären, der User ist kein Techniker.
 ## Schritt 1: Vault finden oder anlegen
 
 Frage nach dem Vault-Pfad oder suche danach (Ordner, die einen
-`.obsidian`-Unterordner enthalten):
+`.obsidian`-Unterordner enthalten). **Den Befehl fürs System des Users
+wählen, nicht raten:**
 
+**Windows:**
 ```powershell
 foreach ($r in @("$env:USERPROFILE\OneDrive","$env:USERPROFILE\Documents","$env:USERPROFILE\Desktop")) {
   if (Test-Path $r) { Get-ChildItem -Path $r -Directory -Filter ".obsidian" -Recurse -Depth 4 -ErrorAction SilentlyContinue | ForEach-Object { $_.Parent.FullName } }
 }
+```
+
+**macOS / Linux:**
+```bash
+for r in "$HOME/Documents" "$HOME/Desktop" "$HOME/Library/Mobile Documents" "$HOME"; do
+  [ -d "$r" ] && find "$r" -maxdepth 4 -type d -name ".obsidian" 2>/dev/null | sed 's|/\.obsidian$||'
+done | sort -u
 ```
 
 Gefundene Vaults dem User zeigen und bestätigen lassen. Hat er noch keinen:
@@ -56,16 +65,21 @@ Wenn ja:
 
 1. Ermittle das Memory-Verzeichnis des aktuellen Projekts:
    `~/.claude/projects/<projekt-ordner>/memory/` (der Projekt-Ordnername ist
-   der aktuelle Arbeitsordner mit `-` statt `\` und `:`). Existiert noch kein
-   Memory-Ordner, erkläre, dass die Spiegelung greift, sobald sich Claude das
-   erste Mal etwas merkt.
-2. Kopiere das Script `scripts/mirror-memory-to-obsidian.template.ps1` (liegt
-   in diesem Skill-Ordner) nach `~/.claude/hooks/mirror-memory-to-obsidian.ps1`
-   und ersetze darin die Platzhalter `__MEMORY_DIR__` (Memory-Verzeichnis) und
-   `__VAULT_DIR__` (Vault-Ordner `02 Claude Memory`).
+   der aktuelle Arbeitsordner mit `-` statt `\`, `/` und `:`). Existiert noch
+   kein Memory-Ordner, erkläre, dass die Spiegelung greift, sobald sich Claude
+   das erste Mal etwas merkt.
+2. Kopiere das **zum System passende** Template aus diesem Skill-Ordner nach
+   `~/.claude/hooks/` und ersetze darin die Platzhalter `__MEMORY_DIR__`
+   (Memory-Verzeichnis) und `__VAULT_DIR__` (Vault-Ordner `02 Claude Memory`):
+   - **Windows:** `scripts/mirror-memory-to-obsidian.template.ps1`
+     → `~/.claude/hooks/mirror-memory-to-obsidian.ps1`
+   - **macOS/Linux:** `scripts/mirror-memory-to-obsidian.template.sh`
+     → `~/.claude/hooks/mirror-memory-to-obsidian.sh`,
+     danach **ausführbar machen**: `chmod +x ~/.claude/hooks/mirror-memory-to-obsidian.sh`
 3. Trage in `~/.claude/settings.json` einen PostToolUse-Hook ein — **bestehende
-   Einträge dabei erhalten, nur mergen**:
+   Einträge dabei erhalten, nur mergen**. Auch hier die passende Variante:
 
+**Windows:**
 ```json
 {
   "hooks": {
@@ -77,6 +91,28 @@ Wenn ja:
             "type": "command",
             "command": "powershell",
             "args": ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", "<PFAD>\\mirror-memory-to-obsidian.ps1"],
+            "statusMessage": "Spiegle Memory nach Obsidian...",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**macOS / Linux:**
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["<PFAD>/mirror-memory-to-obsidian.sh"],
             "statusMessage": "Spiegle Memory nach Obsidian...",
             "timeout": 20
           }

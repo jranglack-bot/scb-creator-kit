@@ -23,6 +23,35 @@ Jedes Video ist ein **Projekt**: ein Ordner mit dem Original, einer
 und optional dem Cockpit. Korrekturen ändern NUR die projekt.json — nie
 wird neu analysiert, nie Code neu geschrieben.
 
+## GRUNDREGEL: Windows UND Mac — immer beide
+
+**Jede Neuerung an diesem Kit muss auf Windows und auf macOS funktionieren
+— mitgedacht beim Bauen, nicht nachgereicht.** Die Community arbeitet auf
+beiden Systemen; ein Feature, das nur auf einem läuft, ist nicht fertig.
+
+Konkret heißt das:
+
+- **Keine `.bat` ohne `.command`.** Startdateien immer über eine
+  Plattform-Weiche (`platform.system() == 'Windows'`) erzeugen, die
+  Mac/Linux-Variante mit `#!/bin/bash` und `os.chmod(pfad, 0o755)`.
+- **Pfade** nur über `os.path.join` / `pathlib` — nie `C:\…`, nie
+  Backslashes fest verdrahtet.
+- **Python heißt `python` unter Windows und `python3` unter Mac/Linux.**
+  In diesem Skill steht deshalb überall `<python>` — dafür immer den Befehl
+  einsetzen, der auf dem System des Users tatsächlich funktioniert. Nie den
+  nackten Aufruf `python …` in eine Anleitung schreiben.
+- **Öffnen** je nach System: `Start-Process` / `open` / `xdg-open`.
+- **Textdateien** in UTF-8 mit `\n`; `cp1252` und `\r\n` nur in `.bat`.
+- **Nutzerordner** als `~` bzw. `os.path.expanduser('~')`, nicht
+  `%USERPROFILE%`.
+- **ffmpeg-Filter** sind plattformgleich — aber die Hardware-Encoder nicht:
+  Windows kennt `h264_qsv`/`h264_nvenc`/`h264_amf`, Mac `h264_videotoolbox`.
+  Immer erkennen statt annehmen, und auf `libx264` zurückfallen.
+
+Wird eine Stelle gefunden, die nur ein System bedient: reparieren, nicht
+dokumentieren. Ein Hinweis „unter Windows zusätzlich …" ist eine Lücke,
+keine Lösung.
+
 ## Projekt-Struktur
 
 ```
@@ -62,7 +91,7 @@ die Schnittliste.
 > — oder (c) du vertraust mir und ich rendere direkt."
 
 Cockpit-Weg — **EIN-TAB-PRINZIP (wichtig!):**
-`python scripts/build_editor.py <projekt.json>` erzeugt `editor.html`
+`<python> scripts/build_editor.py <projekt.json>` erzeugt `editor.html`
 (statisch) + `projekt_data.js` (die Daten). Das offene Cockpit lädt die
 Daten-Datei alle 2,5 s selbst nach — **Änderungen von Claude erscheinen im
 offenen Tab von allein.** Deshalb das Cockpit NUR beim allerersten Erstellen
@@ -171,7 +200,7 @@ schon im Cockpit arbeitet.
 1. **Transkript** per `scripts/transkript_untertitel.py` (Wortliste nie in
    den Kontext laden).
 2. **Pausen per LAUTSTÄRKE finden:**
-   `python scripts/pausen_finden.py projekt.json` — liefert FERTIGE
+   `<python> scripts/pausen_finden.py projekt.json` — liefert FERTIGE
    Schnittvorschläge mit bereits abgesicherten Grenzen (kein Wort wird
    angeschnitten) plus Sprachkontext je Vorschlag. Diese Werte direkt
    übernehmen — NICHT selbst nachmessen, NICHT die Lautstärke roh ausgeben
@@ -187,7 +216,7 @@ schon im Cockpit arbeitet.
 4. **Video muss mit dem ersten gesprochenen Wort beginnen** — Anlauf,
    Räuspern, gemurmelte Wortfetzen und „genervt dastehen" gehören in den
    ersten Schnitt. Prüfen: erster Ton direkt bei 0,00 s.
-5. **PFLICHT-Endkontrolle:** `python scripts/pruef_text.py projekt.json` —
+5. **PFLICHT-Endkontrolle:** `<python> scripts/pruef_text.py projekt.json` —
    den ausgegebenen Text LESEN: vollständig? flüssig? keine zerschnittenen
    Wörter, keine Dopplungen an den Nähten?
 
@@ -203,7 +232,7 @@ schon im Cockpit arbeitet.
 ### 2a-Render. Rendern = EIN Befehl (niemals Pipeline improvisieren)
 
 ```
-python scripts/render_projekt.py <projekt.json>
+<python> scripts/render_projekt.py <projekt.json>
 ```
 
 **Tempo:** Der Render nutzt automatisch den **Hardware-Encoder** der
@@ -218,9 +247,9 @@ Das Script macht ALLES selbst (Schnittlisten pro Spur, Dateien schneiden,
 Lautstärke-Abschnitte, Musik/Voiceover-Vorbereitung, Untertitel- und
 Text-ASS, prolook, QC-Kontaktbogen `qc_final.png`). Danach nur den
 Kontaktbogen ansehen (1 Bild) und dem User zeigen. `build_editor.py` legt
-unter Windows zusätzlich `video_rendern.bat` in den Projektordner — dort kann
-der User per DOPPELKLICK selbst neu rendern (0 Tokens). Auf macOS und Linux
-gibt es diese Datei nicht, dort einfach Claude ums Rendern bitten.
+zusätzlich eine Doppelklick-Startdatei in den Projektordner — dort kann der
+User selbst neu rendern (0 Tokens): unter Windows `video_rendern.bat`, unter
+macOS/Linux `video_rendern.command` (wird automatisch ausführbar gesetzt).
 Qualitätswünsche („bessere
 Qualität") = in projekt.json `"render": {"crf": 18}` setzen (Standard 20,
 kleiner = besser; optional `"preset"`, `"output"`). Zoom-Wünsche
@@ -314,7 +343,7 @@ Vorrang vor `text`; nach manuellen texts-Änderungen per Hand `lines`
 löschen oder neu setzen). Timing auf der 📝-Spur (Aufziehen = neuer
 Text), Position per Ziehen im Video (x/y = Zentrum als Anteil), Hintergrund
 schmiegt sich pro Zeile um die Wörter, `anim`: `fade|left|right|up|pop|none`.
-Beim Rendern: `python text_overlays.py projekt.json texte.ass` (liest die
+Beim Rendern: `<python> text_overlays.py projekt.json texte.ass` (liest die
 texts direkt, macht ASS mit \\move/\\fad/\\t-Animationen) und in der
 prolook-Config `"text_overlays": "texte.ass"` setzen (wird nach den
 Untertiteln eingebrannt). ACHTUNG: `start/end` sind Timeline-Zeiten des
@@ -346,8 +375,9 @@ nie neu transkribieren.
 ### 3. Erneut rendern nach Korrekturen
 
 Immer derselbe EINE Befehl: `<python> scripts/render_projekt.py
-<projekt.json>` (unter Windows kann der User alternativ
-`video_rendern.bat` doppelklicken). Das
+<projekt.json>` (alternativ doppelklickt der User die Startdatei im
+Projektordner: `video_rendern.bat` unter Windows,
+`video_rendern.command` unter macOS/Linux). Das
 Script rechnet alle Stufen selbst durch — Schnitt-Umrechnung,
 Wortzeiten-Verschiebung, Audio-Vorbereitung, ASS-Dateien, prolook. KEINE
 Einzelschritte von Hand nachbauen; die Rechenzeit kostet keine Tokens.
@@ -372,10 +402,10 @@ Einzelschritte von Hand nachbauen; die Rechenzeit kostet keine Tokens.
   Platzhalter, also z. B. in PowerShell:
   `$env:ELEVENLABS_API_KEY = "~~elevenlabs-api-key"` (bzw. GROQ_API_KEY,
   falls der Nutzer einen Groq-Key nennt), dann:
-  `python scripts/transkript_untertitel.py projekt.json <video>` —
+  `<python> scripts/transkript_untertitel.py projekt.json <video>` —
   schreibt die Wörter direkt in die projekt.json.
 - **Musik anlegen NUR per Script:**
-  `python scripts/set_music.py projekt.json <datei-oder-url> [--gain]` —
+  `<python> scripts/set_music.py projekt.json <datei-oder-url> [--gain]` —
   holt die Datei, setzt music, baut das Cockpit inkl. Waveform.
 - projekt.json nie im Ganzen ausgeben/anzeigen — Scripts melden Zählwerte.
 - **NIEMALS Rohdaten ausgeben lassen** (Lautstärke-Verläufe, Wortlisten mit

@@ -2,3 +2,9 @@
 # landen aber NICHT im ausgelieferten .plugin-Paket (git archive).
 tools/         export-ignore
 .gitattributes export-ignore
+
+# Shell-Dateien MUESSEN Unix-Zeilenenden behalten — mit \r\n findet der
+# Mac-Kernel "#!/bin/bash\r" nicht und das Script startet gar nicht.
+# Gilt fuer jeden, der das Repo auf Windows klont (autocrlf=true).
+*.sh      text eol=lf
+*.command text eol=lf

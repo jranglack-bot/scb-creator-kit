@@ -46,7 +46,9 @@ def hw_encoder():
     found = None
     have = subprocess.run(['ffmpeg', '-hide_banner', '-encoders'],
                           capture_output=True, text=True).stdout
-    for enc in ('h264_nvenc', 'h264_qsv', 'h264_amf'):
+    # videotoolbox = Mac (jeder Mac seit Jahren), Rest = Windows/Linux.
+    # Reihenfolge egal: ffmpeg listet immer nur die real vorhandenen.
+    for enc in ('h264_nvenc', 'h264_qsv', 'h264_amf', 'h264_videotoolbox'):
         if enc not in have:
             continue
         test = subprocess.run(
@@ -85,6 +87,15 @@ def video_encoder(cfg, zwischenstufe=False):
             return ['-c:v', enc, '-quality',
                     'speed' if zwischenstufe else 'balanced',
                     '-rc', 'cqp', '-qp_i', str(crf), '-qp_p', str(crf)]
+        if enc == 'h264_videotoolbox':
+            # Mac: kennt weder crf noch global_quality zuverlaessig ->
+            # ueber Bitrate steuern. 12M fuer Zwischenstufen (wird ohnehin
+            # nochmal verarbeitet), 8M final = gleiche Deckelung wie oben.
+            return ['-c:v', enc,
+                    '-b:v', '12M' if zwischenstufe else '8M',
+                    '-maxrate', '12M' if zwischenstufe else '8M',
+                    '-bufsize', '24M' if zwischenstufe else '16M',
+                    '-allow_sw', '1']
     return ['-c:v', 'libx264', '-crf', str(crf), '-preset',
             'veryfast' if zwischenstufe else str(cfg.get('preset', 'medium'))]
 

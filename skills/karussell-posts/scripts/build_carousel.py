@@ -7,13 +7,14 @@ Edge/Chrome headless zu 1080x1350-Folien und baut einen Kontaktbogen
 (alle Folien in EINEM Bild) fuer die tokensparende Qualitaetskontrolle.
 
 Aufruf:
-  python build_carousel.py config.json
+  Windows:   python  build_carousel.py config.json
+  Mac/Linux: python3 build_carousel.py config.json
 
-config.json:
+config.json ("font" weglassen = Schrift des jeweiligen Systems):
 {
   "output_dir": "karussell",
   "brand": {"bg1": "#1F2430", "bg2": "#3B2F63", "accent": "#FFD400",
-             "text": "#FFFFFF", "font": "Segoe UI", "account": "@name"},
+             "text": "#FFFFFF", "account": "@name"},
   "slides": [
     {"type": "hook", "kicker": "REEL-WISSEN",
      "title": "5 Fehler, die dein <em>Reel unsichtbar</em> machen"},
@@ -49,8 +50,21 @@ BROWSERS_MACOS = [
 BROWSERS_PATH = ['google-chrome', 'google-chrome-stable', 'chromium',
                  'chromium-browser', 'microsoft-edge', 'brave-browser']
 
+def standard_schrift():
+    """Schrift, die auf dem laufenden System wirklich installiert ist —
+    'Segoe UI' gibt es auf einem Mac nicht, dort saehe das Karussell
+    anders aus als beabsichtigt."""
+    sys_name = platform.system()
+    if sys_name == 'Windows':
+        return 'Segoe UI'
+    if sys_name == 'Darwin':
+        return 'Helvetica Neue'
+    return 'DejaVu Sans'
+
+
 DEFAULT_BRAND = {'bg1': '#1F2430', 'bg2': '#3B2F63', 'accent': '#FFD400',
-                 'text': '#FFFFFF', 'font': 'Segoe UI', 'account': ''}
+                 'text': '#FFFFFF', 'font': standard_schrift(),
+                 'account': ''}
 
 
 def find_browser():

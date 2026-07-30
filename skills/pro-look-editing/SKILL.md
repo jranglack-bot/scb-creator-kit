@@ -25,14 +25,14 @@ Templates in `scripts/` sind getestet; nur Parameter setzen und ausführen.
    Erscheinen, farbiges Highlight auf dem gesprochenen Wort, nur während
    Sprache. Safe-Zones für Reel/Story eingebaut.
    ```
-   python animated_captions.py transkript.json untertitel.ass --mode reel
+   <python> animated_captions.py transkript.json untertitel.ass --mode reel
        [--font "Segoe UI"] [--highlight FFD400] [--group 3]
    ```
 2. **`scripts/prolook.py`** — rendert alles in EINEM ffmpeg-Lauf:
    Picture-in-Picture, Punch-Ins, Grade, Grain, Captions, SFX. Gesteuert
    über eine kleine config.json (Schema steht im Script-Kopf).
    ```
-   python prolook.py config.json
+   <python> prolook.py config.json
    ```
 
 ## Workflow
