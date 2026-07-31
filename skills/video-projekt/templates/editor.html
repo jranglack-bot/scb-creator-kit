@@ -760,7 +760,7 @@ function styleStageText(d, tx){
   d.style.fontFamily = "'" + (tx.font || 'Segoe UI') + "',sans-serif";
   d.style.fontSize = (tx.size * scaleFactor()) + 'px';
   d.style.fontWeight = tx.bold === false ? '500' : '800';
-  d.style.color = tx.color || '#FFFFFF';
+  d.style.color = '#' + String(tx.color || 'FFFFFF').replace('#', '');
   d.style.left = (tx.x * 100) + '%';
   d.style.top = (tx.y * 100) + '%';
   const inner = tx.lines.map(esc).join('<br>');
@@ -1600,7 +1600,7 @@ function renderTextList(){
         <input type="range" class="tsize" min="24" max="220" value="${tx.size}">
         <span style="font-size:11px;min-width:26px">${tx.size}</span></div>
       <div class="row"><label style="font-size:11px">Farbe / Fett</label>
-        <input type="color" class="tcol" value="${tx.color}">
+        <input type="color" class="tcol" value="#${String(tx.color || 'FFFFFF').replace('#','')}">
         <input type="checkbox" class="tbold" ${tx.bold !== false ? 'checked' : ''} title="Fett"></div>
       <div class="row"><label style="font-size:11px">Hintergrund</label>
         <input type="checkbox" class="tboxon" ${tx.box ? 'checked' : ''}>
