@@ -4,3 +4,6 @@ __pycache__/
 # Testmaterial (nicht ausliefern)
 Test*.mp4
 *.mp4
+
+# Lokale Sicherungen vor Aenderungen (nicht ausliefern)
+*.backup

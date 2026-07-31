@@ -151,6 +151,36 @@ Grade (bekommen denselben Look) und UNTER den Captions.
 ziehen und prüfen: kein Grün sichtbar, Position in der Safe-Zone, nichts
 Wichtiges verdeckt.
 
+### Overlays MIT echtem Alphakanal (kein Green-Screen)
+
+Bringt eine Ebene bereits einen Alphakanal mit — etwa eine Motion-Canvas-Grafik
+oder eine freigestellte Person aus `motion-grafik` —, dann `"alpha": true`
+setzen. Chromakey und Despill entfallen komplett, es gibt keine Farbsäume.
+
+```json
+{"file": "<pfad>", "alpha": true, "fullframe": true, "fps": 30}
+```
+
+- **`fullframe: true`** legt die Ebene 1:1 über das ganze Bild, ohne
+  Skalierung und Positionierung. Das ist der Normalfall für Ebenen, die schon
+  in 1080×1920 vorliegen. Ohne `fullframe` gelten `x`, `y` und `scale` wie
+  beim Green-Screen-Pfad.
+- **Ohne `duration`** läuft die Ebene so lange, wie sie selbst ist. Mit
+  `duration` wird sie beschnitten und nur in ihrem Zeitfenster gezeigt.
+- **`fps`** nur bei PNG-Sequenzen nötig (Standard 30). Bei Videodateien
+  entfällt es.
+- **Die Reihenfolge in der `overlays`-Liste ist die Stapelreihenfolge.** Ein
+  Effekt VOR der freigestellten Person ergibt „Grafik hinter der Person".
+
+**Erlaubte Quellen:** ein Ordner mit PNG-Sequenz (`%06d.png`), oder eine
+Videodatei, deren Alphakanal ffmpeg lesen kann — **ffv1/.mkv** (kompakt und
+verlustfrei, so liefert es `freistellen.py`), qtrle oder ProRes 4444.
+
+**Fallstrick:** **VP9-WebM funktioniert hier NICHT.** Es trägt seinen
+Alphakanal nur im Browser; ffmpeg liefert eine deckende Ebene, die alles
+darunter zudeckt. Für den Render immer die `.mkv` nehmen, die `.webm` ist
+ausschließlich für die Vorschau in Motion Canvas.
+
 ## Audio-Suite: Musik, Stimm-Mastering, Loudness
 
 ### Stimm-Mastering + Loudness (Standard-Empfehlung, einmal kurz anbieten)

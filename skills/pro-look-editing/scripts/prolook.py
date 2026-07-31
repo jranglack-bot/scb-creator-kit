@@ -295,26 +295,73 @@ def main():
                   .format(vlabel, bi, st, st + bdur, bi))
         vlabel = '[vbr{}]'.format(bi)
 
-    # --- Animierte Overlays (Green-Screen-Elemente, per Chromakey) ---------
+    # --- Animierte Overlays ------------------------------------------------
+    # Zwei Sorten, unterschieden ueber "alpha":
+    #
+    #   ohne "alpha"        Green-Screen-Element, wird per Chromakey
+    #                       freigestellt (bisheriges Verhalten, unveraendert)
+    #
+    #   "alpha": true       bringt einen echten Alphakanal mit - kein
+    #                       Chromakey, keine Farbsaeume. Quelle darf ein
+    #                       Ordner mit PNG-Sequenz sein oder eine Datei.
+    #                       "fullframe": true legt die Ebene 1:1 ueber das
+    #                       ganze Bild (Motion-Canvas-Effektebenen und
+    #                       freigestellte Personen). Ohne "duration" laeuft
+    #                       die Ebene so lange, wie sie selbst ist.
+    #
+    # Die Reihenfolge in der Liste ist die Stapelreihenfolge: ein Effekt vor
+    # der freigestellten Person ergibt "Text hinter der Person".
+    #
+    # ACHTUNG: VP9-WebM traegt seinen Alphakanal nur im Browser - ffmpeg
+    # liest ihn NICHT. Hier PNG-Sequenz oder .mov (qtrle/prores4444) nutzen.
     for oi, o in enumerate(cfg.get('overlays') or []):
-        inputs += ['-i', o['file']]
+        datei = o['file']
+        alpha = bool(o.get('alpha'))
+        st = float(o.get('start', 0))
+
+        if alpha and os.path.isdir(datei):
+            # Bildrate muss VOR dem Input stehen, sonst nimmt ffmpeg 25.
+            inputs += ['-framerate', str(o.get('fps', 30)),
+                       '-i', os.path.join(datei, '%06d.png')]
+        else:
+            inputs += ['-i', datei]
         oidx = n_in
         n_in += 1
-        st = float(o['start'])
-        odur = float(o.get('duration', 2.0))
-        oscale = float(o.get('scale', 0.35))
-        ow = int(W * oscale // 2 * 2)
-        chroma = o.get('chroma', '0x00FF00')
-        sim = float(o.get('similarity', 0.22))
-        blend = float(o.get('blend', 0.08))
-        # Position als Anteil der Flaeche (0-1), Element wird zentriert
-        ox = 'W*{}-w/2'.format(float(o.get('x', 0.5)))
-        oy = 'H*{}-h/2'.format(float(o.get('y', 0.3)))
-        fc.append('[{}:v]trim=0:{},setpts=PTS-STARTPTS+{}/TB,scale={}:-2,'
-                  'chromakey={}:{}:{},despill=type=green[ov{}]'
-                  .format(oidx, odur, st, ow, chroma, sim, blend, oi))
-        fc.append("{}[ov{}]overlay=x='{}':y='{}':enable='between(t,{},{})'[vov{}]"
-                  .format(vlabel, oi, ox, oy, st, st + odur, oi))
+
+        if alpha:
+            hat_dauer = o.get('duration') is not None
+            trim = 'trim=0:{},'.format(float(o['duration'])) if hat_dauer else ''
+            if o.get('fullframe'):
+                fc.append('[{}:v]{}setpts=PTS-STARTPTS+{}/TB[ov{}]'
+                          .format(oidx, trim, st, oi))
+                ox, oy = '0', '0'
+            else:
+                ow = int(W * float(o.get('scale', 0.35)) // 2 * 2)
+                fc.append('[{}:v]{}setpts=PTS-STARTPTS+{}/TB,scale={}:-2[ov{}]'
+                          .format(oidx, trim, st, ow, oi))
+                ox = 'W*{}-w/2'.format(float(o.get('x', 0.5)))
+                oy = 'H*{}-h/2'.format(float(o.get('y', 0.3)))
+            enable = ''
+            if hat_dauer:
+                enable = ":enable='between(t,{},{})'".format(
+                    st, st + float(o['duration']))
+            fc.append("{}[ov{}]overlay=x='{}':y='{}':eof_action=pass{}[vov{}]"
+                      .format(vlabel, oi, ox, oy, enable, oi))
+        else:
+            odur = float(o.get('duration', 2.0))
+            oscale = float(o.get('scale', 0.35))
+            ow = int(W * oscale // 2 * 2)
+            chroma = o.get('chroma', '0x00FF00')
+            sim = float(o.get('similarity', 0.22))
+            blend = float(o.get('blend', 0.08))
+            # Position als Anteil der Flaeche (0-1), Element wird zentriert
+            ox = 'W*{}-w/2'.format(float(o.get('x', 0.5)))
+            oy = 'H*{}-h/2'.format(float(o.get('y', 0.3)))
+            fc.append('[{}:v]trim=0:{},setpts=PTS-STARTPTS+{}/TB,scale={}:-2,'
+                      'chromakey={}:{}:{},despill=type=green[ov{}]'
+                      .format(oidx, odur, st, ow, chroma, sim, blend, oi))
+            fc.append("{}[ov{}]overlay=x='{}':y='{}':enable='between(t,{},{})'[vov{}]"
+                      .format(vlabel, oi, ox, oy, st, st + odur, oi))
         vlabel = '[vov{}]'.format(oi)
 
     # --- Look: Grade + Grain ----------------------------------------------

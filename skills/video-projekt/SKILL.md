@@ -76,6 +76,31 @@ zusammengefügte Timeline.
 
 ## Workflow
 
+### 0. EINGANGSFRAGE — einmal stellen, Antwort merken
+
+Bevor irgendetwas gebaut wird, EINMAL fragen, wie weit es gehen soll. Nicht
+raten, und nicht in jeder Runde neu fragen:
+
+> „Bevor ich loslege: Reicht dir Schnitt und Untertitel? Sollen einfache
+> Texte drüber — die machst du danach im Cockpit selbst? Brauchst du
+> animierte Grafik, also Ringe, hochzählende Zahlen oder 3D-Schrift? Und soll
+> etwas **hinter** dir liegen, sodass du davor stehst?"
+
+Daraus ergibt sich die Stufe. **Nie höher einsteigen als nötig:**
+
+| Stufe | Werkzeug | Kosten für den Nutzer |
+|---|---|---|
+| 1 | dieser Skill (Cockpit): Schnitt, Untertitel, Musik, **einfache Texte** | 0 Token, er ändert selbst |
+| 2 | `motion-grafik`: animierte Grafik, die das Cockpit nicht kann | jede Änderung = eine Coderunde |
+| 3 | `motion-grafik`: Freistellung für „hinter mir" | zusätzlich Rechenzeit |
+
+Ein Text, den die `texts`-Kachel im Cockpit kann, gehört ins Cockpit — auch
+wenn er in Motion Canvas hübscher würde. Der Nutzer justiert ihn dort selbst
+und ohne Token.
+
+Die Stufen danach **einzeln nacheinander** abarbeiten, mit Freigabe
+dazwischen — nicht alles auf einmal.
+
 ### 1. Analyse (einmalig pro Video)
 Wie in `video-schneiden` (Transkript, kompakter Fließtext, Schnitt-Analyse)
 — aber die Cuts landen mit Textzitat + Grund in `projekt.json` UND als
