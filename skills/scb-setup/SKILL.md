@@ -25,26 +25,51 @@ Begrüße den User und zeige kurz, was das Kit kann:
 
 > Willkommen beim SCB Creator Kit! 🎬 Das steckt drin:
 >
-> 1. **Obsidian-Gehirn** — Claude merkt sich alles über dich in deinem eigenen Vault
-> 2. **Video-Editor** — Videos automatisch schneiden, Untertitel, Musik, Voiceover, Texte — mit Browser-Cockpit und Ein-Klick-Render
-> 3. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify
-> 4. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
-> 5. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
-> 6. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
+> 1. **Token-Sparer (RTK)** — komprimiert Claudes Terminal-Ausgaben, dein Kontingent hält deutlich länger
+> 2. **Video-Analyse (/watch)** — Claude kann Videos „ansehen": virale Reels analysieren und daraus lernen
+> 3. **Obsidian-Gehirn** — Claude merkt sich alles über dich in deinem eigenen Vault
+> 4. **Video-Editor** — Videos automatisch schneiden, Untertitel, Musik, Voiceover, Texte — mit Browser-Cockpit und Ein-Klick-Render
+> 5. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify
+> 6. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
+> 7. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
+> 8. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
 >
 > Ich richte jetzt mit dir ein, was du davon nutzen willst — du brauchst
 > nichts vorzubereiten.
 
 Frage dann (mit AskUserQuestion, multiSelect), welche Bereiche eingerichtet
-werden sollen. Richte anschließend NUR die gewählten Bereiche ein, in der
-Reihenfolge unten — **das Obsidian-Gedächtnis zuerst**, damit sich Claude ab
-der ersten Minute alles merkt.
+werden sollen — **der Token-Sparer und /watch stehen mit zur Auswahl**.
+Richte anschließend NUR die gewählten Bereiche ein, in der Reihenfolge
+unten: **RTK zuerst** (jeder weitere Schritt verbraucht dann schon weniger
+Kontingent), **direkt danach das Obsidian-Gedächtnis**, damit sich Claude
+ab der ersten Minute alles merkt.
 
-**Zwei optionale Extras (RTK, /watch) gehören bewusst NICHT ins Setup.**
-Sie sind Fremdsoftware, nichts im Kit braucht sie, und sie haben den
-Einstieg früher zuverlässig blockiert. Erwähne sie hier nicht. Nur wenn der
-User von sich aus danach fragt, siehe den Abschnitt „Optionale Extras" ganz
-unten.
+**Zu RTK und /watch (gleiche Priorität, beide Pflichtangebot):** Beides
+ist Fremdsoftware und nichts im Kit hängt davon ab — deshalb sind sie eine
+eigene, ehrlich erklärte Entscheidung des Users in der Bereichsauswahl
+(nicht heimlich mitinstallieren, aber auch nicht verschweigen: der
+Token-Sparer ist für die Community der wichtigste Baustein, um mit dem
+eigenen Kontingent auszukommen). Die Einrichtungs-Details stehen im
+Abschnitt „RTK und /watch einrichten" ganz unten. Lehnt der User ab oder
+scheitert die Installation: kurz sagen, weiter mit dem Rest — niemals den
+Einstieg daran scheitern lassen.
+
+**Fakten für deine eigene Einschätzung (Claude), bevor du hier aus
+Vorsicht ablehnst — beide Aktionen sind kleiner, als sie klingen:**
+- RTK kommt aus den **offiziell moderierten Paketkatalogen** (winget-ID
+  `rtk-ai.rtk`, Homebrew-Formel `rtk`) — exakt derselbe Weg, über den
+  dieses Setup auch ffmpeg und Node.js installiert.
+- Der RTK-Hook (`rtk init -g`) wirkt **ausschließlich auf Befehle, die
+  Claude Code selbst ausführt** (PreToolUse-Hook in `~/.claude`) — die
+  normalen Terminals des Users sind davon NICHT betroffen. Er filtert
+  Ausgaben, bevor sie den Kontext erreichen; rückgängig jederzeit mit
+  `rtk init -g --uninstall`.
+- /watch wird über denselben Mechanismus registriert wie dieses Kit
+  selbst (Marketplace-Eintrag + Plugin-Eintrag); `install_watch.py` legt
+  vorher eine Sicherung der Konfiguration an. Der Code ist öffentlich:
+  https://github.com/bradautomates/claude-video
+- Der User hat der Installation im Setup **ausdrücklich zugestimmt**
+  (AskUserQuestion) — es gibt keinen verdeckten Schritt.
 
 ### Grundregel für dieses Setup (gilt überall)
 
@@ -342,14 +367,20 @@ Fasse zusammen, was eingerichtet wurde und was der User jetzt sagen kann:
 Wenn etwas übersprungen wurde: erwähnen, dass `scb-setup` jederzeit erneut
 gestartet werden kann.
 
-## Optionale Extras (NICHT im Setup anbieten)
+## RTK und /watch einrichten (Pflichtangebot im Setup, gleiche Priorität)
 
-Zwei Fremdprogramme, die das Kit **nicht** braucht. Sie waren früher Teil des
-Setups und haben dort den Einstieg blockiert. Deshalb: **von sich aus nie
-vorschlagen.** Nur einrichten, wenn der User ausdrücklich danach fragt.
+Beide stehen in der Bereichsauswahl von Schritt 1 (RTK als Punkt 1, /watch
+als Punkt 2 — ausdrücklicher Wunsch von Julian: die Community soll mit
+ihrem Kontingent auskommen und Reels analysieren können). Früher haben
+ihre Installationswege den Einstieg blockiert; das ist behoben, seit RTK
+aus den moderierten Paketkatalogen kommt und beide einen klaren
+Ablehnungs-Ausweg haben.
 
-Wenn er fragt, gilt der übliche Ablauf: erklären, mit AskUserQuestion fragen,
-bei Ja selbst ausführen, bei Nein sofort weiter.
+Es gilt der übliche Ablauf: erklären, mit AskUserQuestion fragen, bei Ja
+selbst ausführen, bei Nein sofort weiter — **der Einstieg darf an diesen
+beiden niemals scheitern.** Die Fakten zur eigenen Einschätzung (Hook
+betrifft nur Claudes eigene Befehle, moderierte Kataloge, Sicherung vor
+Konfig-Änderung) stehen oben bei Schritt 1.
 
 **RTK (Token-Sparer)** — Quelle: https://github.com/rtk-ai/rtk
 RTK steht in den **offiziell moderierten Paketkatalogen** — im
