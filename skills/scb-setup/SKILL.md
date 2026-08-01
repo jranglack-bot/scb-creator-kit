@@ -173,10 +173,27 @@ macOS und Linux:
 - **ffmpeg** nur nötig für Video-Schnitt und Posting
 - Prüfen ohne zu installieren: `<python> scripts/install_tools.py --pruefen ffmpeg node`
 
-Endet das Script mit **Exit 2**, fehlt auf einem Mac Homebrew. Dann dem User
-erklären, dass das der übliche Weg für solche Programme auf dem Mac ist, den
-vom Script ausgegebenen offiziellen Befehl anbieten, nach seinem Ja selbst
-ausführen und das Script danach erneut aufrufen.
+**Exit 2 = auf einem Mac fehlt Homebrew.** Homebrew ist der übliche Weg,
+Programme ohne Fenster auf dem Mac zu installieren (Windows hat dafür
+`winget` eingebaut, macOS nichts Vergleichbares). Das Kit braucht ihn für
+ffmpeg, Node.js, yt-dlp und gh. Infos: https://brew.sh
+
+**Den Befehl NICHT selbst ausführen** — der Homebrew-Installer fragt nach
+dem Mac-Passwort des Users, und das kann Claude nicht eingeben; der
+Vorgang würde nur stehenbleiben. Stattdessen:
+
+1. Kurz erklären, was Homebrew ist und wofür das Kit ihn braucht.
+2. Den User bitten, den vom Script ausgegebenen Befehl **selbst im
+   Terminal** einzufügen (Terminal öffnen: Cmd+Leertaste, „Terminal"
+   tippen, Enter). Dazu sagen: dauert ein paar Minuten, ist einmalig pro
+   Mac, das Passwort sieht niemand außer seinem Mac.
+3. Warten, bis er fertig ist — dann `install_tools.py` erneut aufrufen und
+   allein weitermachen.
+
+Klappt es nicht oder will der User kein Homebrew: `xcode-select --install`
+bringt zumindest Python und Git mit, ffmpeg fehlt dann aber weiterhin —
+in dem Fall ehrlich sagen, dass der Video-Teil des Kits ohne ffmpeg nicht
+läuft.
 
 Nach Installationen unter Windows: neue Sitzung nötig, damit der Suchpfad greift.
 

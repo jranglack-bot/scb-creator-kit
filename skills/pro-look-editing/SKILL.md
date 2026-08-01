@@ -79,9 +79,88 @@ aufdrängen.
 
 ### Mitgelieferte Basis-Sounds (lizenzfrei, im Kit enthalten)
 
-In `scripts/sfx/` liegen sechs selbst erzeugte, frei nutzbare Sounds:
+In `scripts/sfx/` liegen sieben selbst erzeugte, frei nutzbare Sounds:
 `whoosh` (Wisch), `swish` (kurzer heller Wisch), `click` (Tastatur/Typing),
-`pop`, `ding`, `riser` (Spannungsaufbau). Pegel aufeinander abgestimmt.
+`pop`, `ding`, `riser` (Spannungsaufbau), `impact` (Bass-Schlag für den
+Reveal). Pegel aufeinander abgestimmt (Spitzen um −5 bis −7 dB).
+
+### Welcher Sound wann — die Zuordnung
+
+Diese Tabelle beantwortet die Frage „welchen nehme ich hier?", ohne dass sie
+jedes Mal neu recherchiert werden muss:
+
+| Situation | Sound | Hinweis |
+|---|---|---|
+| Harter Schnitt, Szenenwechsel | `whoosh` | der meistgenutzte Effekt überhaupt |
+| Text oder Element fliegt ein | `swish` | kürzer und heller als whoosh |
+| Wort-für-Wort-Untertitel | `click` | sehr leise mischen, sonst nervt es nach 10 s |
+| Chip, Icon, Haken erscheint | `pop` | |
+| Zahl erreicht, Bestätigung, Abbinder | `ding` | gut für die letzten 3 Sekunden |
+| Spannungsaufbau vor einem Reveal | `riser` | 2–3 s, **Höhepunkt exakt auf dem Schnitt** |
+| Der Reveal selbst, Zahl knallt | `impact` | **maximal 1–2 pro Reel**, sonst nutzt es sich ab |
+
+**Die wichtigste Regel: Platzierung schlägt Auswahl.** Ein mittelmäßiger
+Whoosh exakt auf dem Schnitt wirkt besser als ein perfekter zwei Frames
+daneben. Bei `riser` gilt das doppelt — läuft der Höhepunkt ins Leere, ist
+der ganze Aufbau verschenkt.
+
+**Faustformel für ein 30-s-Reel:** ein Akzent am Anfang, `whoosh` auf den
+Schnitten, `ding` zum Abbinden. Alles darüber hinaus wird schnell zu viel.
+
+**Handylautsprecher geben unter etwa 100 Hz kaum etwas wieder.** Reine
+Sub-Bass-Sounds aus fremden Bibliotheken sind auf Instagram oft unhörbar —
+der mitgelieferte `impact` hat deshalb bewusst eine Oktave über dem Grundton
+mit drin.
+
+### Sounds automatisch setzen (`sfx_auto.py`)
+
+Die Zeiten müssen **nicht erkannt** werden — sie stehen schon in der
+`projekt.json`. Das Script liest sie aus, wendet die Tabelle oben an und
+schreibt fertige Events nach `effekte.sfx`:
+
+```
+<python> sfx_auto.py projekt.json --schnitte --texte --untertitel --zooms
+```
+
+| Option | Was vertont wird | Sound |
+|---|---|---|
+| `--schnitte` | jeder aktive Video-Schnitt | `whoosh` |
+| `--texte` | Text-Overlay fliegt ein (`texts[].start`) | `swish` |
+| `--untertitel` | jeder Untertitel-**Block** (nicht jedes Wort) | `click` |
+| `--zooms` | harter Punch-In (`mode: "fest"`) | `impact` |
+
+**Dichte-Regel:** Standardmäßig müssen zwischen zwei Whooshes 1,2 s liegen
+(`--min-abstand`). Schnellschnitt-Passagen werden dadurch nicht zu Brei. Mit
+`--alle-schnitte` wird jeder Schnitt vertont.
+
+Das Script rechnet **selbst in Ausgabezeit um** — die Verschiebung durch die
+Schnitte ist eingerechnet, für Wortzeiten, Texte und Zooms gleichermaßen.
+Ohne Angabe passiert nichts: mindestens eine Option ist Pflicht.
+
+Danach normal `render_projekt.py`. Bei sehr vielen Events (Klicks auf jedem
+Block) lohnt `build_sfx_track.py`, das daraus EINE Tonspur baut.
+
+**Die eiserne Regel gilt weiter:** nie ungefragt aufrufen. Erst anbieten,
+dann nur die Optionen setzen, die der Nutzer gewählt hat.
+
+### Instagram-typische Sounds (Meme-Sounds) — Vorsicht bei der Lizenz
+
+Die wiedererkennbaren Sounds, die auf Reels ständig auftauchen (Bass-Boom auf
+die Pointe, Plattenspieler-Kratzer beim abrupten Stopp, Kassen-Klingeln bei
+Geld, Fehler-Summer), sind **etwas anderes** als die neutralen Editing-Sounds
+oben:
+
+- **Über Instagrams eigene Audio-Bibliothek** (in der App als Ton auswählen)
+  ist die Nutzung abgedeckt. Das ist der sichere Weg.
+- **Fest ins Video gerendert** sind sie riskant — viele stammen aus
+  geschützten Quellen. Nicht ungefragt einbrennen, den User auf den
+  In-App-Weg hinweisen.
+
+**Wie man sie findet:** Es gibt keine Liste „meistgenutzte Soundeffekte auf
+Instagram" zum Abrufen. Der praktikable Weg ist der Skill `sfx-extraktion` —
+er zieht Sounds aus SFX-Compilation-Reels, also genau aus den Beiträgen, die
+verbreitete Effekte sammeln. Ergebnis in die eigene Bibliothek legen und in
+`Branding.md` notieren.
 
 ### Eigene SFX-Bibliothek (bessere Sounds, einmal einrichten)
 

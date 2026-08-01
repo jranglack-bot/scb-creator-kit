@@ -109,11 +109,19 @@ def main():
     pm, basis = paketmanager()
 
     if pm == "brew-fehlt":
-        print("\nAuf diesem Mac fehlt Homebrew, der uebliche Weg fuer solche "
-              "Programme.")
-        print("Einmalig einzurichten mit diesem offiziellen Befehl:")
+        print("\nAuf diesem Mac fehlt Homebrew - der uebliche Weg, solche "
+              "Programme auf dem Mac zu installieren.")
+        print("Infos dazu: https://brew.sh")
+        print("")
+        print("WICHTIG: Diesen Befehl bitte SELBST im Terminal einfuegen -")
+        print("er fragt nach dem Mac-Passwort, und das kann Claude nicht "
+              "eingeben.")
+        print("(Terminal oeffnen: Cmd+Leertaste, 'Terminal' tippen, Enter)")
+        print("")
         print("  " + BREW_INSTALL)
-        print("Danach dieses Script erneut aufrufen.")
+        print("")
+        print("Das dauert ein paar Minuten und ist EINMALIG pro Mac noetig.")
+        print("Danach Bescheid sagen - Claude macht dann allein weiter.")
         return 2
 
     if not pm:
