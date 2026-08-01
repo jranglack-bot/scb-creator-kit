@@ -131,6 +131,39 @@ def pfad_dauerhaft_ergaenzen(ordner):
         return False
 
 
+def pfad_nachladen():
+    """PATH dieses Prozesses um die frisch von winget eingetragenen
+    Ordner ergaenzen. WICHTIG: Nach 'winget install' kennt der LAUFENDE
+    Prozess den neuen Suchpfad noch nicht - ohne dieses Nachladen wirkt
+    eine ERFOLGREICHE winget-Installation wie fehlgeschlagen, und das
+    Script laedt faelschlich nochmal von GitHub (realer Praxis-Bug)."""
+    if platform.system() != "Windows":
+        return
+    try:
+        import winreg
+        teile = []
+        for wurzel, pfad in ((winreg.HKEY_CURRENT_USER, "Environment"),
+                             (winreg.HKEY_LOCAL_MACHINE,
+                              r"SYSTEM\CurrentControlSet\Control\Session "
+                              r"Manager\Environment")):
+            try:
+                with winreg.OpenKey(wurzel, pfad) as k:
+                    teile.append(winreg.QueryValueEx(k, "Path")[0])
+            except OSError:
+                pass
+        neu = os.pathsep.join(teile)
+        neu = os.path.expandvars(neu)
+        os.environ["PATH"] = os.environ.get("PATH", "") + os.pathsep + neu
+    except Exception as e:
+        print("Hinweis: Suchpfad-Nachladen fehlgeschlagen:", e)
+
+
+def winget_sagt_installiert():
+    """True, wenn winget RTK als installiert fuehrt."""
+    r = run(["winget", "list", "-e", "--id", "rtk-ai.rtk"])
+    return r.returncode == 0 and "rtk-ai.rtk" in (r.stdout or "")
+
+
 def installiere_via_paketmanager():
     """winget (Windows) bzw. brew (macOS) - moderierte Kataloge, denen
     auch vorsichtige Claude-Instanzen vertrauen. None = kein Paketmanager
@@ -142,8 +175,19 @@ def installiere_via_paketmanager():
         r = run(["winget", "install", "--silent",
                  "--accept-package-agreements", "--accept-source-agreements",
                  "-e", "--id", "rtk-ai.rtk"])
-        if r.returncode == 0:
-            return bereits_da()
+        if r.returncode == 0 or winget_sagt_installiert():
+            pfad_nachladen()
+            exe = bereits_da()
+            if exe:
+                return exe
+            # winget meldet Erfolg, aber die Binary ist (noch) nicht
+            # auffindbar: NICHT von GitHub drueberladen - erst nach einem
+            # Neustart der Sitzung greift der neue Suchpfad.
+            if winget_sagt_installiert():
+                print("RTK ist per winget installiert; die Binary wird "
+                      "nach einem Neustart der Sitzung gefunden. Es wird "
+                      "NICHT zusaetzlich von GitHub geladen.")
+                return "NEUSTART_NOETIG"
         print("winget hat nicht geklappt:",
               text(r, "stderr", "stdout")[:200])
     elif sys_name == "Darwin" and shutil.which("brew"):
@@ -195,6 +239,12 @@ def main():
         print(f"RTK ist bereits installiert: {exe}")
     else:
         exe = installiere_via_paketmanager()
+        if exe == "NEUSTART_NOETIG":
+            print("")
+            print("FAST FERTIG: Claude Code einmal neu starten, dann dieses "
+                  "Script erneut ausfuehren - es richtet dann nur noch den "
+                  "Hook ein ('rtk init -g').")
+            return 0
         if not exe:
             print("Kein Paketmanager verfuegbar - lade direkt vom "
                   "offiziellen Release.")

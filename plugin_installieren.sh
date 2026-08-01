@@ -81,6 +81,9 @@ else:
         'version': env('VERSION'),
         'installedAt': env('JETZT'), 'lastUpdated': env('JETZT')}]
     schreib(env('IP'), ip)
+    st = lies(env('SET')) or {}
+    st.setdefault('enabledPlugins', {})[env('NAME') + '@' + env('MP')] = True
+    schreib(env('SET'), st)
 PYEOF
     else
         echo "FEHLER: weder osascript noch node noch python3 gefunden." >&2
@@ -109,6 +112,11 @@ done
 # --- Phase 3: beide Registrierungen ergaenzen (Bestand bleibt) ---------
 export KM="$ROOT/known_marketplaces.json"
 export IP="$ROOT/installed_plugins.json"
+# settings.json liegt eine Ebene ueber dem Plugin-Ordner (~/.claude).
+# Der enabledPlugins-Eintrag SCHALTET das Plugin frei — ohne ihn ist es
+# nur registriert und wird nach dem Neustart nicht geladen (Praxistest).
+export SET="$(dirname "$ROOT")/settings.json"
+[ -f "$SET" ] && cp "$SET" "$SET.vorher-scb"   # Sicherung
 export MP MPDIR CACHEDIR NAME VERSION
 export JETZT=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 run_js '
@@ -123,8 +131,12 @@ run_js '
         scope: "user", installPath: env("CACHEDIR"),
         version: env("VERSION"),
         installedAt: env("JETZT"), lastUpdated: env("JETZT") }];
-    schreib(env("IP"), ip);'
+    schreib(env("IP"), ip);
+    const st = lies(env("SET")) || {};
+    st.enabledPlugins = st.enabledPlugins || {};
+    st.enabledPlugins[env("NAME") + "@" + env("MP")] = true;
+    schreib(env("SET"), st);'
 
-echo "FERTIG: $NAME v$VERSION ist installiert."
+echo "FERTIG: $NAME v$VERSION ist installiert UND freigeschaltet."
 echo "Jetzt Claude Code (oder die Claude-App) einmal neu starten -"
 echo "danach ist das Kit aktiv. Einrichtung starten mit: Richte das SCB Kit ein"

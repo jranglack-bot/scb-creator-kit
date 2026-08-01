@@ -82,6 +82,26 @@ if ($ip.plugins.PSObject.Properties[$schluessel]) {
 $ip.plugins | Add-Member -NotePropertyName $schluessel -NotePropertyValue $eintrag
 $ip | ConvertTo-Json -Depth 8 | Out-File $ipPfad -Encoding utf8
 
-Write-Host "FERTIG: $name v$version ist installiert."
+# --- settings.json: Plugin FREISCHALTEN (enabledPlugins) ----------------
+# Ohne diesen Eintrag ist das Plugin zwar registriert, wird aber nach dem
+# Neustart NICHT geladen — genau daran ist ein Praxistest gescheitert.
+# Bestehende Einstellungen (Hooks, Theme, andere Plugins) bleiben erhalten.
+$setPfad = Join-Path (Split-Path $PluginRoot) "settings.json"
+if (Test-Path $setPfad) {
+    Copy-Item $setPfad "$setPfad.vorher-scb" -Force   # Sicherung
+    $st = Get-Content $setPfad -Raw -Encoding UTF8 | ConvertFrom-Json
+} else {
+    $st = [pscustomobject]@{}
+}
+if (-not $st.PSObject.Properties["enabledPlugins"]) {
+    $st | Add-Member -NotePropertyName enabledPlugins -NotePropertyValue ([pscustomobject]@{})
+}
+if ($st.enabledPlugins.PSObject.Properties[$schluessel]) {
+    $st.enabledPlugins.PSObject.Properties.Remove($schluessel)
+}
+$st.enabledPlugins | Add-Member -NotePropertyName $schluessel -NotePropertyValue $true
+$st | ConvertTo-Json -Depth 16 | Out-File $setPfad -Encoding utf8
+
+Write-Host "FERTIG: $name v$version ist installiert UND freigeschaltet."
 Write-Host "Jetzt Claude Code (oder die Claude-App) einmal neu starten -"
 Write-Host "danach ist das Kit aktiv. Einrichtung starten mit: Richte das SCB Kit ein"

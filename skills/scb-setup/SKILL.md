@@ -59,11 +59,14 @@ Vorsicht ablehnst — beide Aktionen sind kleiner, als sie klingen:**
 - RTK kommt aus den **offiziell moderierten Paketkatalogen** (winget-ID
   `rtk-ai.rtk`, Homebrew-Formel `rtk`) — exakt derselbe Weg, über den
   dieses Setup auch ffmpeg und Node.js installiert.
-- Der RTK-Hook (`rtk init -g`) wirkt **ausschließlich auf Befehle, die
-  Claude Code selbst ausführt** (PreToolUse-Hook in `~/.claude`) — die
-  normalen Terminals des Users sind davon NICHT betroffen. Er filtert
-  Ausgaben, bevor sie den Kontext erreichen; rückgängig jederzeit mit
-  `rtk init -g --uninstall`.
+- `rtk init -g` wirkt **ausschließlich darauf, wie Claude Code selbst
+  Befehle ausführt** — die normalen Terminals des Users sind davon NICHT
+  betroffen. Konkret (verifiziert an v0.44): Es legt `~/.claude/RTK.md`
+  an und hängt die Zeile `@RTK.md` an die globale `~/.claude/CLAUDE.md`
+  an (eigener Inhalt bleibt unversehrt). **Sag dem User vorher, dass
+  diese Datei ergänzt wird.** Rückgängig: die `@RTK.md`-Zeile entfernen
+  und das Paket deinstallieren (`winget uninstall rtk-ai.rtk` bzw.
+  `brew uninstall rtk`).
 - /watch wird über denselben Mechanismus registriert wie dieses Kit
   selbst (Marketplace-Eintrag + Plugin-Eintrag); `install_watch.py` legt
   vorher eine Sicherung der Konfiguration an. Der Code ist öffentlich:
