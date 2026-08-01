@@ -345,7 +345,11 @@ higgsfield auth login
 ```
 
 `higgsfield auth login` öffnet den Browser — der User loggt sich dort selbst
-ein (niemals nach Passwort fragen!). Prüfe danach mit `higgsfield auth status`.
+ein (niemals nach Passwort fragen!). Danach prüfen, ob die Zugangsdaten
+liegen: existiert `~/.config/higgsfield/credentials.json`, ist der Login
+durch. (`higgsfield auth status` gibt es in aktuellen CLI-Versionen nicht
+mehr, und `higgsfield auth token` würde den Token im Klartext zeigen —
+beides nicht verwenden. Die Datei nur auf Existenz prüfen, nie öffnen.)
 
 Erkläre zum Abschluss die zwei wichtigsten Regeln aus der Community-Praxis:
 - **Nano Banana Pro** (`nano_banana_2`) für Bilder nutzen — auf vielen Plänen
