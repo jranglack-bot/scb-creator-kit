@@ -51,9 +51,9 @@ dazwischen. Nicht alles auf einmal bauen.
 ## Stufe 2: Motion Canvas
 
 Kostenloses Open-Source-Werkzeug (MIT), das Animationen als Code beschreibt.
-Kein Konto, keine Lizenz, kein Abo. Braucht **Node.js** — das ist eine
-zusätzliche Installation, deshalb nur einrichten, wenn Stufe 2 wirklich
-gewünscht ist.
+Kein Konto, keine Lizenz, kein Abo. Braucht **Node.js** — das bringt der
+Setup-Assistent bereits mit (Basis-Werkzeuge). Das Projekt-Gerüst unten
+entsteht je Videoprojekt in Sekunden.
 
 ### Einmalig einrichten
 
@@ -128,7 +128,11 @@ klicken. Ergebnis: eine PNG-Sequenz mit Alphakanal unter `output/<projekt>/`.
 eigene Ebene mit Alphakanal ab. Damit lässt sich Grafik **zwischen** Video und
 Person schieben.
 
-**Voraussetzung — nur für diesen Effekt:**
+**Voraussetzung:** Die Pakete `mediapipe`, `opencv-python` und `numpy`
+werden **bereits vom Setup-Assistenten mitinstalliert** (Schritt
+Video-Editor — ausdrücklicher Wunsch von Julian: die Werkzeuge sollen von
+Anfang an auf dem Rechner sein). Fehlen sie doch (Setup übersprungen oder
+pip schlug damals fehl), jetzt nachholen:
 
 ```bash
 <python> -m pip install mediapipe opencv-python numpy
@@ -136,9 +140,6 @@ Person schieben.
 
 Das Modell (`models/selfie_segmenter.tflite`, 244 KB, Apache 2.0) liegt im
 Kit. Kein Download, kein Konto, kein Netzzugriff zur Laufzeit.
-
-**Wer diesen Effekt nicht nutzt, braucht davon nichts** — das Kit läuft
-unverändert ohne diese Pakete.
 
 ```bash
 <python> freistellen.py <geschnittenes_video> <zielbasis>

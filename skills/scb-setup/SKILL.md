@@ -272,6 +272,22 @@ Green-Screen-Clips kostenlos und ohne Account von **pixabay.com/videos**
 Branding.md als `Overlay-Bibliothek: <pfad>` notieren — Claude legt sie
 per Chromakey übers Video, aber nie ungefragt.
 
+**Bewegtgrafik & „Text hinter mir" — wird DIREKT mitinstalliert
+(ausdrücklicher Wunsch von Julian, nicht erst bei der ersten Nutzung):**
+Zum Video-Editor gehört der Skill `motion-grafik`: animierte Ringe und
+Zähler, 3D-Schrift, Lower Thirds (Motion Canvas, kostenlos/MIT) und der
+„Text hinter mir"-Effekt (Person wird per KI freigestellt, läuft komplett
+lokal). Dem User beim Video-Editor-Schritt in einem Satz sagen, dass es
+das gibt. Die Werkzeuge dafür **sofort in diesem Schritt installieren**:
+
+    <python> -m pip install mediapipe opencv-python numpy
+
+(Node.js für Motion Canvas kommt schon aus Schritt 4 mit; das
+Motion-Canvas-Projekt selbst entsteht später je Videoprojekt in Sekunden.)
+Schlägt die pip-Installation fehl: kurz sagen, weiter mit dem Setup —
+sie wird bei der ersten Nutzung nachgeholt, der Einstieg scheitert daran
+nie.
+
 ### Schritt 6: Instagram-Audit & Recherche (Apify)
 
 Frage: „Willst du Profil-Audits und Nischen-Recherche nutzen? Dafür brauchst
