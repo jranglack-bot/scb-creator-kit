@@ -1,6 +1,7 @@
 """Stellt die Person in einem Video frei - fuer den 'Text hinter Subjekt'-Effekt.
 
-    python freistellen.py video.mp4 cutout
+    Windows:   python  freistellen.py video.mp4 cutout
+    Mac/Linux: python3 freistellen.py video.mp4 cutout
 
 Erzeugt zwei Dateien, weil kein Format beides kann:
 

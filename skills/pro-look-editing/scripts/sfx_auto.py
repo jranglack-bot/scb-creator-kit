@@ -4,8 +4,8 @@
 passiert - ohne Bilderkennung, weil die Zeiten schon in der projekt.json
 stehen.
 
-    python sfx_auto.py projekt.json --schnitte --texte
-    python sfx_auto.py projekt.json --schnitte --untertitel --alle-schnitte
+    Windows:   python  sfx_auto.py projekt.json --schnitte --texte
+    Mac/Linux: python3 sfx_auto.py projekt.json --schnitte --untertitel --alle-schnitte
 
 Zuordnung (siehe Tabelle in SKILL.md):
 
