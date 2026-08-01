@@ -5,12 +5,19 @@
 Claude ruft dieses Script auf, nachdem der User zugestimmt hat.
 Der User muss KEIN Terminal oeffnen und nichts abtippen.
 
-    python install_rtk.py
+    Windows:   python  install_rtk.py
+    Mac/Linux: python3 install_rtk.py
 
 Rueckgabe: Exit 0 = fertig, Exit 1 = fehlgeschlagen (Grund steht dabei).
 
-Laedt direkt das passende Paket aus dem offiziellen GitHub-Release.
-Kein Homebrew noetig, keine Paketquellen, keine sudo-Rechte.
+Bevorzugter Weg sind die MODERIERTEN Paketkataloge - derselbe Weg, ueber
+den das Kit auch ffmpeg und Node installiert:
+
+    Windows: winget install rtk-ai.rtk   (offizieller winget-Katalog)
+    macOS:   brew install rtk            (Homebrew-Formel, homebrew-core)
+
+Nur wenn kein Paketmanager da ist, laedt das Script das passende Paket
+direkt aus dem offiziellen GitHub-Release (rtk-ai/rtk).
 """
 import io
 import os
@@ -124,6 +131,30 @@ def pfad_dauerhaft_ergaenzen(ordner):
         return False
 
 
+def installiere_via_paketmanager():
+    """winget (Windows) bzw. brew (macOS) - moderierte Kataloge, denen
+    auch vorsichtige Claude-Instanzen vertrauen. None = kein Paketmanager
+    da oder Installation fehlgeschlagen -> Direkt-Download versuchen."""
+    sys_name = platform.system()
+    if sys_name == "Windows" and shutil.which("winget"):
+        print("Installiere RTK aus dem offiziellen winget-Katalog "
+              "(rtk-ai.rtk) ...")
+        r = run(["winget", "install", "--silent",
+                 "--accept-package-agreements", "--accept-source-agreements",
+                 "-e", "--id", "rtk-ai.rtk"])
+        if r.returncode == 0:
+            return bereits_da()
+        print("winget hat nicht geklappt:",
+              text(r, "stderr", "stdout")[:200])
+    elif sys_name == "Darwin" and shutil.which("brew"):
+        print("Installiere RTK ueber Homebrew (brew install rtk) ...")
+        r = run(["brew", "install", "rtk"])
+        if r.returncode == 0:
+            return bereits_da() or shutil.which("rtk")
+        print("brew hat nicht geklappt:", text(r, "stderr", "stdout")[:200])
+    return None
+
+
 def installiere():
     schluessel = (platform.system(), arch())
     asset = ASSETS.get(schluessel)
@@ -163,7 +194,11 @@ def main():
     if exe:
         print(f"RTK ist bereits installiert: {exe}")
     else:
-        exe = installiere()
+        exe = installiere_via_paketmanager()
+        if not exe:
+            print("Kein Paketmanager verfuegbar - lade direkt vom "
+                  "offiziellen Release.")
+            exe = installiere()
         if not exe:
             return 1
 

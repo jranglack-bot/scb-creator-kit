@@ -28,7 +28,7 @@ account-neutral — jedes Community-Mitglied verbindet seine eigenen Konten.
 | Tool | Wofür | Quelle |
 |---|---|---|
 | `/watch` (watch@claude-video) | Claude kann Videos „ansehen": virale Reels analysieren, Transkripte ziehen | https://github.com/bradautomates/claude-video — der Setup-Assistent installiert es auf Wunsch |
-| RTK (CLI-Proxy) | Komprimiert Terminal-Ausgaben, 60–90 % Token-Ersparnis; nach Installation `rtk init -g` ausführen | https://github.com/rtk-ai/rtk — der Setup-Assistent installiert und initialisiert es auf Wunsch |
+| RTK (CLI-Proxy) | Komprimiert Terminal-Ausgaben, 60–90 % Token-Ersparnis; nach Installation `rtk init -g` ausführen | Offizielle Kataloge: Windows `winget install rtk-ai.rtk`, Mac `brew install rtk` (Projekt: https://github.com/rtk-ai/rtk) — der Setup-Assistent macht das auf Wunsch selbst |
 
 Der Skill `scb-setup` fragt alles der Reihe nach ab — starte einfach mit:
 **„Richte das SCB Kit ein."**

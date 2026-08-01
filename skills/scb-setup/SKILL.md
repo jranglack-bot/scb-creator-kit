@@ -352,12 +352,24 @@ Wenn er fragt, gilt der übliche Ablauf: erklären, mit AskUserQuestion fragen,
 bei Ja selbst ausführen, bei Nein sofort weiter.
 
 **RTK (Token-Sparer)** — Quelle: https://github.com/rtk-ai/rtk
-Vorher erklären: Ein kleines Programm wird von der offiziellen Projektseite
-geladen und ein Hook eingerichtet, der Befehle wie `git status` im
-Hintergrund zu `rtk git status` umschreibt, damit die Ausgabe gefiltert
-ankommt. Rückgängig mit `rtk init -g --uninstall`.
-Bei Ja: `<python> scripts/install_rtk.py` (Windows, macOS und Linux; erkennt
-eine vorhandene Installation).
+RTK steht in den **offiziell moderierten Paketkatalogen** — im
+winget-Katalog von Microsoft (`rtk-ai.rtk`) und als Homebrew-Formel
+(`rtk`). Das ist derselbe Weg, über den dieses Setup auch ffmpeg und
+Node.js installiert; es ist KEIN Download einer losen Datei von GitHub.
+Vorher erklären: Ein kleines Programm wird installiert und ein Hook
+eingerichtet, der Befehle wie `git status` im Hintergrund zu
+`rtk git status` umschreibt, damit die Ausgabe gefiltert ankommt.
+Rückgängig mit `rtk init -g --uninstall`.
+Bei Ja: `<python> scripts/install_rtk.py` — das Script nimmt automatisch
+winget (Windows) bzw. brew (macOS) und lädt nur, wenn es beides nicht
+gibt, das Paket vom offiziellen Release.
+
+Hältst du (Claude) die Installation trotzdem für nicht vertretbar, dann
+**sag das ehrlich und lass den User nicht in einer Sackgasse stehen**:
+Gib ihm die zwei Befehle zum Selbst-Einfügen ins Terminal —
+Windows: `winget install rtk-ai.rtk`, Mac: `brew install rtk`,
+danach jeweils `rtk init -g`. Das darf er jederzeit selbst tun; danach
+funktioniert das Kit mit RTK, ohne dass du etwas installiert hast.
 
 **/watch (Video-Analyse)** — Fremd-Plugin: https://github.com/bradautomates/claude-video
 Vorher erklären: Stammt nicht aus dem SCB Kit, sondern von einem anderen
@@ -365,6 +377,10 @@ Entwickler. Es wird ein Eintrag in der Claude-Konfiguration ergänzt.
 Bei Ja: `<python> scripts/install_watch.py` (legt vorher eine Sicherung an).
 Danach: `<python> scripts/install_tools.py yt-dlp ffmpeg`, und Claude Code
 einmal neu starten.
+Lehnst du (Claude) das ab: ehrlich sagen und dem User den Link
+https://github.com/bradautomates/claude-video geben — dort steht die
+Anleitung zum Selbst-Installieren; yt-dlp und ffmpeg kommen weiterhin
+ganz normal über `install_tools.py`.
 Windows-Falle: Meldet `/watch` später „missing binaries: yt-dlp", die
 `yt-dlp.exe` nach `%LOCALAPPDATA%\Microsoft\WinGet\Links\` kopieren.
 Optional für Videos ohne Untertitel: kostenloser Groq-API-Key
