@@ -20,9 +20,8 @@ dem Skill `reel-layout` — Reels und Stories unterscheiden sich!
 
 ## Stil-Profil: einmal einrichten, für immer nutzen
 
-Bevor irgendetwas gefragt wird: Prüfe, ob in Obsidian
-`00 Kontext/Branding.md` ein **Untertitel-Profil** existiert (Codeblock mit
-der Sprachmarkierung `untertitel-profil`). Wenn ja → still verwenden, KEINE
+Bevor irgendetwas gefragt wird: Prüfe, ob in Claudes Memory ein
+**Untertitel-Profil** existiert (Eintrag `untertitel-profil`). Wenn ja → still verwenden, KEINE
 Stilfragen stellen. Format:
 
 ```untertitel-profil
@@ -135,8 +134,8 @@ Für B-Roll-Content (Stock-/Stimmungs-Video mit Botschaft als Text) ist der
 Text das Hauptelement — Gestaltung aktiv mit dem User klären, statt Standard
 zu nehmen:
 
-1. **Stil erfragen oder aus Obsidian ziehen:** Liegt im Vault unter
-   `00 Kontext/Branding.md` ein definierter Look (Schriftart, Farben)?
+1. **Stil erfragen oder aus dem Gedächtnis ziehen:** Liegt in Claudes
+   Memory ein definierter Look (Schriftart, Farben)?
    → verwenden. Sonst kurz fragen: „Welcher Stil — cleaner weißer Text,
    Text mit farbiger Box dahinter, oder was Eigenes?"
 2. **Frei wählbar sind:**
@@ -156,7 +155,7 @@ zu nehmen:
 4. **Vorher eine Stil-Vorschau zeigen:** einen Beispiel-Frame mit dem
    gestalteten Text rendern und dem User zur Freigabe zeigen, BEVOR das
    ganze Video gerendert wird.
-5. Gewählten Stil in Obsidian (`00 Kontext/Branding.md`) notieren, damit er
+5. Gewählten Stil als Memory `untertitel-profil` merken, damit er
    beim nächsten Mal ohne Nachfragen wiederverwendet wird.
 
 ## Schritt 4: Einbrennen

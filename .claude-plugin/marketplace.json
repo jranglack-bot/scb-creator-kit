@@ -1,6 +1,6 @@
 {
   "name": "scb-creator-kit",
-  "description": "Creator-Toolkit der SCB Community: KI-Reels, Auto-Schnitt, Hook-Formeln, Auto-Posting und Obsidian-Gehirn für Claude.",
+  "description": "Creator-Toolkit der SCB Community: KI-Reels, Auto-Schnitt, Hook-Formeln und Auto-Posting für Claude.",
   "owner": {
     "name": "Julian Ranglack"
   },
@@ -8,7 +8,7 @@
     {
       "name": "scb-creator-kit",
       "source": "./",
-      "description": "Das Creator-Toolkit der SCB Community: KI-Reels generieren, Videos automatisch schneiden, Hook-Formeln, Auto-Posting und Obsidian-Gehirn."
+      "description": "Das Creator-Toolkit der SCB Community: KI-Reels generieren, Videos automatisch schneiden, Hook-Formeln und Auto-Posting."
     }
   ]
 }

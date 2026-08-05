@@ -94,7 +94,6 @@ Unterschied zwischen "hat viele Follower" und "wächst gerade".
 1. Nische und Zielgröße klären („Welche Nische, wie viele Accounts?").
 2. Günstigsten Such-/Scraper-Actor wählen, Kosten schätzen, bestätigen lassen.
 3. Ergebnisse verdichten: Wer wächst, welche Formate laufen, welche Hooks
-   wiederholen sich? (Muster → in Obsidian `03 Hooks` sammeln, Skill
-   `obsidian-gehirn`.)
+   wiederholen sich? (Muster dauerhaft als Memory sammeln.)
 4. Ableitungen für den eigenen Content vorschlagen — Strukturen übernehmen,
    nie Texte 1:1 kopieren.

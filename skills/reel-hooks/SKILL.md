@@ -71,8 +71,7 @@ Beim ERSTEN Sales-Reel für einen User klären:
   Lebensmittel …), KEIN generisches START/WIE/INFO/READY — fällt im Feed auf,
   filtert Bots und verwechselt sich nicht mit anderen Funnels. 2–3 Vorschläge
   machen, User entscheidet.
-- Das gewählte Keyword **dauerhaft merken** (Memory + Obsidian `00 Kontext/
-  Angebote.md`, siehe Skill `obsidian-gehirn`) — ab dann in jedem Sales-Reel
+- Das gewählte Keyword **dauerhaft als Memory merken** — ab dann in jedem Sales-Reel
   automatisch verwenden, nicht erneut fragen.
 
 ### Hook-Varianten für Block 1
@@ -101,5 +100,4 @@ Beim ERSTEN Sales-Reel für einen User klären:
   Untertitel in der Safe-Zone halten → Skill `reel-layout`.
 - Das Video selbst braucht ab Frame 1 echte Bewegung und einen visuellen
   Hook — kein Standbild mit Wackel-Effekt (→ Kling/Seedance-Prompt-Builder).
-- Neue Hooks, die funktionieren, in Obsidian unter `03 Hooks` sammeln
-  (→ Skill `obsidian-gehirn`).
+- Neue Hooks, die funktionieren, dauerhaft als Memory sammeln.

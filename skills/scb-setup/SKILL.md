@@ -3,7 +3,7 @@ name: scb-setup
 description: >
   Setup-Assistent für das SCB Creator Kit. Führt neue Community-Mitglieder
   Schritt für Schritt durch die Einrichtung: prüft welche Tools und Accounts
-  vorhanden sind (Higgsfield, Make, Airtable, Obsidian, ffmpeg, Node.js) und
+  vorhanden sind (Higgsfield, Make, Airtable, ffmpeg, Node.js) und
   richtet nur das ein, was gewünscht ist. Verwende diesen Skill, wenn jemand
   sagt: "richte das SCB Kit ein", "Setup starten", "SCB Setup", "hilf mir bei
   der Einrichtung", "was brauche ich für das Creator Kit", oder direkt nach
@@ -27,12 +27,11 @@ Begrüße den User und zeige kurz, was das Kit kann:
 >
 > 1. **Token-Sparer (RTK)** — komprimiert Claudes Terminal-Ausgaben, dein Kontingent hält deutlich länger
 > 2. **Video-Analyse (/watch)** — Claude kann Videos „ansehen": virale Reels analysieren und daraus lernen
-> 3. **Obsidian-Gehirn** — Claude merkt sich alles über dich in deinem eigenen Vault
-> 4. **Video-Editor** — Videos automatisch schneiden, Untertitel, Musik, Voiceover, Texte — mit Browser-Cockpit und Ein-Klick-Render
-> 5. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify
-> 6. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
-> 7. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
-> 8. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
+> 3. **Video-Editor** — Videos automatisch schneiden, Untertitel, Musik, Voiceover, Texte — mit Browser-Cockpit und Ein-Klick-Render
+> 4. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify
+> 5. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
+> 6. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
+> 7. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
 >
 > Ich richte jetzt mit dir ein, was du davon nutzen willst — du brauchst
 > nichts vorzubereiten.
@@ -41,8 +40,8 @@ Frage dann (mit AskUserQuestion, multiSelect), welche Bereiche eingerichtet
 werden sollen — **der Token-Sparer und /watch stehen mit zur Auswahl**.
 Richte anschließend NUR die gewählten Bereiche ein, in der Reihenfolge
 unten: **RTK zuerst** (jeder weitere Schritt verbraucht dann schon weniger
-Kontingent), **direkt danach das Obsidian-Gedächtnis**, damit sich Claude
-ab der ersten Minute alles merkt.
+Kontingent), **direkt danach das Kennenlernen**, damit sich Claude ab der
+ersten Minute alles merkt.
 
 **Zu RTK und /watch (gleiche Priorität, beide Pflichtangebot):** Beides
 ist Fremdsoftware und nichts im Kit hängt davon ab — deshalb sind sie eine
@@ -140,43 +139,35 @@ er Claude Code einmal neu startet, und dort weitermachen.
 
 Erst wenn Python läuft, mit dem nächsten Schritt fortfahren.
 
-### Schritt 3: Obsidian-Gehirn (direkt danach)
+### Schritt 3: Kennenlernen (direkt danach)
 
 **Warum so früh:** Alles, was der User ab jetzt erzählt (Zielgruppe, Angebot,
-Keyword, Schreibstil), wird sofort dauerhaft gespeichert — und jeder spätere
-Setup-Schritt und jeder künftige Auftrag baut darauf auf.
+Keyword, Schreibstil), wird sofort dauerhaft in Claudes Gedächtnis gelegt —
+und jeder spätere Setup-Schritt und jeder künftige Auftrag baut darauf auf.
 
-Sag: „Bevor wir Technik installieren, richten wir Claudes Gedächtnis ein —
-so merke ich mir ab sofort alles über dich und deinen Content. Nutzt du
-schon Obsidian (kostenlose Notiz-App)?"
+Sag: „Bevor wir Technik installieren, lerne ich dich kurz kennen — was du
+mir jetzt erzählst, merke ich mir dauerhaft und nutze es in jedem Reel."
 
-- **Nein, kenne ich nicht** → Kurz erklären: kostenlos von
-  https://obsidian.md herunterladen, installieren, beim ersten Start einen
-  neuen Vault (= Ordner) anlegen, empfohlener Name: „Claude Gehirn". Warten,
-  bis das erledigt ist.
-- **Ja** → Nach dem Vault-Pfad fragen (oder auf der Platte nach `.obsidian`-
-  Ordnern suchen und den Fund bestätigen lassen).
+**Kennenlern-Interview:** Stelle vier kurze Fragen, eine nach der anderen,
+und **sichere jede Antwort sofort als Memory** (nicht bis zum Ende warten —
+bricht das Gespräch ab, ist sonst alles verloren):
 
-Übergib dann an den Skill `obsidian-gehirn`: Ordnerstruktur anlegen
-(00 Kontext / 01 Inbox / 02 Claude Memory / 03 Hooks) und die automatische
-Memory-Spiegelung einrichten.
-
-**Kennenlern-Interview (direkt im Anschluss):** Stelle vier kurze Fragen,
-eine nach der anderen, und lege jede Antwort sofort in die passende Notiz
-unter `00 Kontext/` ab (zusätzlich als Memory merken):
-
-1. „Wer ist deine Zielgruppe — für wen machst du Content?" → `ICP.md`
-2. „Was bietest du an bzw. wohin willst du deine Follower führen?" → `Angebote.md`
+1. „Wer ist deine Zielgruppe — für wen machst du Content?" → Memory `zielgruppe`
+2. „Was bietest du an bzw. wohin willst du deine Follower führen?" → Memory `angebot`
 3. „Hast du schon ein Kommentar-Keyword für deinen DM-Funnel (das Wort, das
-   Leute unter deine Reels schreiben)?" → `Angebote.md` — falls nein, das
+   Leute unter deine Reels schreiben)?" → Memory `dm-keyword` — falls nein, das
    klärt später der Skill `reel-hooks` beim ersten Sales-Reel.
 4. „Beschreib deinen Schreibstil in 2–3 Sätzen — oder schick mir 1–2
-   Beispieltexte von dir (Captions, Posts)." → `Schreibstil.md`
+   Beispieltexte von dir (Captions, Posts)." → Memory `schreibstil`
 
 Kann der User etwas noch nicht beantworten: überspringen und sagen, dass
-Claude die Notiz später beim Arbeiten von selbst füllt. Will der User KEIN
-Obsidian: weiter ohne — alles funktioniert, nur ohne sichtbares Gedächtnis;
-das Interview trotzdem anbieten und die Antworten als normale Memories sichern.
+Claude es später beim Arbeiten von selbst ergänzt.
+
+Ebenfalls als Memory gehören alle **Profile**, die später gebraucht werden —
+`untertitel-profil` (Schriftstil der Untertitel), `karussell-profil` (Farben
+und Schrift der Karussells) und `SFX-Bibliothek` (Pfad zu eigenen Sounds).
+Die Skills legen sie beim ersten Mal selbst an; hier nur erwähnen, dass
+Claude sich das dauerhaft merkt und nicht zweimal fragt.
 
 ### Schritt 4: Basis-Werkzeuge prüfen (immer)
 
@@ -250,8 +241,8 @@ Key im Chat wiederholen oder in Notizen ablegen.
 **Sound-Effekte (optional erwähnen):** Das Kit bringt sechs lizenzfreie
 Basis-Sounds mit (Whoosh, Klick, Pop …). Wer hochwertigere will: kostenlos
 bei **pixabay.com/sound-effects** oder **mixkit.co/free-sound-effects**
-Favoriten laden, in einen Ordner legen und den Pfad in Obsidian
-`00 Kontext/Branding.md` als `SFX-Bibliothek: <pfad>` notieren. Wichtig
+Favoriten laden, in einen Ordner legen und den Pfad als Memory
+`SFX-Bibliothek: <pfad>` merken lassen. Wichtig
 erklären: Claude baut Sounds NIE automatisch ein — es fragt immer erst.
 
 **Hintergrundmusik (optional erwähnen):** Für Musikbetten mit Auto-Ducking
@@ -385,7 +376,7 @@ Fasse zusammen, was eingerichtet wurde und was der User jetzt sagen kann:
 > - „Schreib mir ein Reel" → Hook-Formeln & Reel-Struktur (fragt nach deinem Keyword)
 > - „Mach ein Audit von meinem Profil" → Apify-Analyse + Verbesserungen
 > - „Richte mein Auto-Posting ein" → Airtable + Make Aufbau
-> - „Merk dir: …" → landet in deinem Obsidian-Gehirn
+> - „Merk dir: …" → landet dauerhaft in Claudes Gedächtnis
 
 Wenn etwas übersprungen wurde: erwähnen, dass `scb-setup` jederzeit erneut
 gestartet werden kann.

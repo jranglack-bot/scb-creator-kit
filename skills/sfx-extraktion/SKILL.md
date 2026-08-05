@@ -58,10 +58,10 @@ ffmpeg -y -ss <start> -to <ende> -i reel.mp4 -vn -c:a libmp3lame -b:a 320k <name
 
 ## Schritt 4: In die SFX-Bibliothek einsortieren
 
-1. Bibliothekspfad aus Obsidian `00 Kontext/Branding.md` lesen (Zeile
+1. Bibliothekspfad aus Claudes Memory lesen (Eintrag
    `SFX-Bibliothek: <pfad>`).
-2. Existiert noch keine: Ordner anlegen (z. B. `Dokumente\SFX`), Zeile in
-   Branding.md eintragen — einmalig, danach automatisch.
+2. Existiert noch keine: Ordner anlegen (z. B. `Dokumente\SFX`) und den
+   Pfad als Memory merken — einmalig, danach automatisch.
 3. MP3s dorthin verschieben, kurz zusammenfassen was jetzt in der
    Bibliothek liegt.
 

@@ -40,7 +40,7 @@ Config-JSON**, das Script rendert alle Folien und einen Kontaktbogen.
 
 ### 2. Vorlage & Branding (einmal einrichten, immer nutzen)
 
-`karussell-profil` aus Obsidian `00 Kontext/Branding.md` lesen (Codeblock
+`karussell-profil` aus Claudes Memory lesen (Eintrag
 mit bg1/bg2/accent/text/font/account + `fotos: ja/nein` und ggf.
 Foto-Pfaden). Fehlt es: **den User fragen, wie er seine Karussells haben
 will** — Farben/Schrift (aus dem Untertitel-Profil ableitbar oder per

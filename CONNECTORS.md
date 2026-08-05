@@ -21,7 +21,6 @@ account-neutral — jedes Community-Mitglied verbindet seine eigenen Konten.
 | Make.com | Posting-Automatisierung | Claude-Connector + Szenario in deinem Make-Account |
 | Apify | Profil-Audit & Nischen-Recherche | Claude-Connector oder Token: console.apify.com → Settings → API & Integrations |
 | Instagram | Ziel-Plattform | Business-/Creator-Konto, in Make verbunden |
-| Obsidian | Zweites Gehirn / Notizen | lokale App, Vault-Pfad wird beim Setup abgefragt |
 
 ## Empfohlene Zusatz-Tools (Drittanbieter)
 

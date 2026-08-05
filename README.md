@@ -9,7 +9,7 @@ einem Setup-Assistenten.
 
 | Skill | Was er kann | So startest du ihn |
 |---|---|---|
-| **scb-setup** | Setup-Assistent: fragt ab, was du hast (Higgsfield, Make, Airtable, Obsidian …) und richtet alles ein | „Richte das SCB Kit ein" |
+| **scb-setup** | Setup-Assistent: fragt ab, was du hast (Higgsfield, Make, Airtable …) und richtet alles ein | „Richte das SCB Kit ein" |
 | **kling-prompt-builder** | Führt dich zu einem perfekten Kling-3.0-Prompt (spart Credits) | „Bau mir einen Kling-Prompt" |
 | **seedance-prompt-builder** | Shot-für-Shot-Prompts für Seedance 2.0 | „Schreib mir einen Seedance-Prompt" |
 | **video-model-prompting** | Verifizierte Prompt-Regeln pro Videomodell (Seedance 2.0, Kling 3.0, Veo 3.1, Gemini Omni Flash) — Modell-Eigenheiten, Kamera-Vokabular, bekannte Fallen | läuft automatisch beim Prompt-Schreiben |
@@ -25,7 +25,6 @@ einem Setup-Assistenten.
 | **karussell-posts** | Komplette Instagram-Karussells (1080×1350): Texte nach Hook-Formel, gebrandete Folien aus Templates (gerendert vom vorinstallierten Browser — nichts zu installieren), Kontrolle über einen Kontaktbogen | „Mach mir ein Karussell zu [Thema]" |
 | **video-projekt** | Projekt-Modus mit Video-Cockpit: Browser-Editor zum Schnitte-Verschieben (Timeline mit rot markierten Schnitten), Untertitel-Ziehen und Bild-im-Bild-Skalieren — Feinarbeit kostet 0 Tokens; Stufen-Rendering + Editierbar-Export für Canva/CapCut (Master + SRT) | „Ich will die Schnitte selbst prüfen" / „Mach es editierbar" |
 | **motion-grafik** | Aufwendige Bewegtgrafik, die das Cockpit nicht kann: animierte Ringe & hochzählende Zahlen, extrudierte 3D-Schrift, Lower Thirds — plus der „Text schwebt hinter mir"-Effekt, bei dem du freigestellt wirst und vor der Grafik stehst | „Ich will einen 3D-Effekt" / „Text soll hinter mir schweben" |
-| **obsidian-gehirn** | Claude merkt sich alles über dich in deinem Obsidian-Vault | „Verbinde Obsidian" |
 
 ### Optionale Extras (bewusst nicht Teil der Einrichtung)
 
@@ -53,7 +52,7 @@ Der Setup-Assistent führt dich in dieser Reihenfolge durch — bewusst so
 gewählt, damit dein Kontingent von Anfang an geschont wird:
 
 1. **Token-Sparer (RTK)** — zuerst, dann verbraucht alles Weitere schon weniger
-2. **Obsidian-Gehirn** — Claude merkt sich ab Minute 1 alles über dich
+2. **Kennenlernen** — Claude merkt sich ab Minute 1 alles über dich
 3. **Video-Editor** — Schneiden, Cockpit, Untertitel, Ein-Klick-Render
 4. **Content-Recherche** — Apify (Audits, Nischen) + /watch (Reels analysieren)
 5. **Auto-Posting** — Airtable + Make
@@ -112,7 +111,6 @@ Danach: „Richte das SCB Kit ein"
 - **Video-Schnitt & Untertitel:** kostenloser ElevenLabs-API-Key + ffmpeg (installiert der Assistent)
 - **Auto-Posting:** Airtable- + Make.com-Account, Instagram Business-/Creator-Konto
 - **Audit & Recherche:** kostenloses Apify-Konto (apify.com)
-- **Obsidian-Gehirn:** Obsidian (kostenlos, obsidian.md)
 
 Nichts davon ist Pflicht — der Setup-Assistent richtet nur ein, was du nutzen willst.
 
