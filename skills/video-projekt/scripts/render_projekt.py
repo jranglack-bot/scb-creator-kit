@@ -97,10 +97,50 @@ def vol_expr(regions, base):
     return expr
 
 
+def cache_frisch(out, src, schluessel):
+    """True, wenn <out> schon zu genau diesem Zustand gehoert.
+
+    Schneiden dauert bei einem 20-s-Reel gut eine Minute und liefert bei
+    gleicher Quelle + gleicher Schnittliste jedes Mal exakt dasselbe. Der
+    Schluessel steht neben der Datei (<out>.cache.json) und enthaelt Pfad,
+    mtime und Groesse der Quelle plus alle Parameter. Aendert Julian im
+    Cockpit einen Schnitt, passt der Schluessel nicht mehr und es wird neu
+    gerechnet - gleiche Idee wie beim vorhandenen Stabilisierungs-Cache.
+    """
+    marke = out + '.cache.json'
+    if not (os.path.exists(out) and os.path.exists(marke)):
+        return False
+    try:
+        st = os.stat(src)
+        jetzt = {'src': os.path.abspath(src), 'mtime': st.st_mtime,
+                 'size': st.st_size, 'p': schluessel}
+        with open(marke, encoding='utf-8') as f:
+            return json.load(f) == json.loads(json.dumps(jetzt))
+    except Exception:
+        return False
+
+
+def cache_merken(out, src, schluessel):
+    try:
+        st = os.stat(src)
+        with open(out + '.cache.json', 'w', encoding='utf-8') as f:
+            json.dump({'src': os.path.abspath(src), 'mtime': st.st_mtime,
+                       'size': st.st_size, 'p': schluessel}, f)
+    except Exception:
+        pass
+
+
 def prep(src, out, cuts, regions, base=1.0):
     """Lautstaerke (Quellzeiten) einrechnen + Schnitte entfernen."""
     if not cuts and not regions:
         return src
+
+    schluessel = {'cuts': [list(c) for c in cuts],
+                  'regions': [list(r) for r in regions], 'base': base}
+    ziel = out if has_video(src) else os.path.splitext(out)[0] + '.m4a'
+    if cache_frisch(ziel, src, schluessel):
+        print('unveraendert - benutze {} aus dem Cache'.format(ziel))
+        return ziel
     af, vf = [], None
     if regions:
         af.append("volume='{}':eval=frame".format(vol_expr(regions, base)))
@@ -122,12 +162,60 @@ def prep(src, out, cuts, regions, base=1.0):
             cmd += ['-af', ','.join(af)]
         cmd += ['-vn', '-c:a', 'aac', '-b:a', '192k', out]
     run(cmd)
+    cache_merken(out, src, schluessel)
     return out
 
 
 def regions_for(pj, track):
     return [(float(r['start']), float(r['end']), float(r['gain']))
             for r in (pj.get('volumes') or []) if r.get('track') == track]
+
+
+FS = os.path.join(PRO, 'freistellen.py')
+
+
+def freistellung(input_file, fs, source, master_cuts):
+    """Stellt die Person im GESCHNITTENEN Video frei und liefert den
+    fertigen overlays-Eintrag (Person als oberste Ebene).
+
+    projekt.json:  "freistellung": {"von": 2.2, "bis": 6.55}
+    Zeiten in Output-Zeit des fertigen Videos — wie bei allen Effekten.
+
+    Gecacht ueber Quelle + Schnittliste + Zeitfenster: r_main.mp4 wird bei
+    jedem Render neu geschrieben, deshalb taugt dessen mtime nicht als
+    Schluessel. Ergebnisdateien: freisteller.mkv (Render) + .webm (Cockpit-
+    Vorschau) — beide erzeugt freistellen.py in einem Durchgang.
+    """
+    von = float(fs.get('von') or 0)
+    bis = fs.get('bis')
+    st = os.stat(source)
+    stand = json.loads(json.dumps({
+        'src': os.path.abspath(source), 'mtime': st.st_mtime,
+        'size': st.st_size, 'cuts': [list(c) for c in master_cuts],
+        'von': von, 'bis': bis}))
+    alt = None
+    if os.path.isfile('freisteller_cache.json'):
+        try:
+            with open('freisteller_cache.json', encoding='utf-8') as f:
+                alt = json.load(f)
+        except Exception:
+            alt = None
+    if alt != stand or not os.path.isfile('freisteller.mkv'):
+        cmd = [sys.executable, FS, input_file, 'freisteller']
+        if von > 0 or bis is not None:
+            cmd.append(str(von))
+        if bis is not None:
+            cmd.append(str(float(bis)))
+        run(cmd)
+        with open('freisteller_cache.json', 'w', encoding='utf-8') as f:
+            json.dump(stand, f)
+    else:
+        print('Freistellung unveraendert - benutze freisteller.mkv aus dem Cache')
+    eintrag = {'file': os.path.abspath('freisteller.mkv'),
+               'alpha': True, 'fullframe': True}
+    if von > 0:
+        eintrag['start'] = von
+    return eintrag
 
 
 def main():
@@ -322,6 +410,15 @@ def main():
         if k in ('punchin', 'grade', 'grain', 'transition', 'progressbar',
                  'broll', 'overlays', 'sfx', 'voice_master', 'loudnorm'):
             cfg[k] = v
+
+    # --- Freistellung ("hinter mir"): automatisch aus der projekt.json -----
+    # "freistellung": {"von": 2.2, "bis": 6.55} genuegt; der Render stellt
+    # die Person selbst frei (gecacht) und haengt sie als OBERSTE Ebene an —
+    # Grafik-overlays liegen damit hinter der Person.
+    fs = pj.get('freistellung') or {}
+    if fs and fs.get('enabled', True):
+        cfg['overlays'] = ((cfg.get('overlays') or [])
+                           + [freistellung(input_file, fs, source, master_cuts)])
 
     with open('render_config.json', 'w', encoding='utf-8') as f:
         json.dump(cfg, f, indent=1)

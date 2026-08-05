@@ -135,15 +135,59 @@ Anfang an auf dem Rechner sein). Fehlen sie doch (Setup übersprungen oder
 pip schlug damals fehl), jetzt nachholen:
 
 ```bash
-<python> -m pip install mediapipe opencv-python numpy
+<python> -m pip install mediapipe opencv-python numpy onnxruntime
 ```
 
-Das Modell (`models/selfie_segmenter.tflite`, 244 KB, Apache 2.0) liegt im
-Kit. Kein Download, kein Konto, kein Netzzugriff zur Laufzeit.
+Unter **Windows** stattdessen `onnxruntime-directml` installieren: rechnet auf
+der Grafikkarte (auch Intel-Onboard), gemessen ~2× schneller bei identischer
+Alphamaske. Das Script erkennt das selbst und fällt sonst auf die CPU zurück —
+auf macOS bleibt es beim normalen `onnxruntime`.
+
+Beide Modelle liegen im Kit unter `models/`: `selfie_segmenter.tflite`
+(244 KB, Apache 2.0) und `rvm_mobilenetv3_fp32.onnx` (14 MB, Robust Video
+Matting). Kein Download, kein Konto, kein Netzzugriff zur Laufzeit.
 
 ```bash
-<python> freistellen.py <geschnittenes_video> <zielbasis>
+<python> freistellen.py <geschnittenes_video> <zielbasis> [von_sek] [bis_sek]
 ```
+
+### Zwei Verfahren — und wann welches
+
+| | `rvm` (Standard) | `mediapipe` |
+|---|---|---|
+| Art | Matting-Netz, echter Alphakanal | Segmentierer, 256×256-Maske hochgezogen |
+| Zeitbezug | rekurrent, kennt das vorherige Bild | keiner, jedes Bild einzeln |
+| Kanten | weich, inkl. Haaransatz | hart, treppig, flackernd |
+| Tempo | ~1 Bild/s (CPU) | ~6 Bilder/s |
+
+**Liegt Grafik HINTER der Person, immer `rvm`.** Der Selfie-Segmenter flackert,
+und das einzige Gegenmittel — die zeitliche Glättung — lässt die Maske bei
+schnellen Bewegungen nachziehen. Das erzeugt eine halbdurchsichtige
+Geisterkopie der vorherigen Position. Solange unter der Person derselbe
+Hintergrund liegt, sieht man das nicht; mit Grafik darunter fliegt es sofort
+auf. `mediapipe` reicht, wenn der Freisteller nur weichgezeichnet oder
+eingefärbt wird.
+
+### Nur den nötigen Abschnitt rechnen
+
+Bei rund einer Sekunde pro Bild lohnt sich `von`/`bis` erheblich: liegt die
+Grafik nur vier Sekunden hinter der Person, sind das 130 statt 600 Bilder —
+zwei Minuten statt einer Viertelstunde. Die Ausgabe beginnt dann bei `von_sek`,
+im `overlays`-Eintrag entsprechend `"start"` setzen. Dieselbe Logik wie bei
+Google Omni: nur rechnen, was sich wirklich ändert.
+
+Optionen: `--modell rvm|mediapipe`, `--glaettung` (nur mediapipe),
+`--erosion` (Standard: rvm 0, mediapipe 2), `--weich`, `--farbe original|fgr`
+und `--lowcut` (beide nur rvm).
+
+**Wichtig bei rvm:** Standard ist `--farbe original` — der Freisteller trägt
+die Originalpixel des Videos. Liegt er (wie im Kit üblich) über demselben
+Video plus Grafik, mischen halbtransparente Kanten echten Inhalt mit der
+Grafik — das sieht aus wie natürliche Bewegungsunschärfe. Die RVM-Farb-
+schätzung (`fgr`) erzeugt dort Geisterkanten auf dunklen Flächen; sie ist
+nur richtig, wenn die Person vor einen KOMPLETT anderen Hintergrund gesetzt
+wird. `--lowcut 0.12` verwirft nachziehende Maskenreste bei schnellen
+Bewegungen.
 
 Erzeugt zwei Dateien, weil **kein Format beides kann**:
 

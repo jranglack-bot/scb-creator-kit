@@ -69,7 +69,10 @@ zusammengefügt; Altbestand `video` = ein Clip), `duration`, `cuts`
 (start/end/reason/active, `track` `both`/`music`/`voice`), `words`
 (Transkript), `captions` (Stil inkl. box/box_style/group/highlight_on/bold),
 `gains` (`{main}` = Video-Lautstärke), `volumes` (Lautstärke-Abschnitte),
-`music`, `voiceover`, `zooms`, `texts`, `render` (crf/preset/output) und
+`music`, `voiceover`, `zooms`, `texts`, `render` (crf/preset/output),
+`freistellung` (`{von, bis}` in Output-Zeit — render_projekt.py stellt die
+Person selbst frei (gecacht, `freisteller.mkv/.webm`) und legt sie als
+OBERSTE Ebene über alle Grafik-overlays) und
 `effekte` (prolook-Durchreiche). **Bild-im-Bild wurde entfernt** — ein Reel,
 ein Video (bzw. mehrere Clips hintereinander). Schnitte gelten über die
 zusammengefügte Timeline.
@@ -140,12 +143,56 @@ Clips (`videos`) laufen im Cockpit nacheinander (Playlist). Timeline =
 Roh-Zeitachse mit roten Schnitt-Balken, weißer Läufer, ↩/Strg+Z, KACHELN.
 Alles ohne Token. (Es gibt KEINE Vorschau-Dateien/kein cockpit_server mehr.)
 
-**Speichern:** Button „💾 Speichern" → beim ersten Mal wählt der User einmal
-die `projekt.json` (moderner Datei-Dialog), danach speichert das Cockpit
-direkt dorthin (auto beim Bearbeiten) — kein Downloads-Umweg. Kann der
-Browser das nicht (`showSaveFilePicker`), lädt es als Notfall nach Downloads.
+**Speichern — EINMAL Sammelordner wählen, danach nie wieder ein Dialog:**
+Beim allerersten Klick auf „💾 Speichern" wählt der User **einen Ordner**
+(z. B. `D:\Instagram Content\Cockpit`). Der Ordner-Zeiger landet in IndexedDB
+und gilt ab dann für **alle** Projekte — auch nach F5, auch in jedem neu
+angelegten Projekt. Jedes Projekt bekommt darin einen **eigenen Unterordner**:
+
+```
+<Sammelordner>/<projektordner>/projekt.json
+```
+
+also z. B. `Cockpit/reel-basis-projekt/projekt.json`. Dadurch überschreiben
+sich verschiedene Projekte nie, ältere bleiben vollständig erhalten und
+wiederverwendbar, und Claude muss nur an dieser einen Stelle nachsehen. Der
+Button zeigt den Zielordner an; **Rechtsklick darauf wechselt ihn**. Wird die
+Erlaubnis entzogen oder der Ordner gelöscht, meldet das Cockpit das und fragt
+beim nächsten Klick neu.
+
+**Wichtig für Änderungen am Polling:** `lastApplied` ist der zuletzt von
+Claude gesehene Stand — beim Speichern NICHT auf die eigene Fassung setzen.
+Sonst hält das 2,5-s-Polling Claudes unveränderte Datei für neu und spielt
+sie zurück; die Änderungen des Nutzers wären weg (Fehler bis 05.08.2026).
+
+**Herkunft in der Datei — so findet Claude das richtige Projekt.** Jede
+gespeicherte Fassung trägt drei Zusatzfelder, die das Cockpit selbst setzt:
+
+| Feld | Inhalt |
+|---|---|
+| `_projekt` | Name des Projekts |
+| `_projektpfad` | voller Pfad des Projektordners (auch auf einer anderen Platte) |
+| `_gespeichert` | Zeitpunkt in ISO |
+
+Damit ist auch bei zehn Projekten eindeutig, welches zuletzt bearbeitet wurde
+und wohin es gehört. Abholen per Script — findet die jüngste Fassung, zeigt
+was sich geändert hat und kopiert sie in ihren Projektordner:
+
+```
+<python> scripts/cockpit_holen.py <sammelordner>        # einmal, wird gemerkt
+<python> scripts/cockpit_holen.py                       # danach ohne Pfad
+<python> scripts/cockpit_holen.py --nur-zeigen          # nur anzeigen
+```
+
+Warum das bei lokalen Dateien funktioniert: IndexedDB fällt bei `file://`
+NICHT pro Ordner auseinander — getestet, in Projekt A geschrieben und in
+Projekt B gelesen. Fallback-Kette, falls der Browser den Ordner-Dialog nicht
+kann: einzelne Datei wählen (`showSaveFilePicker`), sonst Download.
+
 Claude-Änderungen erscheinen weiter live im Tab (projekt_data.js-Polling).
 Wenn Claude Schnitte/Felder ändert: nur `build_editor.py` ausführen.
+**Claude sucht die gespeicherte Fassung zuerst im Sammelordner**, dann im
+Projektordner, dann in Downloads.
 
 **Was der Nutzer im Cockpit kann (alles ohne Token):**
 - **Timeline:** ganzes Video, Schnitte rot, Kanten ziehen = trimmen, Mitte
@@ -168,6 +215,12 @@ Wenn Claude Schnitte/Felder ändert: nur `build_editor.py` ausführen.
   ziehen = Stelle im Lied) + „Start im Lied".
 - **Vorschau-Zoom:** Mausrad = rein/raus (auf den Cursor), Ziehen =
   verschieben, −/100%/+ unten links.
+- **Ebenen (Karte oben):** Grafik-overlays und der Freisteller laufen in der
+  Vorschau mit, je Ebene zuschaltbar (kommt aus `cockpit_custom.js`, global
+  unter `~/.scb-creator-kit/`). Braucht je Ebene eine `.webm`-Schwesterdatei
+  (`freistellen.py` erzeugt sie mit; für PNG-Sequenzen `<ordner>.webm`
+  daneben legen). Beim Abspielen minimal versetzt möglich — framegenau ist
+  Anhalten/Scrubben; der Render setzt exakt zusammen.
 
 **Eigene Cockpit-Erweiterungen NIEMALS in editor.html/das Template bauen**
 (Kit-Updates überschreiben es), sondern IMMER in `cockpit_custom.js` im

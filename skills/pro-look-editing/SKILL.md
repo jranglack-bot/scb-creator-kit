@@ -41,8 +41,8 @@ Templates in `scripts/` sind getestet; nur Parameter setzen und ausführen.
 - Video ist geschnitten (sonst zuerst Skill `video-schneiden`) und das
   Transkript-JSON der GESCHNITTENEN Fassung liegt vor (nach dem Schnitt neu
   transkribieren!).
-- Stil aus dem **Untertitel-Profil** in Obsidian `00 Kontext/Branding.md`
-  ziehen (`untertitel-profil`-Codeblock — Format und Einrichtung inkl.
+- Stil aus dem **Untertitel-Profil** in Claudes Memory ziehen
+  (Eintrag `untertitel-profil` — Format und Einrichtung inkl.
   Screenshot-Vorlage siehe Skill `untertitel-und-text`). Die Profilwerte
   (font/size/highlight/outline) direkt als Flags an
   `animated_captions.py` durchreichen. Existiert noch kein Profil: dort
@@ -172,8 +172,7 @@ Für hochwertigere Sounds legt sich der User eine eigene Bibliothek an:
    Oder Sounds **direkt mit Claude aus SFX-Reels extrahieren** — es gibt
    Reels, die nur Soundeffekte teilen (Skill `sfx-extraktion`:
    automatische Segment-Erkennung, Schnitt als MP3, Ablage hier).
-3. Ordnerpfad in Obsidian `00 Kontext/Branding.md` notieren
-   (Zeile: `SFX-Bibliothek: <pfad>`). Ab dann werden bei Sound-Wünschen
+3. Ordnerpfad als Memory merken (`SFX-Bibliothek: <pfad>`). Ab dann werden bei Sound-Wünschen
    zuerst die eigenen Sounds genutzt, die Basis-Sounds als Fallback.
 
 ## Bild-Paket: B-Roll, weicher Zoom, Hook-Cover, Fortschrittsbalken

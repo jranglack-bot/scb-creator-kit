@@ -489,6 +489,12 @@ function currentProjectJSON(){
   (P.texts || []).forEach(computeLines);
   const out = JSON.parse(JSON.stringify(P));
   delete out._dateien; delete out._audiodateien; delete out._neueAudios;
+  // Herkunft mitschreiben: sonst weiss Claude beim Sammelordner-Speichern
+  // nicht, WOHIN die Datei gehoert (Projektordner kann ueberall liegen),
+  // und bei mehreren Projekten nicht, welches zuletzt bearbeitet wurde.
+  out._projekt = projektName();
+  out._projektpfad = projektPfad();
+  out._gespeichert = new Date().toISOString();
   return JSON.stringify(out, null, 2);
 }
 function autosave(){ if (fileHandle) saveToHandle(); }   // wenn Datei gewählt
@@ -1940,24 +1946,139 @@ songwrap.addEventListener('pointerdown', e => {
 });
 
 // ---------- Speichern -----------------------------------------------------
-// Modernster Weg: einmal projekt.json waehlen -> danach direkt speichern
-// (kein Downloads-Umweg). Wo das nicht geht: Download als Notfall.
+// EINMAL einen Sammelordner waehlen -> ab dann speichert JEDES Projekt dort
+// von selbst, ohne Dialog, auch nach F5 und auch in neuen Projekten. Der
+// Ordner-Zeiger liegt in IndexedDB; die faellt bei lokalen Dateien NICHT
+// pro Ordner auseinander (getestet: in Projekt A geschrieben, in Projekt B
+// gelesen). Datei heisst <projektordner>.json, damit mehrere Projekte im
+// selben Sammelordner nebeneinander liegen koennen.
+// Faellt das aus: einzelne Datei waehlen, sonst Download als Notfall.
 let fileHandle = null;
+let dirHandle = null;
 const canFS = 'showSaveFilePicker' in window;
+const canDir = 'showDirectoryPicker' in window;
+
+const ZIEL_DB = 'scb_cockpit', ZIEL_STORE = 'ziel', ZIEL_KEY = 'sammelordner';
+
+function zielDB(){
+  return new Promise((res, rej) => {
+    const q = indexedDB.open(ZIEL_DB, 1);
+    q.onupgradeneeded = () => {
+      if (!q.result.objectStoreNames.contains(ZIEL_STORE))
+        q.result.createObjectStore(ZIEL_STORE);
+    };
+    q.onsuccess = () => res(q.result);
+    q.onerror = () => rej(q.error);
+    setTimeout(() => rej(new Error('timeout')), 3000);
+  });
+}
+async function zielLesen(){
+  try {
+    const db = await zielDB();
+    const v = await new Promise((res, rej) => {
+      const g = db.transaction(ZIEL_STORE, 'readonly')
+                  .objectStore(ZIEL_STORE).get(ZIEL_KEY);
+      g.onsuccess = () => res(g.result); g.onerror = () => rej(g.error);
+    });
+    db.close(); return v || null;
+  } catch (e) { return null; }
+}
+async function zielSchreiben(h){
+  try {
+    const db = await zielDB();
+    await new Promise((res, rej) => {
+      const tx = db.transaction(ZIEL_STORE, 'readwrite');
+      tx.objectStore(ZIEL_STORE).put(h, ZIEL_KEY);
+      tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error);
+    });
+    db.close(); return true;
+  } catch (e) { return false; }
+}
+
+/** Name des Projekts = Name des Ordners, in dem editor.html liegt. */
+function projektName(){
+  const teile = decodeURIComponent(location.pathname).split('/').filter(Boolean);
+  const ordner = teile.length > 1 ? teile[teile.length - 2] : '';
+  const rein = (ordner || 'projekt').replace(/[^\w\-. ]+/g, '_').trim();
+  return rein || 'projekt';
+}
+function projektDateiName(){ return projektName() + '/projekt.json'; }
+
+/** Voller Pfad des Projektordners, in dem diese editor.html liegt.
+ *  Windows: /D:/Instagram Content/... -> D:\Instagram Content\...
+ *  Mac/Linux: /Users/... bleibt wie es ist. */
+function projektPfad(){
+  let p = decodeURIComponent(location.pathname).replace(/\/[^/]*$/, '');
+  if (/^\/[A-Za-z]:/.test(p)) p = p.slice(1).replace(/\//g, '\\');
+  return p;
+}
+
+/** Zielordner einmal waehlen (braucht einen echten Klick des Nutzers). */
+async function zielordnerWaehlen(){
+  if (!canDir) return false;
+  try {
+    const h = await window.showDirectoryPicker({ mode: 'readwrite' });
+    dirHandle = h;
+    await zielSchreiben(h);
+    zielAnzeigen();
+    return true;
+  } catch (e) { return false; }
+}
+
+/** Gemerkten Ordner beim Start wiederherstellen (nur wenn noch erlaubt). */
+async function zielWiederherstellen(){
+  const h = await zielLesen();
+  if (!h) return;
+  try {
+    let p = await h.queryPermission({ mode: 'readwrite' });
+    if (p === 'prompt') p = await h.requestPermission({ mode: 'readwrite' });
+    if (p === 'granted') { dirHandle = h; zielAnzeigen(); }
+  } catch (e) { /* Ordner weg oder Erlaubnis entzogen */ }
+}
+function zielAnzeigen(){
+  if (!bSave) return;
+  bSave.title = dirHandle
+    ? 'Speichert automatisch nach ' + dirHandle.name + '/' + projektDateiName()
+    : 'Beim ersten Klick einmal den Sammelordner waehlen';
+  if (dirHandle) bSave.textContent = '💾 Speichern (' + dirHandle.name + ')';
+}
+async function saveToDir(){
+  // Je Projekt ein eigener Unterordner: <Sammelordner>/<projekt>/projekt.json
+  // So ueberschreiben sich verschiedene Projekte nie gegenseitig, und
+  // aeltere Projekte bleiben vollstaendig erhalten.
+  const unter = await dirHandle.getDirectoryHandle(projektName(), { create: true });
+  const f = await unter.getFileHandle('projekt.json', { create: true });
+  const w = await f.createWritable();
+  await w.write(currentProjectJSON()); await w.close();
+}
 function saveToHandle(){
   clearTimeout(saveToHandle._t);
   saveToHandle._t = setTimeout(async () => {
     try {
-      const w = await fileHandle.createWritable();
-      await w.write(currentProjectJSON()); await w.close();
-      dirty = false; lastApplied = JSON.stringify(P);
+      if (dirHandle) {
+        await saveToDir();
+      } else {
+        const w = await fileHandle.createWritable();
+        await w.write(currentProjectJSON()); await w.close();
+      }
+      dirty = false;
+      // lastApplied NICHT auf P setzen! Es ist der zuletzt von Claude
+      // gesehene Stand. Ueberschreibt man ihn mit der eigenen Fassung,
+      // haelt das Polling Claudes (unveraenderte) Datei faelschlich fuer
+      // neu und spielt sie zurueck - die eigenen Aenderungen waeren weg.
       bSave.textContent = '✓ Gespeichert'; bSave.classList.add('on');
-      setTimeout(() => { bSave.textContent = '💾 Gespeichert (automatisch)';
+      setTimeout(() => { zielAnzeigen();
+        if (!dirHandle) bSave.textContent = '💾 Gespeichert (automatisch)';
         bSave.classList.remove('on'); }, 1500);
       if ((P._neueAudios || []).length)
         toast('ℹ Neue Audiodateien: ' + P._neueAudios.join(', ')
           + ' — in den Projektordner legen, sonst fehlen sie beim Rendern');
-    } catch (e) { fileHandle = null; bSave.textContent = '💾 Speichern'; }
+    } catch (e) {
+      // Ordner-Erlaubnis entzogen oder Datei weg -> zurueck auf Anfang
+      dirHandle = null; fileHandle = null;
+      bSave.textContent = '💾 Speichern'; bSave.title = '';
+      toast('⚠ Speichern fehlgeschlagen — bitte Zielordner erneut wählen');
+    }
   }, 700);
 }
 function downloadSave(){
@@ -1969,7 +2090,18 @@ function downloadSave(){
   setTimeout(() => bSave.textContent = '💾 Speichern', 4000);
 }
 bSave.onclick = async () => {
-  if (fileHandle) { saveToHandle(); return; }
+  // 1. Ordner schon gemerkt -> einfach speichern, kein Dialog
+  if (dirHandle || fileHandle) { saveToHandle(); return; }
+  // 2. Erster Klick ueberhaupt: EINMAL den Sammelordner waehlen
+  if (canDir) {
+    if (await zielordnerWaehlen()) {
+      saveToHandle();
+      toast('✅ Zielordner „' + dirHandle.name + '" gemerkt — ab jetzt '
+        + 'speichert jedes Projekt dort von selbst, ohne Dialog');
+      return;
+    }
+    // abgebrochen -> Notfallweg unten
+  }
   if (canFS) {
     try {
       fileHandle = await window.showSaveFilePicker({
@@ -1980,6 +2112,13 @@ bSave.onclick = async () => {
     } catch (e) { /* abgebrochen */ }
   } else { downloadSave(); }
 };
+// Rechtsklick auf Speichern = Zielordner wechseln
+bSave.oncontextmenu = async (e) => {
+  e.preventDefault();
+  if (await zielordnerWaehlen())
+    toast('✅ Neuer Zielordner: ' + dirHandle.name);
+};
+zielWiederherstellen();
 
 // ---------- Audio hinzufuegen: Datei waehlen / Voiceover aufnehmen ---------
 // Peaks direkt im Browser berechnen -> Waveform sofort sichtbar, ohne Claude
