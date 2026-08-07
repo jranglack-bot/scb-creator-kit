@@ -20,6 +20,16 @@
 param([string]$PluginRoot = (Join-Path $env:USERPROFILE ".claude\plugins"))
 
 $ErrorActionPreference = "Stop"
+
+# JSON IMMER OHNE BOM schreiben: PowerShells "utf8" setzt ein BOM an den
+# Dateianfang - Claude Code schreibt seine Konfigdateien aber BOM-frei
+# und laedt eine BOM-behaftete Registrierung nicht (real beobachtet:
+# Plugin "installiert", aber Skills erscheinen nie).
+$utf8ohneBom = New-Object System.Text.UTF8Encoding($false)
+function Schreib-Json($pfad, $objekt, $tiefe) {
+    [System.IO.File]::WriteAllText($pfad,
+        ($objekt | ConvertTo-Json -Depth $tiefe), $utf8ohneBom)
+}
 $quelle = $PSScriptRoot
 
 # Sicherheitsnetz: nur echte Kit-Ordner verarbeiten
@@ -73,7 +83,7 @@ $km[$mp] = [pscustomobject]@{
     installLocation = $mpDir
     lastUpdated = $jetzt
 }
-[pscustomobject]$km | ConvertTo-Json -Depth 6 | Out-File $kmPfad -Encoding utf8
+Schreib-Json $kmPfad ([pscustomobject]$km) 6
 
 # --- installed_plugins.json ergaenzen (bestehende Eintraege erhalten) ---
 $ipPfad = Join-Path $PluginRoot "installed_plugins.json"
@@ -94,7 +104,7 @@ if ($ip.plugins.PSObject.Properties[$schluessel]) {
     $ip.plugins.PSObject.Properties.Remove($schluessel)
 }
 $ip.plugins | Add-Member -NotePropertyName $schluessel -NotePropertyValue $eintrag
-$ip | ConvertTo-Json -Depth 8 | Out-File $ipPfad -Encoding utf8
+Schreib-Json $ipPfad $ip 8
 
 # --- settings.json: Plugin FREISCHALTEN (enabledPlugins) ----------------
 # Ohne diesen Eintrag ist das Plugin zwar registriert, wird aber nach dem
@@ -114,8 +124,9 @@ if ($st.enabledPlugins.PSObject.Properties[$schluessel]) {
     $st.enabledPlugins.PSObject.Properties.Remove($schluessel)
 }
 $st.enabledPlugins | Add-Member -NotePropertyName $schluessel -NotePropertyValue $true
-$st | ConvertTo-Json -Depth 16 | Out-File $setPfad -Encoding utf8
+Schreib-Json $setPfad $st 16
 
+New-Item -ItemType File -Force (Join-Path $cacheDir '.in_use') | Out-Null
 Write-Host "FERTIG: $name v$version ist installiert UND freigeschaltet."
 Write-Host "Jetzt Claude Code (oder die Claude-App) einmal neu starten -"
 Write-Host "danach ist das Kit aktiv. Einrichtung starten mit: Richte das SCB Kit ein"

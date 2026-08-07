@@ -113,6 +113,8 @@ for ZIEL in "$MPDIR" "$CACHEDIR"; do
     mkdir -p "$ZIEL"
     cp -R "$QUELLE/." "$ZIEL/"
 done
+# Markierung wie beim echten /plugin-Weg (Schutz vorm Cache-Aufraeumen)
+touch "$CACHEDIR/.in_use"
 
 # --- Phase 3: beide Registrierungen ergaenzen (Bestand bleibt) ---------
 export KM="$ROOT/known_marketplaces.json"

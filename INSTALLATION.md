@@ -21,18 +21,30 @@ Die Datei landet in deinem **Downloads-Ordner** und heißt `scb-creator-kit.plug
 
 ---
 
-## Schritt 2: Datei in Claude ziehen und EINEN Satz schreiben
+## Schritt 2: Datei in Claude ziehen
 
 1. Öffne die Claude Desktop-App
 2. Starte ein neues Gespräch
-3. Zieh die heruntergeladene Datei mit der Maus **in das Chatfenster**
-4. Schreib dazu genau das hier:
+3. Zieh die heruntergeladene Datei mit der Maus **in das Chatfenster** —
+   erst mal OHNE etwas dazuzuschreiben
+
+**Bietet Claude jetzt von selbst an, das Plugin zu installieren → einfach
+bestätigen. Fertig.** Das ist der beste Weg — die App richtet dabei alles
+selbst ein.
+
+**Passiert nichts** (die Datei hängt nur als Anhang im Chat), dann schreib
+dazu genau das hier:
 
 > **Entpacke diese Datei und führe das Script plugin_installieren daraus aus.**
 
-Claude entpackt die Datei und startet den mitgelieferten Installer — der
-richtet das Plugin an den richtigen Stellen ein. Wenn er „FERTIG" meldet:
-**Claude einmal schließen und neu öffnen.** Das war der ganze technische Teil.
+Claude entpackt die Datei und startet den mitgelieferten Installer. Wenn er
+„FERTIG" meldet: **Claude einmal komplett schließen und neu öffnen.**
+
+**Kurzer Erfolgs-Check** (nach dem Neustart, egal welcher Weg): schreib
+„Richte das SCB Kit ein". Startet der Setup-Assistent mit einer
+Bereichsauswahl → alles gut. Kommt stattdessen eine Fehlermeldung oder
+nichts: Datei einfach noch einmal ins Fenster ziehen und Claude die
+Installation bestätigen lassen.
 
 *(Hinweis an Claude, falls du das hier liest: Im entpackten Ordner liegt
 `plugin_installieren.ps1` für Windows bzw. `plugin_installieren.sh` für
