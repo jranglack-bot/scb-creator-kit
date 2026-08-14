@@ -463,6 +463,11 @@ def main():
         alabel = '[amus]'
 
     # --- SFX-Akzente -------------------------------------------------------
+    # Je Eintrag: {"time", "file", "gain"} und optional
+    #   "trim" — Stille am Dateianfang ueberspringen, damit der Effekt GENAU
+    #            bei "time" hoerbar ist (viele Rohdateien haben 1-2 s Vorlauf)
+    #   "len"  — hoerbare Laenge begrenzen (sonst tippt eine 19-s-Datei durch)
+    #   "fade" — kurze Ausblende am gekuerzten Ende
     sfx = cfg.get('sfx') or []
     if sfx:
         amix_in = ['[{}]'.format(alabel) if not alabel.startswith('[')
@@ -472,8 +477,23 @@ def main():
             idx = n_in
             n_in += 1
             delay = int(float(s['time']) * 1000)
-            fc.append('[{}:a]volume={},adelay={}|{}[sfx{}]'
-                      .format(idx, s.get('gain', 0.6), delay, delay, k))
+            trim = float(s.get('trim') or 0)
+            laenge = float(s.get('len') or 0)
+            kette = []
+            if trim > 0.001 or laenge > 0.001:
+                schnitt = 'atrim=start={:.3f}'.format(trim)
+                if laenge > 0.001:
+                    schnitt += ':end={:.3f}'.format(trim + laenge)
+                kette.append(schnitt)
+                kette.append('asetpts=PTS-STARTPTS')
+            if laenge > 0.001:
+                fade = min(float(s.get('fade') or 0), laenge)
+                if fade > 0.001:
+                    kette.append('afade=t=out:st={:.3f}:d={:.3f}'
+                                 .format(max(0.0, laenge - fade), fade))
+            kette.append('volume={}'.format(s.get('gain', 0.6)))
+            kette.append('adelay={}|{}'.format(delay, delay))
+            fc.append('[{}:a]{}[sfx{}]'.format(idx, ','.join(kette), k))
             amix_in.append('[sfx{}]'.format(k))
         fc.append('{}amix=inputs={}:duration=first:normalize=0[aout]'
                   .format(''.join(amix_in), len(amix_in)))

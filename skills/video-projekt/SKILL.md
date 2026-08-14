@@ -69,11 +69,13 @@ zusammengefügt; Altbestand `video` = ein Clip), `duration`, `cuts`
 (start/end/reason/active, `track` `both`/`music`/`voice`), `words`
 (Transkript), `captions` (Stil inkl. box/box_style/group/highlight_on/bold),
 `gains` (`{main}` = Video-Lautstärke), `volumes` (Lautstärke-Abschnitte),
-`music`, `voiceover`, `zooms`, `texts`, `render` (crf/preset/output),
+`music`, `voiceover`, `zooms`, `texts`, `sfx_library` (optionaler Pfad zur
+Soundeffekt-Library), `render` (crf/preset/output),
 `freistellung` (`{von, bis}` in Output-Zeit — render_projekt.py stellt die
 Person selbst frei (gecacht, `freisteller.mkv/.webm`) und legt sie als
 OBERSTE Ebene über alle Grafik-overlays) und
-`effekte` (prolook-Durchreiche). **Bild-im-Bild wurde entfernt** — ein Reel,
+`effekte` (prolook-Durchreiche; `effekte.sfx` = Soundeffekt-Spur, siehe
+2b-Sfx). **Bild-im-Bild wurde entfernt** — ein Reel,
 ein Video (bzw. mehrere Clips hintereinander). Schnitte gelten über die
 zusammengefügte Timeline.
 
@@ -198,7 +200,13 @@ Projektordner, dann in Downloads.
 - **Timeline:** ganzes Video, Schnitte rot, Kanten ziehen = trimmen, Mitte
   ziehen = verschieben, freie Fläche aufziehen = neuer Schnitt, Doppelklick
   = an/aus. Werkzeug-Button: ✂ Schnitt / 🔊 Lautstärke-Abschnitt / 🔍 Zoom.
-  Spuren: Video (blau), ♪ Musik (lila), 🎙 Voiceover (rosa), 📝 Texte (gelb).
+  Spuren: Video (blau), ♪ Musik (lila), 🎙 Voiceover (rosa), 📝 Texte (gelb),
+  🔊 Effekte (grün).
+- **Timeline-Zoom** (🔍 −/+ links unter der Zeitleiste, oder Mausrad über
+  ihr): zoomt zum Läufer bzw. zur Stelle unter der Maus. Beim Abspielen
+  fährt die Ansicht mit. Klick auf die Prozentzahl = wieder ganze Zeitleiste.
+  Lineal schaltet dabei auf feinere Schritte bis 0,1 s. Gebraucht wird das,
+  um Soundeffekte und Schnitte exakt zu setzen.
   „Tonspur anzeigen" blendet Waveforms ein (`waveform_data.js`, erzeugt
   build_editor.py gecacht, braucht ffmpeg).
 - **Videos-Kachel:** mehrere Clips nacheinander, Reihenfolge ändern (▲),
@@ -208,6 +216,11 @@ Projektordner, dann in Downloads.
   („Untertitel-Text"; Doppelklick im Video springt zur Zeile).
 - **Texte-Kachel:** freie Overlays (Hook/Titel) auf der 📝-Spur, Position
   per Ziehen, Stil + Einflug-Animation je Text (siehe 2b-Texte).
+- **Soundeffekte-Kachel:** eigene Datei wählen ODER Library verbinden, dann
+  auf die 🔊-Spur klicken = gesetzt, Marker ziehen = verschieben, linke Kante
+  = Stille am Anfang wegschneiden, rechte Kante = Länge, Regler =
+  Lautstärke. Vorlauf, Länge und Pegel gleicht das Cockpit selbst aus; die
+  Vorschau spielt die Effekte mit (siehe 2b-Sfx).
 - **Audio-Kachel:** eigenes Lied oder Voiceover-Datei wählen, Voiceover mit
   dem Mikro aufnehmen. Neue Dateien landen in Downloads — beim „fertig"
   in den Projektordner verschieben, dann `build_editor.py`.
@@ -390,6 +403,92 @@ voice-Spur (gleicher volume-Ausdruck wie oben). Dann prolook
 Mastering/Musik gemischt, das Musik-Ducking reagiert also auch auf das
 Voiceover. Aufnahmen aus dem Cockpit heißen `voiceover.webm` (liegt nach
 der Aufnahme in Downloads).
+
+### 2b-Sfx. Soundeffekte (Cockpit-Spur „🔊 Effekte")
+
+`P.effekte.sfx` = `[{time, file, gain, trim?, len?, fade?, level?, peak?,
+name?}]` — beliebig viele Events auf einer eigenen Timeline-Spur.
+**`time` ist Timeline-Zeit wie bei Texten und Zooms**; `render_projekt.py`
+verschiebt sie um die Schnitte und wirft Effekte weg, die IN einem Schnitt
+liegen. (Die übrigen `effekte`-Schlüssel bleiben Output-Zeit.)
+
+Bedienung: Kategorie + Effekt in der Kachel wählen, dann **auf die
+🔊-Spur klicken** = Effekt an dieser Stelle; **aufziehen** = Effekt mit
+dieser Länge; **Marker ziehen** = verschieben; **rechte Kante** = Länge.
+Je Event ein Lautstärke-Regler (0–100 %). Die Vorschau spielt die Effekte
+mit — Platzierung ist ohne Render beurteilbar. „Tonspur anzeigen" zeigt auf
+der 🔊-Spur die **Effekt**-Wellenformen, nicht den Videoton.
+
+**Marker-Kanten = trimmen wie ein Clip.** Linke Kante ziehen schneidet vorne
+weg, was in der Datei noch still ist: `time` und `trim` wandern gemeinsam,
+die rechte Kante bleibt stehen (`len` schrumpft mit) — der Ton unter dem
+Marker verrutscht also nicht. Rechte Kante = Länge. **Das ist der Weg für
+Dateien, die mit langer Stille anfangen**, wenn keine Messwerte vorliegen.
+Zusammen mit dem Timeline-Zoom (unten) geht das millisekundengenau.
+
+**Ohne Library — zwei Knöpfe in der Kachel:**
+- **🎧 Eigene Sound-Datei wählen** — wie „Lied auswählen". Die Datei wird im
+  Browser vermessen (Dauer, Spitze, Vorlauf, Wellenform), ist sofort hörbar
+  und landet unter „Eigene Dateien". Sie muss danach in den Projektordner
+  (Hinweis kommt automatisch, wie bei Musik/Voiceover) — sonst fehlt sie beim
+  Rendern. Danach steht sie dauerhaft unter „Projekt", vermessen und
+  normalisiert. Solche Dateien tragen **kein** `peak`: ohne ffmpeg kann das
+  Cockpit sie nicht auf ein einheitliches Niveau bringen, der Regler heißt
+  dann schlicht „Anteil dieser Datei" (`gain` = `level`).
+- **📂 Sound-Library verbinden** — Ordnerpfad eintragen; landet als
+  `sfx_library` in der projekt.json. Beim nächsten `build_editor.py` wird die
+  ganze Library vermessen und in `~/.scb-creator-kit/soundlibrary.txt`
+  gemerkt, gilt ab dann für **alle** Projekte. (Ein Browser kann keinen
+  Ordner von sich aus lesen und kennt keine echten Pfade — deshalb einmal
+  eintragen statt Ordner-Dialog.)
+
+Drei Dinge nimmt das Cockpit dem Nutzer ab (alle drei kosten sonst je
+einen Render):
+
+- **Vorlauf.** Viele Rohdateien fangen mit Stille an (`Mouse-Click.mp3`
+  1,02 s, `Keyboard-Typing.mp3` 2,36 s). `trim` überspringt sie, damit
+  `time` der **hörbare** Einsatz ist.
+- **Länge.** Alles über 4 s hörbare Länge wird beim Einfügen auf 2,5 s
+  mit 0,2 s Ausblende gesetzt (`len`/`fade`), sonst tippt eine 19-s-Datei
+  bis zum Reel-Ende durch. Jederzeit über die rechte Kante änderbar.
+- **Pegel.** Die Rohdateien liegen bis zu 14 dB auseinander. `build_editor.py`
+  legt beim Scan normalisierte Fassungen (−1,5 dBFS, FLAC) in
+  `~/.scb-creator-kit/sound-cache/` und die Events zeigen dorthin. Deshalb
+  bedeutet der Regler bei jedem Effekt dasselbe — und `gain` bleibt ≤ 1,0.
+  **Das ist Absicht:** ein Browser kann nicht lauter als 1,0 abspielen;
+  müsste der Render einen leisen Effekt erst hochziehen, wäre die Vorschau
+  leiser als das fertige Video und jede Beurteilung wertlos. FLAC statt mp3,
+  weil ein mp3-Encoder vorne ~26 ms Stille anhängt — genau die Falle, die
+  `trim` gerade zumacht.
+
+**Woher die Effekte kommen:** `build_editor.py` sucht die Library in dieser
+Reihenfolge — `sfx_library` in der projekt.json (Pfad oder Liste),
+`$SCB_SOUNDS`, `~/.scb-creator-kit/soundlibrary.txt`, dann Raten
+(`../Soundeffekte`, `../../Soundeffekte`, `~/Soundeffekte`, `<kit>/sounds`);
+der Treffer wird gemerkt. Jeder Unterordner wird eine Kategorie, der
+Projektordner `sfx/` heißt „Projekt". Messwerte liegen in
+`~/.scb-creator-kit/sound-index.json` (Schlüssel: Pfad + mtime + Größe) —
+der erste Scan von ~150 Dateien dauert gut eine Minute, jeder weitere unter
+einer Sekunde. Jeder Eintrag trägt **beide** Pfade — `f` (die Datei, die
+klingt: normalisiert, falls vorhanden) und `q` (das Original) — plus `pk0`,
+den Pegel des Originals. Zeigt ein Effekt noch auf die Originaldatei (ältere
+Projekte, von Hand geschriebene Einträge), findet er darüber trotzdem seine
+Wellenform und Messwerte; ohne das bleibt die 🔊-Spur an diesen Stellen leer
+und der Marker bekommt die falsche Breite. `.mp4` in der Library wird als **Audio** gelesen (die
+Essentials-Kategorie liegt so vor). Alles über 30 s gilt nicht als Effekt
+(sortiert Lied und Voiceover aus). Die Wellenformen der Effekte fallen beim
+Vermessen mit ab und landen in `waveform_data.js` — **nicht** in
+`projekt_data.js`, das alle 2,5 s neu geladen wird.
+
+**Sagt jemand „ich hab die Library jetzt":** Pfad in die projekt.json
+(`"sfx_library": "<pfad>"`) oder er trägt ihn selbst über den Knopf ein, dann
+einmal `build_editor.py` — fertig, ab da automatisch in jedem Projekt.
+
+prolook mischt jedes Event mit
+`atrim=start=trim[:end=trim+len],asetpts,afade,volume,adelay`. Bei sehr
+vielen gleichartigen Events (z. B. ein Klick auf JEDER Untertitel-
+Einblendung) stattdessen `build_sfx_track.py` benutzen: baut EINE WAV, die
+als ein einziger sfx-Eintrag eingemischt wird.
 
 ### 2b-Zoom. Zoom-Abschnitte mit Zielpunkt
 

@@ -124,6 +124,28 @@ main { flex:1; display:flex; min-height:0; }
   color:#ffe9b3; pointer-events:none; white-space:nowrap; overflow:hidden;
   max-width:calc(100% - 8px); }
 #tl .txt .h::before { background:#ffd66e; }
+/* Soundeffekte: kurze Marker auf der eigenen Spur. min-width, weil ein
+   Klick-Geraeusch von 0,3 s sonst ein unklickbarer Strich waere. */
+#tl .sfx { position:absolute; top:0; bottom:0; cursor:grab; z-index:2;
+  min-width:9px; border-radius:4px;
+  background:rgba(157,255,92,.22); border:1px solid rgba(157,255,92,.85); }
+#tl .sfx.creating { background:rgba(157,255,92,.35); border-style:dashed; }
+#tl .sfx .slbl { position:absolute; left:5px; bottom:2px; font-size:10px;
+  color:#d6ffb8; pointer-events:none; white-space:nowrap; overflow:hidden;
+  max-width:calc(100% - 8px); }
+#tl .sfx .h::before { background:#9dff5c; }
+#tl .lane[data-track=sfx] { cursor:copy; }
+/* Die Effekt-Auswahl braucht die volle Breite — Dateinamen sind lang */
+#cardSfx select { max-width:none; flex:1; min-width:0; }
+#tl .sfx.aktiv { box-shadow:0 0 0 1px #FFD400, 0 0 10px rgba(255,212,0,.35); }
+#sfxlist .c { padding:9px; border-radius:9px; margin-bottom:8px;
+  background:linear-gradient(180deg,#2b2f3a 0%,#252935 100%);
+  border:1px solid rgba(255,255,255,.05); border-left:3px solid #9dff5c;
+  box-shadow:0 2px 8px rgba(0,0,0,.22); }
+#sfxlist .top { display:flex; align-items:center; gap:8px; cursor:pointer; }
+#sfxlist .t { color:#c8f79e; font-variant-numeric:tabular-nums; font-size:12px; }
+#sfxlist .reason { flex:1; font-size:12px; opacity:.85; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
 textarea { user-select:text; background:#313642; border:0; border-radius:6px;
   color:#e8e8ee; padding:5px 8px; font-size:12px; width:100%; resize:vertical; }
 .zone { position:absolute; pointer-events:none; display:none; z-index:2;
@@ -219,8 +241,27 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
     0 -8px 24px rgba(0,0,0,.35); }
 #ruler { position:relative; height:16px; font-size:10px; opacity:.55;
   font-variant-numeric:tabular-nums; }
-#ruler span { position:absolute; transform:translateX(-50%); }
-#tlwrap { position:relative; }
+#ruler span { position:absolute; transform:translateX(-50%);
+  white-space:nowrap; }
+/* Zeitleiste zoomen: #tl und #ruler werden breiter als der Rahmen, der
+   Rahmen scrollt. Alle Positionen bleiben Prozentwerte — deshalb stimmt
+   beim Zoomen alles von selbst: Schnitte, Effekte, Laeufer, Wellenformen.
+   padding-top gibt der Zeitmarke und dem Ziehen-Hinweis Platz; sie muessen
+   INNERHALB des scrollenden Rahmens liegen, sonst wandern sie nicht mit. */
+/* overflow-x erst beim Zoomen auf auto (siehe applyTlZoom): sonst zeigt der
+   Rahmen dauerhaft eine Rollleiste, nur weil der Laeufer-Griff am Ende ein
+   paar Pixel uebersteht. */
+#tlwrap { position:relative; overflow-x:hidden; overflow-y:hidden;
+  padding-top:14px; overscroll-behavior-x:contain; }
+#tlwrap::-webkit-scrollbar { height:8px; }
+#tlwrap::-webkit-scrollbar-thumb { background:#3a3f4d; border-radius:8px;
+  border:2px solid transparent; background-clip:padding-box; }
+#tlwrap::-webkit-scrollbar-thumb:hover { background:#4a5162;
+  background-clip:padding-box; border:2px solid transparent; }
+#tlzoomui { display:flex; align-items:center; gap:4px; }
+#tlzoomui button { padding:1px 8px; font-size:12px; line-height:1.2; }
+#tlZoomLbl { min-width:40px; text-align:center; cursor:pointer;
+  font-variant-numeric:tabular-nums; }
 #tl { position:relative; height:72px; display:flex; flex-direction:column;
   gap:4px; cursor:pointer; }
 #tl .lane { position:relative; flex:1; border-radius:9px;
@@ -260,16 +301,16 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
   background:#ff5050; box-shadow:0 0 0 1.5px #16181d; }
 #tl .h.l { left:-9px; } #tl .h.r { right:-9px; }
 #tl .h:hover::before { background:#ffd400; }
-#dragtip { position:absolute; top:-26px; background:#FFD400; color:#16181d;
+#dragtip { position:absolute; top:0; background:#FFD400; color:#16181d;
   font-size:11px; font-weight:700; padding:2px 7px; border-radius:6px;
   display:none; pointer-events:none; white-space:nowrap; z-index:5; }
-#playhead { position:absolute; top:-4px; bottom:-4px; width:2px;
+#playhead { position:absolute; top:14px; bottom:0; width:2px;
   background:#FFD400; pointer-events:none; z-index:3; }
-#phlabel { position:absolute; top:-26px; transform:translateX(-50%);
+#phlabel { position:absolute; top:0; transform:translateX(-50%);
   background:#FFD400; color:#16181d; font-size:11px; font-weight:700;
   padding:2px 7px; border-radius:6px; pointer-events:none; z-index:4;
   font-variant-numeric:tabular-nums; white-space:nowrap; }
-#phgrab { position:absolute; top:-8px; bottom:-8px; width:18px;
+#phgrab { position:absolute; top:4px; bottom:0; width:18px;
   transform:translateX(-50%); cursor:grab; z-index:5; }
 #phgrab:active { cursor:grabbing; }
 #phgrab::after { content:''; position:absolute; top:0; left:50%;
@@ -365,6 +406,20 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
       <input type="file" id="fMusic" accept="audio/*" style="display:none">
       <input type="file" id="fVoice" accept="audio/*" style="display:none">
     </details>
+    <details class="card" id="cardSfx" open><summary>Soundeffekte</summary>
+      <div class="row"><label style="flex:0 0 62px">Kategorie</label>
+        <select id="sfxCat"></select></div>
+      <div class="row"><label style="flex:0 0 62px">Effekt</label>
+        <select id="sfxFile"></select></div>
+      <div class="row"><span id="sfxInfo" style="font-size:11px;opacity:.55;flex:1">—</span>
+        <button class="nb" id="sfxHear" title="Nur diesen Effekt anhören">▶</button></div>
+      <div class="row"><button id="sfxAdd" style="flex:1">＋ Effekt an dieser Stelle</button></div>
+      <div class="row"><button id="sfxPick" style="flex:1">🎧 Eigene Sound-Datei wählen</button></div>
+      <div class="row"><button id="sfxLibBtn" style="flex:1">📂 Sound-Library verbinden</button></div>
+      <input type="file" id="fSfx" accept="audio/*,video/mp4,.mp4" style="display:none">
+      <div class="row"><span style="font-size:11px;opacity:.55">Auf der 🔊-Spur klicken = gewählten Effekt setzen · Marker ziehen = verschieben · aufziehen = Länge. Fängt die Datei mit Stille an, im Streifen oben die linke Kante nach rechts ziehen.</span></div>
+      <div id="sfxlist"></div>
+    </details>
     <details class="card" id="cardGain" open><summary>Lautstärke</summary>
       <div class="row"><label>Video</label><input type="range" id="gMain" min="0" max="150" value="100"><span id="gMainV">100%</span></div>
       <div class="row" id="rowGVo" style="display:none"><label>Voiceover</label><input type="range" id="gVo" min="0" max="150" value="100"><span id="gVoV">100%</span><button class="del" id="bDelVo" title="Voiceover entfernen">🗑</button></div>
@@ -398,10 +453,12 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
   </aside>
 </main>
 <footer>
-  <div id="ruler"></div>
-  <div id="tlwrap"><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div><div id="phgrab" title="Festhalten und ziehen = präzise spulen"></div><div id="phlabel">0:00.0</div></div>
+  <div id="tlwrap"><div id="ruler"></div><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div><div id="phgrab" title="Festhalten und ziehen = präzise spulen"></div><div id="phlabel">0:00.0</div></div>
   <div id="songwrap" style="display:none"><canvas id="songwave"></canvas><div id="songwin" title="Ziehen = Ausschnitt im Lied wählen"></div><span id="songlbl">♪ ganzes Lied — lila Fenster = dein Ausschnitt</span></div>
-  <div id="tlinfo"><span>Klick = springen · Aufziehen = Schnitt ✂ oder Lautstärke-Abschnitt 🔊 (Werkzeug oben) — je Spur</span><span id="tDur">0:00.0</span></div>
+  <div id="tlinfo">
+    <span id="tlzoomui" title="Zeitleiste vergrößern — zum Läufer hin. Auch: Mausrad über der Zeitleiste">🔍
+      <button id="tzOut">−</button><span id="tlZoomLbl" title="Klick = ganze Zeitleiste zeigen">100%</span><button id="tzIn">+</button></span>
+    <span>Klick = springen · Aufziehen = Schnitt ✂ oder Lautstärke-Abschnitt 🔊 (Werkzeug oben) — je Spur</span><span id="tDur">0:00.0</span></div>
 </footer>
 <div id="toast"></div>
 <audio id="mus" preload="auto"></audio>
@@ -437,10 +494,10 @@ const v = document.getElementById('v'), pv = document.getElementById('pv'),
 let dur = 0, preview = true, cues = [], zonesOn = true;
 // Spur-Farben: ueberall gleich (Timeline-Balkenrand, Listen, Spur-Namen)
 const TRACKCOL = { main:'#4a9eff', pip:'#3ddc84', both:'#ff9f43',
-  music:'#be8cff', voice:'#ff8fb1', text:'#ffd66e' };
+  music:'#be8cff', voice:'#ff8fb1', text:'#ffd66e', sfx:'#9dff5c' };
 const TRACKNAME = { main:'großes Video', pip:'kleines Video',
   both:'beide Videos', music:'♪ Musik', voice:'🎙 Voiceover',
-  text:'📝 Texte' };
+  text:'📝 Texte', sfx:'🔊 Effekte' };
 const ANIMS = { fade:'Einblenden', left:'Von links', right:'Von rechts',
   up:'Von unten', pop:'Pop', none:'Keine' };
 const esc = s => String(s).replace(/[&<>"]/g,
@@ -489,6 +546,7 @@ function currentProjectJSON(){
   (P.texts || []).forEach(computeLines);
   const out = JSON.parse(JSON.stringify(P));
   delete out._dateien; delete out._audiodateien; delete out._neueAudios;
+  delete out._sfxlib;              // Anzeige-Info, baut build_editor.py neu
   // Herkunft mitschreiben: sonst weiss Claude beim Sammelordner-Speichern
   // nicht, WOHIN die Datei gehoert (Projektordner kann ueberall liegen),
   // und bei mehreren Projekten nicht, welches zuletzt bearbeitet wurde.
@@ -573,6 +631,7 @@ function applyProjekt(data){
       size:72, color:'#FFFFFF', bold:true, box:true, box_color:'000000',
       box_alpha:0.55, box_style:'line', anim:'fade', width:0 }, tx));
   adoptAudioUI();
+  sfxAdopt();
   gMain.value = Math.round(P.gains.main * 100);
   renderVideoList();
   updGainLabels(); updMusOff();
@@ -650,7 +709,7 @@ function onMasterPlay(){ bPlay.textContent = '⏸'; bigplay.classList.add('hidde
   if (MUS && mus.src) { syncMusic(true); mus.play().catch(()=>{}); }
   if (VO && vo.src) { vo.currentTime = gtime(); vo.play().catch(()=>{}); } }
 function onMasterPause(){ bPlay.textContent = '▶'; bigplay.classList.remove('hidden');
-  mus.pause(); vo.pause(); }
+  mus.pause(); vo.pause(); sfxStopAll(); }
 v.addEventListener('loadedmetadata', () => {
   if (ansicht !== 'cut') { dur = v.duration;
     renderTL(); renderRuler(); tDur.textContent = fmt(dur); updTC(); } });
@@ -1052,25 +1111,70 @@ stagewrap.addEventListener('pointerdown', e => {
 });
 
 // ---------- Zeitleiste ----------------------------------------------------
+// Schrittweite richtet sich nach dem SICHTBAREN Ausschnitt: wer auf zwei
+// Sekunden hereinzoomt, braucht Zehntel, keine Minutenmarken.
+const RULER_STUFEN = [0.1, 0.2, 0.5, 1, 2, 5, 10, 15, 30, 60, 120];
 function renderRuler(){
   const ruler = document.getElementById('ruler');
   ruler.innerHTML = '';
   if (!dur) return;
-  const step = dur > 150 ? 15 : dur > 75 ? 10 : 5;
-  for (let t = 0; t <= dur; t += step) {
+  const sicht = dur / tlZoom;
+  const step = RULER_STUFEN.find(s => sicht / s <= 11) || 300;
+  for (let k = 0; k * step <= dur + 1e-6; k++) {
+    const t = k * step;
     const s = document.createElement('span');
     s.style.left = (t / dur * 100) + '%';
-    s.textContent = Math.floor(t/60) + ':' + String(Math.round(t%60)).padStart(2,'0');
+    s.textContent = step < 1
+      ? t.toFixed(1).replace('.', ',') + ' s'
+      : Math.floor(t/60) + ':' + String(Math.round(t%60)).padStart(2,'0');
     ruler.appendChild(s);
   }
 }
+
+// ---------- Zeitleiste zoomen ---------------------------------------------
+// #tl und #ruler werden breiter gemacht, #tlwrap scrollt. Weil ALLE Elemente
+// in der Zeitleiste per Prozent sitzen, stimmt danach alles von selbst —
+// und getBoundingClientRect() liefert weiterhin die richtige Zeit unter der
+// Maus, weil die Breite mitwaechst.
+let tlZoom = 1;
+function applyTlZoom(zeit, ankerPx){
+  // Obergrenze aus der Fensterbreite: die Wellenform-Canvas wird genauso
+  // breit wie die Spur, und ein Browser gibt oberhalb von ~32.000 px auf.
+  // 16.000 px reichen fuer Millisekunden-Genauigkeit dicke aus.
+  const maxZoom = Math.max(2, 16000 / Math.max(200, tlwrap.clientWidth));
+  tlZoom = Math.max(1, Math.min(maxZoom, tlZoom));
+  const breite = (tlZoom * 100) + '%';
+  tl.style.width = breite;
+  document.getElementById('ruler').style.width = breite;
+  tlwrap.style.overflowX = tlZoom > 1.001 ? 'auto' : 'hidden';
+  tlZoomLbl.textContent = Math.round(tlZoom * 100) + '%';
+  const w = tl.clientWidth;
+  const t = (zeit == null) ? masterTime() : zeit;
+  const anker = (ankerPx == null) ? tlwrap.clientWidth / 2 : ankerPx;
+  tlwrap.scrollLeft = (dur ? t / dur * w : 0) - anker;
+  renderRuler(); drawWave(); updPhLabel();
+}
+tzIn.onclick = () => { tlZoom *= 1.6; applyTlZoom(); };
+tzOut.onclick = () => { tlZoom /= 1.6; applyTlZoom(); };
+tlZoomLbl.onclick = () => { tlZoom = 1; applyTlZoom(); };
+tlwrap.addEventListener('wheel', e => {
+  if (!dur) return;
+  e.preventDefault();
+  const r = tl.getBoundingClientRect();
+  const unterMaus = (e.clientX - r.left) / r.width * dur;
+  const halten = e.clientX - tlwrap.getBoundingClientRect().left;
+  tlZoom *= (e.deltaY < 0 ? 1.25 : 1 / 1.25);
+  applyTlZoom(unterMaus, halten);      // Stelle unter der Maus bleibt stehen
+}, { passive: false });
 function renderTL(){
   tl.innerHTML = '';
   if (!dur) return;
   // Zwei Videospuren bei Bild-im-Bild, plus Voiceover-/Musikspur wenn gesetzt
   const two = !!PIP.enabled;
+  // Effekt-Spur zeigen, sobald es Effekte gibt ODER ein Effekt gewaehlt ist
+  const sfxAn = SFX.length > 0 || !!sfxWahl;
   const nLanes = (two ? 2 : 1) + (VO ? 1 : 0) + (MUS ? 1 : 0)
-    + ((P.texts || []).length ? 1 : 0);
+    + ((P.texts || []).length ? 1 : 0) + (sfxAn ? 1 : 0);
   tl.style.height = nLanes === 1 ? '72px'
     : (nLanes * 50 + (nLanes - 1) * 4) + 'px';
   const lanes = {};
@@ -1111,6 +1215,7 @@ function renderTL(){
   if (VO) mkLane('voice', '🎙 Voiceover');
   if (MUS) mkLane('music', '♪ Musik');
   if ((P.texts || []).length) mkLane('text', '📝 Texte');
+  if (sfxAn) mkLane('sfx', '🔊 Effekte — klicken = Effekt setzen');
   // Unterkante der Videospuren (fuer 'both'-Elemente ueber beiden Spuren)
   const vidLane = lanes.pip || lanes.both || lanes.main;
   const videoBottom = vidLane.offsetTop + vidLane.offsetHeight;
@@ -1377,8 +1482,10 @@ function renderTL(){
     });
     lanes.text.appendChild(d);
   });
+  // Soundeffekte: je Event ein Marker auf der 🔊-Spur
+  if (lanes.sfx) SFX.forEach(ev => sfxMarker(ev, lanes.sfx));
   renderList(); renderVolList(); renderTextList(); renderZoomList();
-  drawWave();
+  renderSfxList(); drawWave();
 }
 function nudge(c, which, delta){
   if (which === 's') c.start = Math.max(0, Math.min(Math.round((c.start+delta)*10)/10, c.end - 0.1));
@@ -1670,7 +1777,7 @@ tl.addEventListener('pointerdown', e => {
     if (!moved && Math.abs(t1 - t0) < 0.15) return;
     moved = true;
     if (!tmp) { tmp = document.createElement('div');
-      tmp.className = (track === 'text' ? 'txt'
+      tmp.className = (track === 'sfx' ? 'sfx' : track === 'text' ? 'txt'
         : tool === 'cut' ? 'cut' : tool === 'zoom' ? 'zb' : 'vol')
         + ' creating';
       lane.appendChild(tmp);
@@ -1679,16 +1786,29 @@ tl.addEventListener('pointerdown', e => {
     cur = [s, en];
     tmp.style.left = (s / dur * 100) + '%';
     tmp.style.width = ((en - s) / dur * 100) + '%';
-    tip.textContent = (track === 'text' ? '📝 Neuer Text: '
+    tip.textContent = (track === 'sfx'
+        ? '🔊 ' + (sfxWahl ? sfxWahl.n : 'Effekt') + ' — Länge '
+          + (en - s).toFixed(2).replace('.', ',') + ' s ab '
+      : track === 'text' ? '📝 Neuer Text: '
       : tool === 'cut' ? 'Neuer Schnitt: '
       : tool === 'zoom' ? '🔍 Zoom: ' : '🔊 Abschnitt: ')
-      + fmt(s) + '–' + fmt(en);
+      + fmt(s) + (track === 'sfx' ? '' : '–' + fmt(en));
     tip.style.left = (ev.clientX - r.left - 40) + 'px';
   };
   const up = () => {
     window.removeEventListener('pointermove', move);
     window.removeEventListener('pointerup', up);
     tip.style.display = 'none';
+    // 🔊-Spur: Klick setzt den gewaehlten Effekt, Aufziehen gibt ihm gleich
+    // die Laenge. Kein Schnitt/Zoom/Lautstaerke-Werkzeug auf dieser Spur.
+    if (track === 'sfx') {
+      if (tmp) tmp.remove();
+      if (!sfxWahl) { seekToRaw(t0);
+        toast('Erst oben in „Soundeffekte" einen Effekt auswählen'); return; }
+      const gezogen = moved && cur && cur[1] - cur[0] >= 0.15;
+      sfxEinfuegen(gezogen ? cur[0] : t0, gezogen ? cur[1] - cur[0] : 0);
+      return;
+    }
     if (moved && cur && cur[1] - cur[0] >= 0.2) {
       if (track === 'text') {
         P.texts.push(newText(cur[0], cur[1]));
@@ -1739,6 +1859,13 @@ function updPhLabel(){
   document.getElementById('phgrab').style.left = x + 'px';
   lbl.style.left = Math.min(tl.clientWidth - 30, Math.max(30, x)) + 'px';
   lbl.textContent = fmt(mt);
+  // Beim Abspielen im Zoom mitfahren — sonst laeuft der Laeufer aus dem
+  // Bild. Nur beim Abspielen, damit eigenes Scrollen nicht weggezogen wird.
+  if (playing && tlZoom > 1) {
+    const sicht = tlwrap.clientWidth, links = tlwrap.scrollLeft;
+    if (x < links + sicht * 0.08 || x > links + sicht * 0.92)
+      tlwrap.scrollLeft = x - sicht / 2;
+  }
 }
 document.getElementById('phgrab').addEventListener('pointerdown', e => {
   e.preventDefault();
@@ -1876,6 +2003,28 @@ function drawWave(){
     const rec = (window.WAVEFORM || {})[key];
     const w = l.clientWidth, h = l.clientHeight;
     cv.width = w; cv.height = h;
+    // Effekt-Spur zeigt die EFFEKTE, nicht den Videoton: je Event seine
+    // eigene Wellenform, genau in dem Ausschnitt, der zu hoeren ist.
+    if (l.dataset.track === 'sfx') {
+      if (!dur) return;
+      const c2 = cv.getContext('2d');
+      c2.fillStyle = 'rgba(157,255,92,.6)';
+      SFX.forEach(ev => {
+        const r2 = (window.WAVEFORM || {})[ev.file];
+        if (!r2 || !r2.p || !r2.p.length || !r2.d) return;
+        const trim = +(ev.trim || 0), lg = sfxLen(ev);
+        const x0 = ev.time / dur * w, x1 = (ev.time + lg) / dur * w;
+        if (x1 - x0 < 0.5) return;
+        for (let x = Math.max(0, Math.floor(x0)); x < Math.min(w, x1); x++) {
+          const pos = trim + (x - x0) / (x1 - x0) * lg;
+          const p = r2.p[Math.min(r2.p.length - 1,
+            Math.floor(pos / r2.d * r2.p.length))] / 100;
+          const bh = Math.max(1, p * h * 0.9);
+          c2.fillRect(x, (h - bh) / 2, 1, bh);
+        }
+      });
+      return;
+    }
     if (!rec || !rec.p || !rec.p.length || !dur || !rec.d) return;
     const ctx = cv.getContext('2d');
     ctx.fillStyle = isMus ? 'rgba(190,140,255,.42)'
@@ -2122,18 +2271,34 @@ zielWiederherstellen();
 
 // ---------- Audio hinzufuegen: Datei waehlen / Voiceover aufnehmen ---------
 // Peaks direkt im Browser berechnen -> Waveform sofort sichtbar, ohne Claude
+// Liefert zusaetzlich Spitzenpegel (pk, dBFS) und hoerbaren Einsatz (on) —
+// damit eine selbst gewaehlte Effektdatei ohne ffmpeg auskommt.
 function peaksFromBuffer(buf, cb){
   const ac = new (window.AudioContext || window.webkitAudioContext)();
   ac.decodeAudioData(buf, a => {
     const ch = a.getChannelData(0), n = ch.length,
       step = Math.max(1, Math.floor(n / 600)), p = [];
+    let spitze = 0;
+    for (let i = 0; i < n; i++) {
+      const val = ch[i] < 0 ? -ch[i] : ch[i];
+      if (val > spitze) spitze = val;
+    }
+    let ein = 0;
+    const grenze = spitze * 0.02;      // 2 % der Spitze = hoerbarer Einsatz
+    for (let i = 0; i < n; i++) {
+      const val = ch[i] < 0 ? -ch[i] : ch[i];
+      if (val > grenze) { ein = i; break; }
+    }
     for (let i = 0; i < n; i += step) {
       let m = 0;
       for (let j = i; j < Math.min(i + step, n); j += 16)
         m = Math.max(m, Math.abs(ch[j]));
       p.push(Math.round(m * 100));
     }
-    cb({ d: Math.round(a.duration * 100) / 100, p: p.slice(0, 600) });
+    cb({ d: Math.round(a.duration * 100) / 100, p: p.slice(0, 600),
+         pk: spitze > 0 ? Math.round(2000 * Math.log10(spitze)) / 100 : -99,
+         on: Math.max(0, Math.round(
+           (ein / a.sampleRate - 0.01) * 1000) / 1000) });
     ac.close();
   }, () => { cb(null); ac.close(); });
 }
@@ -2214,6 +2379,482 @@ document.querySelectorAll('details.card').forEach(d => {
     localStorage.setItem(k, d.open ? '1' : '0'));
 });
 
+// ---------- Soundeffekte: eigene Spur mit beliebig vielen Events -----------
+// Gespeichert wird in effekte.sfx — dasselbe Format, das die Render-Kette
+// (render_projekt.py -> prolook.py) schon liest:
+//   {time, file, gain, trim?, len?, fade?, level?, peak?, name?}
+// time = Zeit auf DIESER Timeline (wie bei Texten und Zooms); der Render
+// rechnet die Schnitte selbst heraus. trim = Stille am Dateianfang, die
+// uebersprungen wird, damit der Effekt dort knallt, wo er gesetzt wurde.
+let SFX = [];
+const sfxAudio = [];            // je Event ein eigenes <audio> (drei Pops
+                                // im Abstand von 0,22 s brauchen drei Elemente)
+const SFX_ZIEL_DB = -1.5;       // Zielpegel, siehe build_editor.py
+let sfxLastT = -1, sfxWahl = null, sfxAktiv = null;
+
+/** Dateipfad -> URL, die der Browser laden darf (auch auf anderem Laufwerk).
+ *  Windows D:\... -> file:///D:/...  ·  Mac /Users/... -> file:///Users/...
+ *  Relative Pfade bleiben relativ zum Projektordner. */
+function fileURL(p){
+  if (!p) return '';
+  if (/^(file|blob|https?):/i.test(p)) return p;
+  let s = String(p).replace(/\\/g, '/');
+  if (localBlobs[s]) return localBlobs[s];
+  if (/^[A-Za-z]:\//.test(s)) s = '/' + s;
+  return s.charAt(0) === '/' ? encodeURI('file://' + s) : encodeURI(s);
+}
+// Selbst gewaehlte Dateien: leben nur in dieser Sitzung. Sobald die Datei im
+// Projektordner liegt und build_editor.py einmal gelaufen ist, steht sie
+// dauerhaft unter „Projekt" — dann ist sie auch vermessen und normalisiert.
+const EIGENE = [];
+function sfxLib(){
+  const k = ((P._sfxlib || {}).kategorien || []).slice();
+  if (EIGENE.length) k.unshift({ name: 'Eigene Dateien', dateien: EIGENE });
+  return k;
+}
+// Pfad -> Messwerte. Als Map, weil applySfxPlay 60x/s danach fragt.
+let sfxIndex = new Map();
+function sfxIndexBauen(){
+  sfxIndex = new Map();
+  sfxLib().forEach(k => k.dateien.forEach(d => {
+    sfxIndex.set(d.f, d);
+    // Zeigt ein Effekt noch auf die Originaldatei (aeltere Projekte, von
+    // Hand geschriebene Einträge), muss er seine Messwerte trotzdem finden.
+    // Gleiche Länge und gleicher Vorlauf — nur der Pegel ist der der
+    // unbehandelten Datei.
+    if (d.q && d.q !== d.f && !sfxIndex.has(d.q))
+      sfxIndex.set(d.q, Object.assign({}, d, { f: d.q,
+        pk: (d.pk0 != null ? d.pk0 : d.pk) }));
+  }));
+}
+/** Messwerte (Dauer, Spitze, Vorlauf) zu einem Pfad — aus der Library. */
+function sfxInfoFor(pfad){
+  return sfxIndex.get(String(pfad || '').replace(/\\/g, '/')) || null;
+}
+// Rohdateien sind bis zu 14 dB unterschiedlich laut. Erst auf ein einheit-
+// liches Niveau rechnen, dann den Regler drauf — so bedeutet 60 % bei jedem
+// Effekt dasselbe.
+// gain bleibt dabei IMMER <= 1: build_editor.py hat die Dateien schon auf
+// den Zielpegel gebracht, hier wird nur noch der Rest ausgeglichen. Ein
+// Browser kann nicht lauter als 1,0 — waere gain groesser, klaenge die
+// Vorschau leiser als das fertige Video.
+const sfxNorm = pk => (pk == null || pk <= -98) ? 1
+  : Math.min(8, Math.pow(10, (SFX_ZIEL_DB - pk) / 20));
+const sfxLevel = ev => (ev.level != null) ? +ev.level
+  : Math.min(1, +(( +ev.gain || 0.6) / sfxNorm(ev.peak)).toFixed(3));
+function sfxSetLevel(ev, lvl){
+  ev.level = Math.round(Math.min(1, Math.max(0, lvl)) * 100) / 100;
+  ev.gain = Math.min(1, Math.round(ev.level * sfxNorm(ev.peak) * 1000) / 1000);
+}
+/** Hörbare Länge eines Events (fürs Zeichnen und für die Vorschau). */
+function sfxLen(ev){
+  if (ev.len) return +ev.len;
+  const i = sfxInfoFor(ev.file);
+  return Math.max(0.15, (i ? i.d : 0.6) - (ev.trim || 0));
+}
+const sfxName = ev => ev.name
+  || String(ev.file || '').split('/').pop().replace(/\.[^.]+$/, '');
+/** effekte.sfx nur anlegen, solange es Events gibt — sonst bleibt die
+ *  projekt.json so schlank wie vorher. */
+function sfxSync(){
+  if (SFX.length) { P.effekte = P.effekte || {}; P.effekte.sfx = SFX; }
+  else if (P.effekte) { delete P.effekte.sfx;
+    if (!Object.keys(P.effekte).length) delete P.effekte; }
+}
+function sfxAdopt(){
+  sfxIndexBauen();
+  sfxAktiv = null;
+  SFX = ((P.effekte || P.effects || {}).sfx || []).map(e => Object.assign({}, e));
+  SFX.sort((a, b) => a.time - b.time);
+  // Von Hand geschriebene Eintraege kennen ihren Spitzenpegel nicht. Ist die
+  // Datei vermessen, nachtragen — dann bedeutet der Regler bei ihnen dasselbe
+  // wie bei neuen Effekten. Der gain bleibt unangetastet.
+  SFX.forEach(ev => {
+    if (ev.peak == null) { const i = sfxInfoFor(ev.file);
+      if (i) ev.peak = i.pk; }
+  });
+  sfxSync();
+  sfxAudio.length = 0;
+  fuelleSfxAuswahl();
+}
+
+// ---------- Auswahl: Kategorie + Datei + Vorhören -------------------------
+function fuelleSfxAuswahl(){
+  const kats = sfxLib();
+  cardSfx.style.display = 'block';        // Datei-Knopf muss immer da sein
+  if (!kats.length) {
+    sfxCat.innerHTML = ''; sfxFile.innerHTML = ''; sfxWahl = null;
+    sfxInfo.textContent = 'Noch keine Effekte — Datei wählen oder Library '
+      + 'verbinden';
+    return;
+  }
+  const vorher = sfxCat.value;
+  sfxCat.innerHTML = kats.map(k => '<option>' + esc(k.name) + '</option>').join('');
+  if (kats.some(k => k.name === vorher)) sfxCat.value = vorher;
+  fuelleSfxDateien();
+}
+function fuelleSfxDateien(){
+  const kat = sfxLib().find(k => k.name === sfxCat.value) || sfxLib()[0];
+  if (!kat) return;
+  const vorher = sfxFile.value;
+  sfxFile.innerHTML = kat.dateien.map((d, i) =>
+    '<option value="' + i + '">' + esc(d.n) + '</option>').join('');
+  const treffer = kat.dateien.findIndex(d => d.n === vorher);
+  sfxFile.value = treffer >= 0 ? treffer : 0;
+  sfxWaehle();
+}
+function sfxWaehle(){
+  const kat = sfxLib().find(k => k.name === sfxCat.value) || sfxLib()[0];
+  sfxWahl = kat ? kat.dateien[+sfxFile.value] : null;
+  sfxAktiv = null;               // Streifen zeigt jetzt die neue Auswahl
+  if (!sfxWahl) { sfxInfo.textContent = '—'; return; }
+  // Vorschlag fuer den Ausschnitt: Vorlauf weg, Ueberlaenge gekuerzt.
+  // Beides im Streifen aenderbar, BEVOR eingefuegt wird.
+  if (sfxWahl._trim == null) {
+    sfxWahl._trim = sfxWahl.on || 0;
+    sfxWahl._len = (sfxWahl.d - sfxWahl._trim > 4) ? 2.5 : 0;
+  }
+  const hoerbar = Math.max(0, sfxWahl.d - sfxWahl._trim);
+  sfxInfo.textContent = hoerbar.toFixed(2).replace('.', ',') + ' s'
+    + (sfxWahl._trim > 0.02
+       ? ' · ' + sfxWahl._trim.toFixed(2).replace('.', ',') + ' s Vorlauf übersprungen'
+       : '')
+    + (sfxWahl.pk == null
+       ? ' · eigene Datei' + (sfxWahl.pkroh != null
+           ? ', Spitze ' + sfxWahl.pkroh.toFixed(1).replace('.', ',') + ' dB'
+             + (sfxWahl.pkroh < -12 ? ' (leise)' : '')
+           : '')
+       : '');
+  sfxInfo.title = sfxWahl.q || sfxWahl.f;
+}
+sfxCat.onchange = fuelleSfxDateien;
+sfxFile.onchange = sfxWaehle;
+const hearEl = new Audio();
+/** Einzelnen Effekt anhoeren — ab dem HOERBAREN Einsatz, nicht ab der
+ *  Stille davor. currentTime erst setzen, wenn die Datei geladen ist. */
+function vorhoeren(pfad, vol, trim){
+  const u = fileURL(pfad);
+  hearEl.pause();
+  if (hearEl._q !== u) { hearEl._q = u; hearEl.src = u; }
+  hearEl.volume = Math.min(1, Math.max(0, vol));
+  const los = () => {
+    try { hearEl.currentTime = trim || 0; } catch (e) {}
+    hearEl.play().catch(() => toast('⚠ Datei nicht abspielbar: ' + pfad));
+  };
+  if (hearEl.readyState >= 1) los();
+  else hearEl.addEventListener('loadedmetadata', los, { once: true });
+}
+sfxHear.onclick = () => {
+  if (sfxWahl) vorhoeren(sfxWahl.f, 0.6 * sfxNorm(sfxWahl.pk), sfxWahl.on);
+};
+
+// ---------- Einfügen ------------------------------------------------------
+function sfxEinfuegen(t, laenge){
+  if (!sfxWahl) { toast('Erst oben einen Effekt auswählen'); return null; }
+  const s = sfxWahl;
+  const ev = { time: Math.round(Math.max(0, t) * 100) / 100, file: s.f,
+               name: s.n };
+  if (s.pk != null) ev.peak = s.pk;
+  // Start und Länge kommen aus dem Ausschnitt-Streifen: dort steht der
+  // Vorschlag (Vorlauf weg, Überlänge gekürzt) — oder was der Nutzer
+  // vorher selbst gezogen hat.
+  const trim = +(s._trim || 0);
+  if (trim > 0.02) ev.trim = Math.round(trim * 1000) / 1000;
+  sfxSetLevel(ev, 0.6);                         // Niveau angleichen (Falle c)
+  const hoerbar = Math.max(0, s.d - trim);
+  const l = laenge || +(s._len || 0);
+  if (l > 0.05 && l < hoerbar - 0.05) {
+    ev.len = Math.round(l * 100) / 100;
+    ev.fade = Math.min(0.2, ev.len / 3);
+  }
+  SFX.push(ev); SFX.sort((a, b) => a.time - b.time);
+  sfxAktiv = ev;
+  sfxSync(); touch(); renderTL();
+  toast('🔊 ' + s.n + ' bei ' + fmt(ev.time)
+    + (ev.len ? ' · ' + ev.len.toFixed(2).replace('.', ',') + ' s' : '')
+    + (ev.trim ? ' · ab ' + ev.trim.toFixed(2).replace('.', ',')
+       + ' s in der Datei' : ''));
+  return ev;
+}
+sfxAdd.onclick = () => sfxEinfuegen(masterTime());
+
+// ---------- Marker auf der Spur ------------------------------------------
+function sfxMarker(ev, lane){
+  const d = document.createElement('div');
+  d.className = 'sfx' + (ev === sfxAktiv ? ' aktiv' : '');
+  const setz = () => {
+    d.style.left = (ev.time / dur * 100) + '%';
+    d.style.width = (sfxLen(ev) / dur * 100) + '%';
+  };
+  setz();
+  d.title = sfxName(ev) + ' · ' + fmt(ev.time) + ' · '
+    + Math.round(sfxLevel(ev) * 100) + '% — Mitte ziehen = verschieben · '
+    + 'linke Kante = Stille am Anfang wegschneiden · rechte Kante = Länge';
+  d.innerHTML = '<span class="h l" title="Anfang beschneiden — schneidet '
+    + 'vorne weg, was in der Datei noch still ist"></span>'
+    + '<span class="h r" title="Länge ziehen"></span>'
+    + '<span class="slbl">' + esc(sfxName(ev).slice(0, 18)) + '</span>';
+  // Körper ziehen = verschieben
+  d.addEventListener('pointerdown', e2 => {
+    if (e2.target.classList.contains('h')) return;
+    e2.preventDefault(); e2.stopPropagation();
+    const r = tl.getBoundingClientRect();
+    const grab = (e2.clientX - r.left) / r.width * dur - ev.time;
+    let bewegt = false;
+    tip.style.display = 'block';
+    const move = e3 => {
+      bewegt = true;
+      let ns = (e3.clientX - r.left) / r.width * dur - grab;
+      ns = Math.max(0, Math.min(dur, ns));
+      ev.time = Math.round(ns * 100) / 100;
+      d.style.left = (ev.time / dur * 100) + '%';
+      tip.textContent = '🔊 ' + sfxName(ev) + ': ' + fmt(ev.time);
+      tip.style.left = (e3.clientX - r.left - 40) + 'px';
+      touch();
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      tip.style.display = 'none';
+      sfxAktiv = ev;
+      if (!bewegt) { seekToRaw(Math.max(0, ev.time - 0.6)); playAll(); }
+      SFX.sort((a, b) => a.time - b.time); renderTL();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+  // Linke Kante = Anfang beschneiden. Wie beim Trimmen eines Clips: der
+  // Einsatz wandert IN der Datei nach hinten (trim) und gleichzeitig auf der
+  // Timeline nach rechts (time) — die rechte Kante bleibt also stehen und
+  // der Ton unter dem Marker verrutscht nicht. So zieht man die Stille am
+  // Dateianfang einfach weg, ohne den Rest zu verschieben.
+  d.querySelector('.h.l').addEventListener('pointerdown', e2 => {
+    e2.preventDefault(); e2.stopPropagation();
+    const t0 = ev.time, trim0 = +(ev.trim || 0), len0 = sfxLen(ev);
+    tip.style.display = 'block';
+    const move = e3 => {
+      const r = tl.getBoundingClientRect();
+      const t = (e3.clientX - r.left) / r.width * dur;
+      const delta = Math.max(-trim0, Math.min(len0 - 0.05, t - t0));
+      ev.time = Math.round((t0 + delta) * 100) / 100;
+      const nt = trim0 + delta;
+      if (nt > 0.005) ev.trim = Math.round(nt * 1000) / 1000;
+      else delete ev.trim;
+      if (ev.len) { ev.len = Math.round((len0 - delta) * 100) / 100;
+        ev.fade = Math.min(0.2, ev.len / 3); }
+      d.style.left = (ev.time / dur * 100) + '%';
+      d.style.width = (sfxLen(ev) / dur * 100) + '%';
+      tip.textContent = '🔊 Einsatz ' + fmt(ev.time) + ' · ab '
+        + (ev.trim || 0).toFixed(2).replace('.', ',') + ' s in der Datei';
+      tip.style.left = (e3.clientX - r.left - 60) + 'px';
+      touch();
+    };
+    const up = () => { tip.style.display = 'none';
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      SFX.sort((a, b) => a.time - b.time); renderTL(); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+  // Rechte Kante = Länge (mit kurzer Ausblende)
+  d.querySelector('.h.r').addEventListener('pointerdown', e2 => {
+    e2.preventDefault(); e2.stopPropagation();
+    const info = sfxInfoFor(ev.file);
+    const max = info ? Math.max(0.15, info.d - (ev.trim || 0)) : 30;
+    tip.style.display = 'block';
+    const move = e3 => {
+      const r = tl.getBoundingClientRect();
+      const t = (e3.clientX - r.left) / r.width * dur;
+      const l = Math.max(0.1, Math.min(max, t - ev.time));
+      if (l >= max - 0.05) { delete ev.len; delete ev.fade; }
+      else { ev.len = Math.round(l * 100) / 100;
+        ev.fade = Math.min(0.2, ev.len / 3); }
+      d.style.width = (sfxLen(ev) / dur * 100) + '%';
+      tip.textContent = '🔊 Länge: ' + (ev.len
+        ? ev.len.toFixed(2).replace('.', ',') + ' s' : 'ganz');
+      tip.style.left = (e3.clientX - r.left - 30) + 'px';
+      touch();
+    };
+    const up = () => { tip.style.display = 'none';
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up); renderTL(); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+  lane.appendChild(d);
+}
+
+// ---------- Liste in der Seitenleiste ------------------------------------
+function renderSfxList(){
+  if (typeof sfxlist === 'undefined') return;
+  sfxlist.innerHTML = '';
+  SFX.forEach(ev => {
+    const info = sfxInfoFor(ev.file);
+    const max = info ? Math.max(0.15, info.d - (ev.trim || 0)) : 30;
+    const d = document.createElement('div');
+    d.className = 'c';
+    d.innerHTML = `
+      <div class="top">
+        <span class="t">${fmt(ev.time)}</span>
+        <span class="reason" title="${esc(ev.file)}">${esc(sfxName(ev))}</span>
+        <button class="nb hear" title="Nur diesen Effekt anhören">▶</button>
+        <button class="del" title="Effekt löschen">🗑</button>
+      </div>
+      <div class="row" style="margin:7px 0 0"><label style="font-size:11px">Lautstärke</label>
+        <input type="range" class="lvl" min="0" max="100"
+          value="${Math.round(sfxLevel(ev) * 100)}">
+        <span style="font-size:11px">${Math.round(sfxLevel(ev) * 100)}%</span></div>
+      <div class="row"><label style="font-size:11px">Länge</label>
+        <input type="range" class="len" min="1" max="${Math.round(max * 10)}"
+          value="${Math.round(sfxLen(ev) * 10)}">
+        <span style="font-size:11px">${ev.len
+          ? ev.len.toFixed(1).replace('.', ',') + 's' : 'ganz'}</span></div>
+      <div class="nudge" style="display:flex;gap:6px;margin-top:7px;
+        align-items:center;font-size:11px"><b style="opacity:.6">Zeit</b>
+        <button class="nb" data-d="-0.5">−0,5</button>
+        <button class="nb" data-d="-0.1">−0,1</button>
+        <button class="nb" data-d="-0.05">−0,05</button>
+        <button class="nb" data-d="0.05">+0,05</button>
+        <button class="nb" data-d="0.1">+0,1</button>
+        <button class="nb" data-d="0.5">+0,5</button></div>`;
+    const lvl = d.querySelector('.lvl');
+    lvl.oninput = () => { sfxSetLevel(ev, lvl.value / 100);
+      lvl.nextElementSibling.textContent = lvl.value + '%'; touch(); };
+    lvl.onchange = () => renderTL();
+    const len = d.querySelector('.len');
+    len.oninput = () => {
+      const l = len.value / 10;
+      if (l >= max - 0.05) { delete ev.len; delete ev.fade; }
+      else { ev.len = Math.round(l * 10) / 10;
+        ev.fade = Math.min(0.2, ev.len / 3); }
+      len.nextElementSibling.textContent = ev.len
+        ? ev.len.toFixed(1).replace('.', ',') + 's' : 'ganz';
+      touch();
+    };
+    len.onchange = () => renderTL();
+    d.querySelector('.hear').onclick = e2 => {
+      e2.stopPropagation();
+      vorhoeren(ev.file, +ev.gain || 0.6, ev.trim);
+    };
+    d.querySelector('.del').onclick = e2 => { e2.stopPropagation();
+      SFX.splice(SFX.indexOf(ev), 1);
+      if (sfxAktiv === ev) sfxAktiv = null;
+      sfxSync(); touch(); renderTL(); };
+    d.querySelector('.top').onclick = e2 => {
+      if (e2.target.tagName === 'BUTTON') return;
+      sfxAktiv = ev; renderTL();
+      seekToRaw(Math.max(0, ev.time - 0.8)); playAll(); };
+    d.querySelectorAll('.nudge .nb').forEach(b => b.onclick = e2 => {
+      e2.stopPropagation();
+      ev.time = Math.round(Math.max(0, Math.min(dur,
+        ev.time + parseFloat(b.dataset.d))) * 100) / 100;
+      SFX.sort((a, b2) => a.time - b2.time);
+      touch(); renderTL(); });
+    sfxlist.appendChild(d);
+  });
+  // Dateien SCHON JETZT laden. Wer erst beim Auslösen lädt, hört im ersten
+  // Durchlauf den Vorlauf mit — currentTime laesst sich vor dem Laden nicht
+  // setzen.
+  SFX.forEach((ev, i) => sfxAudioFor(i, ev));
+}
+
+// ---------- Eigene Sound-Datei wählen (ohne Library) ----------------------
+// Genau wie „Lied auswählen": Datei aussuchen, sofort hörbar. Vermessen wird
+// im Browser (Dauer, Spitze, Vorlauf, Wellenform) — kein ffmpeg nötig.
+sfxPick.onclick = () => fSfx.click();
+fSfx.onchange = e => { if (e.target.files[0]) importSfxDatei(e.target.files[0]);
+  e.target.value = ''; };
+function importSfxDatei(datei){
+  localBlobs[datei.name] = URL.createObjectURL(datei);
+  const r = new FileReader();
+  r.onload = () => peaksFromBuffer(r.result, rec => {
+    if (!rec) { toast('⚠ ' + datei.name + ' ist keine lesbare Audiodatei'); return; }
+    (window.WAVEFORM = window.WAVEFORM || {})[datei.name] =
+      { d: rec.d, p: rec.p };
+    // pk bleibt leer: ohne ffmpeg kann das Cockpit die Datei nicht auf ein
+    // einheitliches Niveau bringen. Der Regler heisst dann schlicht „Anteil
+    // dieser Datei" — Vorschau und Render bleiben trotzdem gleich laut.
+    const neu = { n: datei.name.replace(/\.[^.]+$/, ''), f: datei.name,
+                  q: datei.name, d: rec.d, pk: null, on: rec.on,
+                  pkroh: rec.pk };
+    const i = EIGENE.findIndex(x => x.f === neu.f);
+    if (i >= 0) EIGENE[i] = neu; else EIGENE.push(neu);
+    const bekannt = (P._audiodateien || []).concat(P._dateien || []);
+    if (!bekannt.includes(datei.name)) {
+      (P._neueAudios = P._neueAudios || []).push(datei.name);
+      toast('✓ ' + datei.name + ' bereit — Datei bitte in den Projektordner '
+        + 'legen (oder Claude sagen), sonst fehlt sie beim Rendern');
+    } else toast('✓ ' + datei.name + ' bereit');
+    sfxIndexBauen(); fuelleSfxAuswahl();
+    sfxCat.value = 'Eigene Dateien'; fuelleSfxDateien();
+    sfxFile.value = EIGENE.findIndex(x => x.f === neu.f); sfxWaehle();
+    renderTL();
+  });
+  r.readAsArrayBuffer(datei);
+}
+
+// ---------- Sound-Library verbinden ---------------------------------------
+// Der Browser darf keinen Ordner von sich aus lesen und kennt auch keine
+// echten Pfade — deshalb wird der Pfad einmal eingetragen. Er landet in der
+// projekt.json; build_editor.py vermisst dann die ganze Library und merkt
+// sie sich fuer ALLE weiteren Projekte.
+sfxLibBtn.onclick = () => {
+  const jetzt = P.sfx_library || ((P._sfxlib || {}).ordner || [])[0] || '';
+  const p = prompt('Ordner mit deinen Soundeffekten:\n\n'
+    + 'Windows: Shift + Rechtsklick auf den Ordner → „Als Pfad kopieren"\n'
+    + 'Mac: Rechtsklick → Alt halten → „… als Pfadname kopieren"\n\n'
+    + 'Leer lassen = Verbindung wieder lösen.', jetzt);
+  if (p == null) return;
+  const rein = p.trim().replace(/^["']|["']$/g, '');
+  if (!rein) { delete P.sfx_library; touch();
+    toast('Library-Ordner entfernt'); return; }
+  P.sfx_library = rein; touch();
+  toast('📂 ' + rein + ' gemerkt — jetzt speichern und Claude einmal Bescheid '
+    + 'sagen, dann stehen alle Effekte hier zur Auswahl');
+};
+
+// ---------- Vorschau: Effekte hörbar machen, ohne zu rendern --------------
+function sfxStopAll(){
+  sfxAudio.forEach(a => { if (a && !a.paused) a.pause(); });
+}
+function sfxAudioFor(i, ev){
+  let a = sfxAudio[i];
+  if (!a) a = sfxAudio[i] = new Audio();
+  const u = fileURL(ev.file);
+  if (a._q !== u) { a._q = u; a.preload = 'auto'; a.src = u; }
+  return a;
+}
+/** Liegt der Zeitpunkt in einem aktiven Schnitt? Dann faellt der Effekt im
+ *  Render weg — in der Vorschau darf er dann auch nicht kommen. */
+const sfxImSchnitt = t => (P.cuts || []).some(c => c.active
+  && ['both', 'main'].indexOf(c.track || 'both') >= 0
+  && t >= c.start && t < c.end);
+function applySfxPlay(){
+  const t = masterTime();
+  if (!playing || recActive) { sfxStopAll(); sfxLastT = t; return; }
+  // Sprung (Spulen oder uebersprungener Schnitt): nichts nachtraeglich
+  // ausloesen, sonst knallen beim Spulen alle Effekte auf einmal
+  const sprung = (t < sfxLastT - 0.05) || (t > sfxLastT + 0.5);
+  if (sprung) sfxStopAll();
+  SFX.forEach((ev, i) => {
+    const ende = ev.time + sfxLen(ev);
+    if (!sprung && sfxLastT < ev.time && t >= ev.time && !sfxImSchnitt(ev.time)) {
+      const a = sfxAudioFor(i, ev);
+      a.volume = Math.min(1, Math.max(0, +ev.gain || 0.6));
+      try { a.currentTime = ev.trim || 0; } catch (e) {}
+      a.play().catch(() => {});
+    }
+    const a = sfxAudio[i];
+    if (a && !a.paused) {
+      if (t >= ende) a.pause();
+      else if (ev.fade && t > ende - ev.fade)
+        a.volume = Math.min(1, Math.max(0, (+ev.gain || 0.6)
+          * (ende - t) / ev.fade));
+    }
+  });
+  sfxLastT = t;
+}
+
 window.addEventListener('resize', () => { drawCap(); drawPip(); updPhLabel();
   drawWave(); drawSongbar(); drawTexts(true); });
 applyProjekt(window.PROJEKT || {});
@@ -2232,7 +2873,7 @@ function drawLaneRunners(){
 // Zeichen-Schleife (60x/s): fluessige Anzeige fuer Zoom, Untertitel & Laeufer
 (function mainLoop(){
   drawZoomFx(); drawLaneRunners();
-  updPhLabel(); updTC(); drawCap(); drawTexts(); applyAudio();
+  updPhLabel(); updTC(); drawCap(); drawTexts(); applyAudio(); applySfxPlay();
   requestAnimationFrame(mainLoop);
 })();
 </script>

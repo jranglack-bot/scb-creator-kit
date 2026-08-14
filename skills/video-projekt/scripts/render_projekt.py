@@ -166,6 +166,22 @@ def prep(src, out, cuts, regions, base=1.0):
     return out
 
 
+def sfx_verschieben(sfx, master_lane):
+    """Soundeffekt-Zeiten aus dem Cockpit stehen in TIMELINE-Zeit — genau wie
+    Texte und Zooms. Hier ruecken sie um die entfernten Schnitte nach vorn.
+
+    Ein Effekt, der IN einem Schnitt liegt, faellt weg: er gehoert zu einer
+    Stelle, die es im fertigen Video nicht mehr gibt.
+    """
+    raus = []
+    for e in (sfx or []):
+        t = float(e.get('time') or 0)
+        if any(s <= t < en for s, en in master_lane):
+            continue
+        raus.append(dict(e, time=round(shift(t, master_lane), 3)))
+    return raus
+
+
 def regions_for(pj, track):
     return [(float(r['start']), float(r['end']), float(r['gain']))
             for r in (pj.get('volumes') or []) if r.get('track') == track]
@@ -406,10 +422,13 @@ def main():
     # z.B. "effekte": {"punchin": {"enabled": true, "zoom": 1.05,
     #        "cuts": [10, 15], "style": "smooth"}}
     # Zeitangaben beziehen sich auf das FERTIGE Video (Output-Zeit).
+    # AUSNAHME "sfx": die Soundeffekt-Spur des Cockpits arbeitet wie Texte
+    # und Zooms in Timelinezeit — sonst wuerde ein spaeter gesetzter Schnitt
+    # das Bild verschieben, den Effekt aber stehen lassen.
     for k, v in (pj.get('effekte') or pj.get('effects') or {}).items():
         if k in ('punchin', 'grade', 'grain', 'transition', 'progressbar',
                  'broll', 'overlays', 'sfx', 'voice_master', 'loudnorm'):
-            cfg[k] = v
+            cfg[k] = sfx_verschieben(v, master_lane) if k == 'sfx' else v
 
     # --- Freistellung ("hinter mir"): automatisch aus der projekt.json -----
     # "freistellung": {"von": 2.2, "bis": 6.55} genuegt; der Render stellt
