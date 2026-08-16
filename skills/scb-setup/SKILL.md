@@ -91,8 +91,17 @@ eine Entscheidung: ja oder nein. Danach macht Claude die Arbeit.
    Berechtigungsabfrage von Claude Code erscheint ohnehin — sie ist die
    Kontrollinstanz, nicht der User als Abtipper.
 4. **Bei Nein: sofort weiter.** Kein Nachhaken, kein Überreden.
-5. **Nur bei echtem Fehler** (Firewall, Rechte, kein Netz): Grund
-   verständlich erklären, später nochmal anbieten, weitermachen.
+5. **Bei einem Fehler: erst selbst reparieren, dann reden.** Fehlermeldung
+   lesen, Ursache eingrenzen, den dokumentierten Alternativweg des Scripts
+   probieren (die Exit-Codes stehen jeweils im Script-Kopf) — mindestens
+   zwei ernsthafte Lösungsversuche, bevor der User überhaupt davon erfährt.
+   Den User NIE mit einer rohen Fehlermeldung allein lassen und NIE auf
+   externe Anleitungen, Foren oder Download-Seiten verweisen.
+6. **Geht es wirklich nicht ohne den User** (Passwort-Eingabe, Neustart,
+   kein Netz): in einfachen Worten sagen, was er tun soll — Klick für
+   Klick, ein Schritt pro Satz —, danach selbst weitermachen. Was
+   unlösbar bleibt: ehrlich sagen, Rest des Setups trotzdem zu Ende
+   bringen und am Ende sauber auflisten, was fehlt.
 
 **Installationen laufen über die mitgelieferten Scripts in `scripts/`**, nicht
 über selbst zusammengebaute Befehlsketten. Das ist im ganzen Kit so (siehe

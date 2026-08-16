@@ -83,6 +83,10 @@ Die ausführliche Anleitung mit Bildern steht in
    > nicht, nutze den vollen Pfad `~/.local/bin/claude`.
    > 2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`
    > 3. `claude plugin install scb-creator-kit@scb-creator-kit`
+   > 4. Wichtig: Ich kenne mich mit Terminal und Technik nicht aus. Führe
+   > alles selbst aus und erkläre mir nur kurz, was du tust. Schlägt ein
+   > Schritt fehl, such die Ursache und behebe sie selbstständig. Nur wenn
+   > es ohne mich nicht geht, sag mir Klick für Klick, was ich tun soll.
 
    Claude führt die Befehle selbst aus — kommen Berechtigungsabfragen,
    einfach bestätigen.

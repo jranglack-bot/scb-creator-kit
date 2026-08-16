@@ -30,6 +30,13 @@ genau dort, wo du ihm auch „Hallo" schreiben würdest:
 > nicht, nutze den vollen Pfad `~/.local/bin/claude`.**
 > **2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`**
 > **3. `claude plugin install scb-creator-kit@scb-creator-kit`**
+> **4. Wichtig: Ich kenne mich mit Terminal und Technik nicht aus. Führe
+> alles selbst aus und erkläre mir nur kurz und in einfachen Worten, was
+> du gerade tust. Wenn ein Schritt fehlschlägt, lies die Fehlermeldung,
+> such die Ursache und behebe sie selbstständig — probiere sinnvolle
+> Alternativen, bevor du mich um Hilfe bittest. Nur wenn es wirklich
+> ohne mich nicht geht (z. B. eine Passwort-Eingabe), sag mir Klick für
+> Klick, was ich tun soll.**
 
 Claude führt die Befehle selbst aus — das ist der offizielle
 Installationsweg über Claudes eigene Plugin-Verwaltung. Falls
@@ -102,9 +109,15 @@ schon angemeldet. Eine Terminal-Anmeldung braucht nur, wer Claude Code
 anmelden und die Freigabe bestätigen.
 
 **Der Setup-Assistent startet nach dem Neustart nicht?**
-Schick Claude die Nachricht aus Schritt 1 einfach noch einmal und starte
-danach erneut neu. Klemmt es weiter, schick deinem SCB-Ansprechpartner
-einen Screenshot von Claudes Antwort.
+Schick Claude diese Nachricht — er prüft und repariert das selbst:
+
+> Das SCB Creator Kit scheint nicht geladen zu sein. Prüfe bitte mit
+> `claude plugin list`, ob es installiert ist, finde die Ursache und
+> behebe sie selbstständig. Ich kenne mich mit Technik nicht aus —
+> erkläre mir nur, was du tust.
+
+Danach Claude noch einmal neu starten. Klemmt es immer noch, schick
+deinem SCB-Ansprechpartner einen Screenshot von Claudes Antwort.
 
 ---
 
