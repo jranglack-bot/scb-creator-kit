@@ -192,16 +192,24 @@ macOS und Linux:
 - **ffmpeg** nur nötig für Video-Schnitt und Posting
 - Prüfen ohne zu installieren: `<python> scripts/install_tools.py --pruefen ffmpeg node`
 
-**Exit 2 = auf einem Mac fehlt Homebrew.** Homebrew ist der übliche Weg,
-Programme ohne Fenster auf dem Mac zu installieren (Windows hat dafür
-`winget` eingebaut, macOS nichts Vergleichbares). Das Kit braucht ihn für
-ffmpeg, Node.js, yt-dlp und gh. Infos: https://brew.sh
+**Mac ohne Homebrew ist KEIN Problem mehr für ffmpeg/ffprobe und yt-dlp:**
+das Script lädt sie dann als fertige Programme nach `~/.local/bin`
+(offizielle statische Builds, richtige Architektur, kein Passwort, kein
+Terminal, kein Gatekeeper-Theater). Den User dafür NIE auf Seiten wie
+evermeet.cx oder in einen `mv`/`chmod`/`xattr`-Ablauf im Terminal
+schicken — einfach `install_tools.py` laufen lassen.
 
-**Den Befehl NICHT selbst ausführen** — der Homebrew-Installer fragt nach
-dem Mac-Passwort des Users, und das kann Claude nicht eingeben; der
+**Exit 2 = auf dem Mac fehlt Homebrew UND es blieb ein Werkzeug übrig,
+das nur Homebrew kann (Node.js, gh).** Homebrew ist der übliche Weg,
+Programme ohne Fenster auf dem Mac zu installieren (Windows hat dafür
+`winget` eingebaut, macOS nichts Vergleichbares). Infos: https://brew.sh
+
+**Den Homebrew-Installer NICHT selbst ausführen** — er fragt nach dem
+Mac-Passwort des Users, und das kann Claude nicht eingeben; der
 Vorgang würde nur stehenbleiben. Stattdessen:
 
-1. Kurz erklären, was Homebrew ist und wofür das Kit ihn braucht.
+1. Kurz erklären, was Homebrew ist und wofür das Kit ihn noch braucht
+   (nur Node.js/gh — ffmpeg und yt-dlp sind zu dem Zeitpunkt schon da).
 2. Den User bitten, den vom Script ausgegebenen Befehl **selbst im
    Terminal** einzufügen (Terminal öffnen: Cmd+Leertaste, „Terminal"
    tippen, Enter). Dazu sagen: dauert ein paar Minuten, ist einmalig pro
@@ -209,10 +217,9 @@ Vorgang würde nur stehenbleiben. Stattdessen:
 3. Warten, bis er fertig ist — dann `install_tools.py` erneut aufrufen und
    allein weitermachen.
 
-Klappt es nicht oder will der User kein Homebrew: `xcode-select --install`
-bringt zumindest Python und Git mit, ffmpeg fehlt dann aber weiterhin —
-in dem Fall ehrlich sagen, dass der Video-Teil des Kits ohne ffmpeg nicht
-läuft.
+Will der User kein Homebrew: Higgsfield (braucht Node.js) geht dann auf
+diesem Mac nicht — ehrlich sagen. Der Video-Teil läuft trotzdem, denn
+ffmpeg kommt ja ohne Homebrew.
 
 Nach Installationen unter Windows: neue Sitzung nötig, damit der Suchpfad greift.
 
