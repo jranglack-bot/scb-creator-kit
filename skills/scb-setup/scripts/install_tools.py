@@ -48,9 +48,11 @@ BREW_INSTALL = ('/bin/bash -c "$(curl -fsSL '
 
 # macOS ohne Homebrew: fertige Einzelprogramme, kein sudo, kein Passwort.
 # ffmpeg/ffprobe von ffmpeg.martin-riedl.de (offiziell verlinkte statische
-# Builds, arm64 UND Intel - evermeet.cx waere nur Intel). Je nach
-# Architektur liegt der aktuelle Build mal unter "release", mal unter
-# "snapshot", darum werden beide probiert.
+# Builds, arm64 UND Intel - evermeet.cx waere nur Intel).
+# Primaer wird die Startseite nach konkreten Build-URLs durchsucht -
+# die /redirect/latest/-Endpunkte des Anbieters liefern zeitweise 404
+# (live beobachtet am 16.08.2026) und sind nur der Notnagel.
+FFMPEG_SEITE = "https://ffmpeg.martin-riedl.de/"
 FFMPEG_REDIRECT = ("https://ffmpeg.martin-riedl.de/redirect/latest/"
                    "macos/{arch}/{kanal}/{name}.zip")
 YTDLP_MACOS = ("https://github.com/yt-dlp/yt-dlp/releases/latest/"
@@ -98,6 +100,56 @@ def _lade(url, ziel):
         return False
 
 
+def _text_von(url):
+    """Laedt url als Text - oder None."""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "scb-setup"})
+        with urllib.request.urlopen(req, timeout=60) as antwort:
+            return antwort.read().decode("utf-8", errors="replace")
+    except Exception:
+        return None
+
+
+def _ffmpeg_urls(arch):
+    """Konkrete Download-URLs {name: url} vom neuesten Build der Startseite.
+
+    Die Build-Ordner heissen <unix-zeit>_<version>; der juengste gewinnt.
+    ffmpeg und ffprobe kommen bewusst aus DEMSELBEN Build. None bei Fehler.
+    """
+    import re
+    html = _text_von(FFMPEG_SEITE)
+    if not html:
+        return None
+    builds = re.findall(
+        rf'/download/macos/{arch}/((\d+)[^/"]*)/ffmpeg\.zip', html)
+    if not builds:
+        return None
+    ordner = max(builds, key=lambda b: int(b[1]))[0]
+    basis = f"{FFMPEG_SEITE.rstrip('/')}/download/macos/{arch}/{ordner}"
+    return {name: f"{basis}/{name}.zip" for name in ("ffmpeg", "ffprobe")}
+
+
+def _sha256_ok(datei, url):
+    """Vergleicht datei mit der veroeffentlichten <url>.sha256.
+
+    True auch, wenn keine Pruefsumme abrufbar ist (dann kein Urteil) -
+    False NUR bei echtem Widerspruch.
+    """
+    import hashlib
+    soll = _text_von(url + ".sha256")
+    if not soll:
+        return True
+    soll = soll.split()[0].strip().lower()
+    h = hashlib.sha256()
+    with open(datei, "rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    if h.hexdigest() == soll:
+        return True
+    print(f"  FEHLER: Pruefsumme falsch fuer {datei.name} - Datei verworfen.")
+    return False
+
+
 def _entpacke_binary(zip_pfad, name):
     """Holt die Datei <name> aus dem ZIP nach BIN_DIR und macht sie ausfuehrbar."""
     with zipfile.ZipFile(zip_pfad) as z:
@@ -121,15 +173,22 @@ def statisch_ffmpeg():
     """
     BIN_DIR.mkdir(parents=True, exist_ok=True)
     arch = "arm64" if platform.machine() == "arm64" else "amd64"
+    urls = _ffmpeg_urls(arch)
     for name in ("ffmpeg", "ffprobe"):
         zip_pfad = BIN_DIR / f"{name}.zip"
         ok = False
-        for kanal in ("release", "snapshot"):
-            url = FFMPEG_REDIRECT.format(arch=arch, kanal=kanal, name=name)
-            if _lade(url, zip_pfad):
-                ok = _entpacke_binary(zip_pfad, name)
-                if ok:
-                    break
+        # 1. Wahl: konkreter Build von der Startseite (inkl. Pruefsumme)
+        if urls and _lade(urls[name], zip_pfad):
+            ok = (_sha256_ok(zip_pfad, urls[name])
+                  and _entpacke_binary(zip_pfad, name))
+        # Notnagel: redirect/latest (liefert zeitweise 404)
+        if not ok:
+            for kanal in ("release", "snapshot"):
+                url = FFMPEG_REDIRECT.format(arch=arch, kanal=kanal, name=name)
+                if _lade(url, zip_pfad):
+                    ok = _entpacke_binary(zip_pfad, name)
+                    if ok:
+                        break
         zip_pfad.unlink(missing_ok=True)
         if not ok:
             return False

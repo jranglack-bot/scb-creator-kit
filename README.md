@@ -74,12 +74,17 @@ Die ausführliche Anleitung mit Bildern steht in
    (App kostenlos hier: [claude.ai/download](https://claude.ai/download))
 2. **Diese Nachricht an Claude schicken** (komplett kopieren):
 
-   > Installiere bitte das SCB Creator Kit. Führe dazu nacheinander diese
-   > zwei Befehle aus:
-   > `claude plugin marketplace add jranglack-bot/scb-creator-kit`
-   > `claude plugin install scb-creator-kit@scb-creator-kit`
+   > Installiere bitte das SCB Creator Kit:
+   > 1. Prüfe mit `claude --version`, ob der Befehl `claude` existiert.
+   > Falls nicht, installiere zuerst Claude Code mit dem offiziellen
+   > Installer — Mac/Linux: `curl -fsSL https://claude.ai/install.sh | bash`
+   > — Windows (PowerShell): `irm https://claude.ai/install.ps1 | iex`.
+   > Er braucht kein Admin-Passwort. Findet die Shell den Befehl danach
+   > nicht, nutze den vollen Pfad `~/.local/bin/claude`.
+   > 2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`
+   > 3. `claude plugin install scb-creator-kit@scb-creator-kit`
 
-   Claude führt die Befehle selbst aus — kommt eine Berechtigungsabfrage,
+   Claude führt die Befehle selbst aus — kommen Berechtigungsabfragen,
    einfach bestätigen.
 3. **Claude komplett schließen und neu öffnen**, dann schreiben:
    „Richte das SCB Kit ein"
@@ -90,10 +95,11 @@ Fertig. Der Assistent führt dich durch alles Weitere.
 
 ### Wenn es nicht klappt
 
-**Claude meldet „`claude` — Befehl nicht gefunden"**
+**Claude kommt mit „Befehl nicht gefunden" nicht weiter**
 Dann einmal selbst: Terminal öffnen (Mac: `Cmd+Leertaste` → „Terminal" /
-Windows: Startmenü → „PowerShell") und die zwei Befehle aus Schritt 2 dort
-nacheinander einfügen. Danach Claude neu starten.
+Windows: Startmenü → „PowerShell") und die drei Befehle aus der Nachricht
+in Schritt 2 dort nacheinander einfügen (Installer zuerst). Danach Claude
+neu starten.
 
 **Du nutzt Claude Code im Terminal statt der Desktop-App?**
 Gleiche Nachricht, gleiche Wirkung. Oder direkt in die Chat-Eingabe

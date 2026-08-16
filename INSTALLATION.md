@@ -21,14 +21,19 @@ sich kurz selbst ein — einfach durchklicken.
 Kopier den folgenden Text **komplett** und schick ihn Claude im Code-Tab —
 genau dort, wo du ihm auch „Hallo" schreiben würdest:
 
-> **Installiere bitte das SCB Creator Kit. Führe dazu nacheinander diese
-> zwei Befehle aus:**
-> **`claude plugin marketplace add jranglack-bot/scb-creator-kit`**
-> **`claude plugin install scb-creator-kit@scb-creator-kit`**
+> **Installiere bitte das SCB Creator Kit:**
+> **1. Prüfe mit `claude --version`, ob der Befehl `claude` existiert.
+> Falls nicht, installiere zuerst Claude Code mit dem offiziellen
+> Installer — Mac/Linux: `curl -fsSL https://claude.ai/install.sh | bash`
+> — Windows (PowerShell): `irm https://claude.ai/install.ps1 | iex`.
+> Er braucht kein Admin-Passwort. Findet die Shell den Befehl danach
+> nicht, nutze den vollen Pfad `~/.local/bin/claude`.**
+> **2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`**
+> **3. `claude plugin install scb-creator-kit@scb-creator-kit`**
 
 Claude führt die Befehle selbst aus — das ist der offizielle
-Installationsweg über Claudes eigene Plugin-Verwaltung. Falls eine
-Berechtigungsabfrage erscheint („Darf ich diesen Befehl ausführen?"),
+Installationsweg über Claudes eigene Plugin-Verwaltung. Falls
+Berechtigungsabfragen erscheinen („Darf ich diesen Befehl ausführen?"),
 einfach bestätigen.
 
 Wenn Claude **„Successfully installed"** (oder „erfolgreich installiert")
@@ -57,20 +62,25 @@ willst, und richtet den Rest selbst ein.
 
 ## Wenn etwas nicht klappt
 
-**Claude meldet: „`claude` — Befehl nicht gefunden."**
-Sehr selten. Dann einmal selbst ins Terminal:
+**Claude kommt mit „Befehl nicht gefunden" nicht weiter.**
+Dann einmal selbst ins Terminal:
 
 - **Mac:** `Cmd + Leertaste` drücken, „Terminal" tippen, Enter.
 - **Windows:** Startmenü, „PowerShell" tippen, Enter.
 
-Dort diese zwei Zeilen nacheinander einfügen (Enter nach jeder):
+Dort diese drei Zeilen nacheinander einfügen (Enter nach jeder, die
+erste dauert 1–2 Minuten — auf dem Mac die `curl`-Zeile, unter Windows
+stattdessen `irm https://claude.ai/install.ps1 | iex`):
 
 ```
+curl -fsSL https://claude.ai/install.sh | bash
 claude plugin marketplace add jranglack-bot/scb-creator-kit
 claude plugin install scb-creator-kit@scb-creator-kit
 ```
 
-Danach weiter mit Schritt 2 (Neustart).
+Meldet das Terminal nach der ersten Zeile „command not found: claude",
+das Terminalfenster einmal schließen, neu öffnen und die letzten zwei
+Zeilen wiederholen. Danach weiter mit Schritt 2 (Neustart).
 
 **Du nutzt Claude Code im Terminal statt der Desktop-App?**
 Dann funktioniert alles genauso — Nachricht aus Schritt 1 in die
