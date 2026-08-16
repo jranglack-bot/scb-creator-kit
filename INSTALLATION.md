@@ -29,6 +29,14 @@ genau dort, wo du ihm auch „Hallo" schreiben würdest:
 > Er braucht kein Admin-Passwort. Findet die Shell den Befehl danach
 > nicht, nutze den vollen Pfad `~/.local/bin/claude`.**
 > **2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`**
+> **Meldet der Befehl, dass `git` fehlt (typisch auf einem neuen Mac):
+> führe `xcode-select --install` aus und bitte mich, im aufgehenden
+> Fenster auf „Installieren" zu klicken. Warte, bis es fertig ist
+> (ein paar Minuten), und wiederhole dann den Befehl. Alternativ ohne
+> Wartezeit: Lade https://github.com/jranglack-bot/scb-creator-kit/archive/refs/heads/master.tar.gz
+> per `curl -L` herunter, entpacke es mit `tar` und registriere den
+> entpackten Ordner als lokalen Marketplace
+> (`claude plugin marketplace add <ordnerpfad>`).**
 > **3. `claude plugin install scb-creator-kit@scb-creator-kit`**
 > **4. Wichtig: Ich kenne mich mit Terminal und Technik nicht aus. Führe
 > alles selbst aus und erkläre mir nur kurz und in einfachen Worten, was
