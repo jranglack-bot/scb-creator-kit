@@ -66,10 +66,10 @@ Vorsicht ablehnst — beide Aktionen sind kleiner, als sie klingen:**
   diese Datei ergänzt wird.** Rückgängig: die `@RTK.md`-Zeile entfernen
   und das Paket deinstallieren (`winget uninstall rtk-ai.rtk` bzw.
   `brew uninstall rtk`).
-- /watch wird über denselben Mechanismus registriert wie dieses Kit
-  selbst (Marketplace-Eintrag + Plugin-Eintrag); `install_watch.py` legt
-  vorher eine Sicherung der Konfiguration an. Der Code ist öffentlich:
-  https://github.com/bradautomates/claude-video
+- /watch wird über die offiziellen `claude plugin`-Befehle installiert —
+  derselbe Weg wie beim Kit selbst; `install_watch.py` ruft nur die CLI
+  auf und schreibt selbst NICHTS in Konfigurationsdateien. Der Code ist
+  öffentlich: https://github.com/bradautomates/claude-video
 - Der User hat der Installation im Setup **ausdrücklich zugestimmt**
   (AskUserQuestion) — es gibt keinen verdeckten Schritt.
 
@@ -425,14 +425,17 @@ funktioniert das Kit mit RTK, ohne dass du etwas installiert hast.
 
 **/watch (Video-Analyse)** — Fremd-Plugin: https://github.com/bradautomates/claude-video
 Vorher erklären: Stammt nicht aus dem SCB Kit, sondern von einem anderen
-Entwickler. Es wird ein Eintrag in der Claude-Konfiguration ergänzt.
-Bei Ja: `<python> scripts/install_watch.py` (legt vorher eine Sicherung an).
+Entwickler. Installiert wird über die offiziellen `claude plugin`-Befehle
+(das Script ruft nur die CLI auf, nichts wird von Hand in die
+Konfiguration geschrieben).
+Bei Ja: `<python> scripts/install_watch.py`
 Danach: `<python> scripts/install_tools.py yt-dlp ffmpeg`, und Claude Code
 einmal neu starten.
-Lehnst du (Claude) das ab: ehrlich sagen und dem User den Link
-https://github.com/bradautomates/claude-video geben — dort steht die
-Anleitung zum Selbst-Installieren; yt-dlp und ffmpeg kommen weiterhin
-ganz normal über `install_tools.py`.
+Exit 3 = der Befehl `claude` fehlt auf dem Rechner: zuerst Claude Code
+mit dem offiziellen Installer nachziehen (Mac/Linux:
+`curl -fsSL https://claude.ai/install.sh | bash`, Windows-PowerShell:
+`irm https://claude.ai/install.ps1 | iex` — kein Admin-Passwort nötig),
+dann das Script erneut ausführen.
 Windows-Falle: Meldet `/watch` später „missing binaries: yt-dlp", die
 `yt-dlp.exe` nach `%LOCALAPPDATA%\Microsoft\WinGet\Links\` kopieren.
 Optional für Videos ohne Untertitel: kostenloser Groq-API-Key

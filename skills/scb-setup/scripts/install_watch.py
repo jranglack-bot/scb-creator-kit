@@ -1,68 +1,81 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Schaltet das /watch-Plugin (bradautomates/claude-video) frei.
+"""Installiert das /watch-Plugin (bradautomates/claude-video) ueber die
+offiziellen claude-plugin-Befehle - derselbe Weg, ueber den auch das
+SCB Creator Kit selbst installiert wird.
 
 Claude ruft dieses Script auf, nachdem der User zugestimmt hat.
 Der User muss KEIN Terminal oeffnen und keinen Slash-Befehl tippen.
 
-Das Script merged NUR die noetigen Schluessel in ~/.claude/settings.json
-und laesst alles andere unangetastet. Vorher wird eine Sicherung angelegt.
+Es wird NICHTS von Hand in Claudes Konfigurationsdateien geschrieben -
+die Registrierung erledigt die Claude-CLI selbst.
 
     python install_watch.py
 
-Rueckgabe: Exit 0 = fertig, Exit 1 = fehlgeschlagen.
+Rueckgabe: Exit 0 = fertig (Neustart noetig)
+           Exit 1 = fehlgeschlagen
+           Exit 3 = der Befehl "claude" fehlt auf diesem Rechner.
+                    Dann zuerst Claude Code mit dem offiziellen Installer
+                    nachziehen (Mac/Linux:
+                    curl -fsSL https://claude.ai/install.sh | bash
+                    Windows-PowerShell:
+                    irm https://claude.ai/install.ps1 | iex
+                    - kein Admin-Passwort noetig), danach dieses Script
+                    erneut ausfuehren.
 """
-import json
 import os
+import platform
 import shutil
+import subprocess
 import sys
 
 MARKT = "claude-video"
-PLUGIN = "watch@claude-video"
 REPO = "bradautomates/claude-video"
+PLUGIN = "watch@claude-video"
+
+
+def claude_cli():
+    """Pfad zur claude-CLI - PATH zuerst, dann der Standard-Installationsort."""
+    p = shutil.which("claude")
+    if p:
+        return p
+    name = "claude.exe" if platform.system() == "Windows" else "claude"
+    kandidat = os.path.join(os.path.expanduser("~"), ".local", "bin", name)
+    return kandidat if os.path.exists(kandidat) else None
+
+
+def run(cmd):
+    return subprocess.run(cmd, capture_output=True, text=True,
+                          encoding="utf-8", errors="replace")
 
 
 def main():
-    pfad = os.path.join(os.path.expanduser("~"), ".claude", "settings.json")
-    os.makedirs(os.path.dirname(pfad), exist_ok=True)
+    cli = claude_cli()
+    if not cli:
+        print("FEHLER: Der Befehl 'claude' wurde nicht gefunden.")
+        print("Zuerst Claude Code mit dem offiziellen Installer nachziehen")
+        print("(siehe Kopf dieses Scripts), dann dieses Script erneut starten.")
+        return 3
 
-    daten = {}
-    if os.path.exists(pfad):
-        try:
-            with open(pfad, encoding="utf-8-sig") as f:
-                inhalt = f.read().strip()
-            daten = json.loads(inhalt) if inhalt else {}
-        except json.JSONDecodeError as e:
-            print(f"FEHLER: {pfad} ist kein gueltiges JSON ({e}).")
-            print("Nichts veraendert. Bitte die Datei pruefen.")
-            return 1
-        # Sicherung nur anlegen, wenn es etwas zu sichern gibt
-        shutil.copyfile(pfad, pfad + ".backup")
-        print(f"Sicherung angelegt: {pfad}.backup")
-
-    if not isinstance(daten, dict):
-        print("FEHLER: settings.json enthaelt kein Objekt.")
+    print(f"Registriere Marketplace {REPO} ...")
+    r = run([cli, "plugin", "marketplace", "add", REPO])
+    ausgabe = (r.stdout or "") + (r.stderr or "")
+    if r.returncode != 0 and "already" not in ausgabe.lower():
+        print("FEHLER beim Marketplace-Hinzufuegen:", ausgabe.strip()[:300])
         return 1
+    print("  OK")
 
-    schon_da = daten.get("enabledPlugins", {}).get(PLUGIN) is True
+    print(f"Installiere {PLUGIN} ...")
+    r = run([cli, "plugin", "install", PLUGIN])
+    ausgabe = (r.stdout or "") + (r.stderr or "")
+    if r.returncode != 0 and "already" not in ausgabe.lower():
+        print("FEHLER bei der Installation:", ausgabe.strip()[:300])
+        return 1
+    print("  OK")
 
-    # Gezielt mergen - bestehende Eintraege bleiben erhalten
-    daten.setdefault("enabledPlugins", {})[PLUGIN] = True
-    daten.setdefault("extraKnownMarketplaces", {})[MARKT] = {
-        "source": {"source": "github", "repo": REPO}
-    }
-
-    with open(pfad, "w", encoding="utf-8") as f:
-        json.dump(daten, f, ensure_ascii=False, indent=2)
-
-    if schon_da:
-        print("Das Plugin war bereits freigeschaltet - Eintrag aufgefrischt.")
-    else:
-        print(f"Freigeschaltet: {PLUGIN} (Quelle: {REPO})")
-    print(f"Geschrieben: {pfad}")
     print("")
     print("FERTIG. Claude Code einmal neu starten, danach ist /watch da.")
-    print(f"Rueckgaengig: in {pfad} den Eintrag {PLUGIN} auf false setzen.")
+    print(f"Rueckgaengig: claude plugin uninstall {PLUGIN}")
     return 0
 
 
