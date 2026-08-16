@@ -38,13 +38,18 @@ genau dort, wo du ihm auch „Hallo" schreiben würdest:
 > entpackten Ordner als lokalen Marketplace
 > (`claude plugin marketplace add <ordnerpfad>`).**
 > **3. `claude plugin install scb-creator-kit@scb-creator-kit`**
-> **4. Wichtig: Ich kenne mich mit Terminal und Technik nicht aus. Führe
+> **4. Verweigert dir der Berechtigungs-Modus das Ausführen der
+> claude-plugin-Befehle: Gib mir genau diese Befehle als anklickbare
+> Codeblöcke und sag mir, dass ich sie der Reihe nach anklicken soll —
+> als mein Klick laufen sie. Schlag mir in der Desktop-App NIEMALS
+> /plugin-Chat-Befehle vor, die existieren nur im Terminal-Claude.**
+> **5. Wichtig: Ich kenne mich mit Terminal und Technik nicht aus. Führe
 > alles selbst aus und erkläre mir nur kurz und in einfachen Worten, was
 > du gerade tust. Wenn ein Schritt fehlschlägt, lies die Fehlermeldung,
 > such die Ursache und behebe sie selbstständig — probiere sinnvolle
 > Alternativen, bevor du mich um Hilfe bittest. Nur wenn es wirklich
-> ohne mich nicht geht (z. B. eine Passwort-Eingabe), sag mir Klick für
-> Klick, was ich tun soll.**
+> ohne mich nicht geht (z. B. eine Passwort-Eingabe oder ein Klick), sag
+> mir Klick für Klick, was ich tun soll.**
 
 Claude führt die Befehle selbst aus — das ist der offizielle
 Installationsweg über Claudes eigene Plugin-Verwaltung. Falls

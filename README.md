@@ -88,7 +88,11 @@ Die ausführliche Anleitung mit Bildern steht in
    > Alternativ: das Repo als .tar.gz laden (`curl -L`, GitHub-Archiv von
    > master), entpacken und den Ordner als lokalen Marketplace registrieren.
    > 3. `claude plugin install scb-creator-kit@scb-creator-kit`
-   > 4. Wichtig: Ich kenne mich mit Terminal und Technik nicht aus. Führe
+   > 4. Verweigert dir der Berechtigungs-Modus diese Befehle: Gib sie mir
+   > als anklickbare Codeblöcke zum Selbst-Anklicken. Schlag mir in der
+   > Desktop-App NIEMALS /plugin-Chat-Befehle vor — die existieren nur im
+   > Terminal-Claude.
+   > 5. Wichtig: Ich kenne mich mit Terminal und Technik nicht aus. Führe
    > alles selbst aus und erkläre mir nur kurz, was du tust. Schlägt ein
    > Schritt fehl, such die Ursache und behebe sie selbstständig. Nur wenn
    > es ohne mich nicht geht, sag mir Klick für Klick, was ich tun soll.
