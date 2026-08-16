@@ -41,7 +41,10 @@ genau dort, wo du ihm auch „Hallo" schreiben würdest:
 > **4. Verweigert dir der Berechtigungs-Modus das Ausführen der
 > claude-plugin-Befehle: Gib mir genau diese Befehle als anklickbare
 > Codeblöcke und sag mir, dass ich sie der Reihe nach anklicken soll —
-> als mein Klick laufen sie. Schlag mir in der Desktop-App NIEMALS
+> als mein Klick laufen sie. Auf Windows stelle dabei jedem Befehl
+> `cmd /c` voran (`cmd /c claude plugin …`) — das umgeht die
+> PowerShell-Skriptsperre, an der eine per npm installierte Claude-CLI
+> sonst scheitert. Schlag mir in der Desktop-App NIEMALS
 > /plugin-Chat-Befehle vor, die existieren nur im Terminal-Claude.**
 > **5. Wichtig: Ich kenne mich mit Terminal und Technik nicht aus. Führe
 > alles selbst aus und erkläre mir nur kurz und in einfachen Worten, was
@@ -88,14 +91,23 @@ Dann einmal selbst ins Terminal:
 - **Mac:** `Cmd + Leertaste` drücken, „Terminal" tippen, Enter.
 - **Windows:** Startmenü, „PowerShell" tippen, Enter.
 
-Dort diese drei Zeilen nacheinander einfügen (Enter nach jeder, die
-erste dauert 1–2 Minuten — auf dem Mac die `curl`-Zeile, unter Windows
-stattdessen `irm https://claude.ai/install.ps1 | iex`):
+**Mac** — diese drei Zeilen nacheinander einfügen (Enter nach jeder,
+die erste dauert 1–2 Minuten):
 
 ```
 curl -fsSL https://claude.ai/install.sh | bash
 claude plugin marketplace add jranglack-bot/scb-creator-kit
 claude plugin install scb-creator-kit@scb-creator-kit
+```
+
+**Windows (PowerShell)** — diese drei Zeilen (das `cmd /c` davor ist
+Absicht — es umgeht die Windows-Skriptsperre, falls Claude Code über
+npm installiert wurde):
+
+```
+irm https://claude.ai/install.ps1 | iex
+cmd /c claude plugin marketplace add jranglack-bot/scb-creator-kit
+cmd /c claude plugin install scb-creator-kit@scb-creator-kit
 ```
 
 Meldet das Terminal nach der ersten Zeile „command not found: claude",
