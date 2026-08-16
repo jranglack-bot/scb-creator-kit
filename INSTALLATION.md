@@ -93,6 +93,14 @@ Shell-Befehle):
 /plugin install scb-creator-kit@scb-creator-kit
 ```
 
+**„Muss ich mich im Terminal erst anmelden?"**
+Nein. Die Installations-Befehle (`claude plugin …`) funktionieren ohne
+Anmeldung, und in der Desktop-App bist du über deinen normalen App-Login
+schon angemeldet. Eine Terminal-Anmeldung braucht nur, wer Claude Code
+**im Terminal als Chat** benutzen will: dort `claude` eintippen, dann
+`/login` — es öffnet sich der Browser, dort mit dem Claude-Konto
+anmelden und die Freigabe bestätigen.
+
 **Der Setup-Assistent startet nach dem Neustart nicht?**
 Schick Claude die Nachricht aus Schritt 1 einfach noch einmal und starte
 danach erneut neu. Klemmt es weiter, schick deinem SCB-Ansprechpartner
