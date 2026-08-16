@@ -66,44 +66,47 @@ Ungewöhnliches klemmt. Faustregel: *Alltag = Sonnet, Konzept & Notfall = Opus.*
 
 ## Installation — 3 Schritte, ca. 1 Minute
 
-**[⬇️ HIER KLICKEN: scb-creator-kit.plugin herunterladen](https://github.com/jranglack-bot/scb-creator-kit/releases/latest/download/scb-creator-kit.plugin)**
+Kein Download, kein Terminal — Claude installiert das Kit selbst.
+Die ausführliche Anleitung mit Bildern steht in
+[INSTALLATION.md](INSTALLATION.md), die Kurzfassung:
 
-1. **Datei herunterladen** — auf den Link oben klicken
-2. **Datei in Claude ziehen** — die heruntergeladene Datei mit der Maus in ein
-   Claude-Gespräch ziehen und die Rückfrage bestätigen
-3. **Schreiben:** „Richte das SCB Kit ein"
+1. **Claude Desktop-App öffnen**, oben den Tab **Code** wählen
+   (App kostenlos hier: [claude.ai/download](https://claude.ai/download))
+2. **Diese Nachricht an Claude schicken** (komplett kopieren):
+
+   > Installiere bitte das SCB Creator Kit. Führe dazu nacheinander diese
+   > zwei Befehle aus:
+   > `claude plugin marketplace add jranglack-bot/scb-creator-kit`
+   > `claude plugin install scb-creator-kit@scb-creator-kit`
+
+   Claude führt die Befehle selbst aus — kommt eine Berechtigungsabfrage,
+   einfach bestätigen.
+3. **Claude komplett schließen und neu öffnen**, dann schreiben:
+   „Richte das SCB Kit ein"
 
 Fertig. Der Assistent führt dich durch alles Weitere.
-
-> 💡 Du brauchst die **Claude Desktop-App**. Kostenlos hier:
-> [claude.ai/download](https://claude.ai/download)
 
 ---
 
 ### Wenn es nicht klappt
 
-**„Claude sagt, er kann das nicht installieren"**
-Du hast Claude vermutlich gebeten, das Plugin zu installieren, oder ihm die
-GitHub-Adresse geschickt. Das funktioniert nicht, und zwar bei niemandem.
-Claude installiert keine Plugins. **Du ziehst die Datei selbst ins Fenster** —
-Schritt 2 oben. Das ist alles.
+**Claude meldet „`claude` — Befehl nicht gefunden"**
+Dann einmal selbst: Terminal öffnen (Mac: `Cmd+Leertaste` → „Terminal" /
+Windows: Startmenü → „PowerShell") und die zwei Befehle aus Schritt 2 dort
+nacheinander einfügen. Danach Claude neu starten.
 
-**„Ich finde die heruntergeladene Datei nicht"**
-Sie liegt in deinem Downloads-Ordner und heißt `scb-creator-kit.plugin`.
-
-<details>
-<summary><b>Für Fortgeschrittene: Installation im Terminal (Claude Code)</b></summary>
-
-Diese zwei Zeilen nacheinander in die Claude-Eingabe tippen (nicht ins
-Betriebssystem-Terminal, sondern dorthin, wo du sonst mit Claude schreibst):
+**Du nutzt Claude Code im Terminal statt der Desktop-App?**
+Gleiche Nachricht, gleiche Wirkung. Oder direkt in die Chat-Eingabe
+(das sind Chat-Befehle, keine Shell-Befehle):
 
 ```
 /plugin marketplace add jranglack-bot/scb-creator-kit
 /plugin install scb-creator-kit@scb-creator-kit
 ```
 
-Danach: „Richte das SCB Kit ein"
-</details>
+**Update auf eine neue Version:** Claude schicken:
+„Aktualisiere das SCB Creator Kit: `claude plugin update scb-creator-kit@scb-creator-kit`",
+danach neu starten.
 
 ## Was du brauchst (je nach Funktion)
 
