@@ -19,6 +19,33 @@ zuzumuten. Frage nur, was nötig ist.
 
 ## Ablauf
 
+### Schritt 0: Still prüfen, ob das Kit aktuell ist
+
+Bevor irgendetwas eingerichtet wird, im Hintergrund (ohne den User zu
+behelligen) die installierte Version mit GitHub vergleichen:
+
+- Installiert: eigene Plugin-Version (steht in der plugin.json dieses Kits,
+  oder `claude plugin list`).
+- Aktuell: `https://raw.githubusercontent.com/jranglack-bot/scb-creator-kit/master/.claude-plugin/plugin.json`
+  (Feld `version`; kein Netz → Prüfung still überspringen).
+
+**Gleich oder neuer → nichts sagen, direkt zu Schritt 1.**
+
+**Älter → in EINEM Satz anbieten:** „Es gibt eine neuere Version des Kits
+(x.y.z, du hast a.b.c) — soll ich kurz aktualisieren? Dauert eine Minute."
+Bei Ja: `claude plugin update scb-creator-kit@scb-creator-kit` ausführen.
+Meldet das Update „bereits aktuell", obwohl die Versionen abweichen, ist
+das Kit als lokaler Marketplace installiert — dann stattdessen:
+`claude plugin marketplace remove scb-creator-kit`, dann
+`claude plugin marketplace add jranglack-bot/scb-creator-kit`, dann
+`claude plugin install scb-creator-kit@scb-creator-kit`.
+Vorher in der ALTEN Fassung ersetzte `~~`-Key-Platzhalter (ElevenLabs,
+Groq) auslesen und nach dem Update in die neue Fassung übertragen, damit
+der User keinen Key erneut eingeben muss. Danach sagen: Claude einmal
+neu starten und wieder „Richte das SCB Kit ein" schreiben — es geht dann
+mit der frischen Fassung weiter. Bei Nein: einfach weitermachen, nicht
+nachhaken.
+
 ### Schritt 1: Begrüßung und Überblick
 
 Begrüße den User und zeige kurz, was das Kit kann:
