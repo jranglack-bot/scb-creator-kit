@@ -575,10 +575,12 @@ Einzelschritte von Hand nachbauen; die Rechenzeit kostet keine Tokens.
   Song-Stelle, Lautstärken: alles im Cockpit selbst machbar).
 - **Untertitel anlegen NUR per Script** (Wortliste NIEMALS in den Kontext
   laden oder ausgeben, auch nicht „zur Kontrolle"). Der API-Key kommt als
-  Umgebungsvariable — beim installierten Kit steckt der Nutzer-Key im
-  Platzhalter, also z. B. in PowerShell:
-  `$env:ELEVENLABS_API_KEY = "~~elevenlabs-api-key"` (bzw. GROQ_API_KEY,
-  falls der Nutzer einen Groq-Key nennt), dann:
+  Umgebungsvariable — beim installierten Kit stecken die Nutzer-Keys in
+  den Platzhaltern. Groq ist der bevorzugte Transkriptionsdienst,
+  ElevenLabs die Rückfallebene — beide setzen, soweit vorhanden
+  (unersetzte ~~Platzhalter einfach weglassen), z. B. in PowerShell:
+  `$env:GROQ_API_KEY = "~~groq-api-key"` und
+  `$env:ELEVENLABS_API_KEY = "~~elevenlabs-api-key"`, dann:
   `<python> scripts/transkript_untertitel.py projekt.json <video>` —
   schreibt die Wörter direkt in die projekt.json.
 - **Musik anlegen NUR per Script:**

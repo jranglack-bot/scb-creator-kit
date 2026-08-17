@@ -13,22 +13,42 @@ Führe den folgenden Workflow Schritt für Schritt aus. Warte nach jedem Schritt
 
 ---
 
-## Schritt 0: ElevenLabs API-Key prüfen
+## Schritt 0: API-Keys prüfen (Groq bevorzugt, ElevenLabs als Rückfallebene)
 
-Prüfe ob `~~elevenlabs-api-key` noch der unreplaced Platzhalter ist (d.h. der Nutzer hat ihn noch nicht konfiguriert).
+Die Transkription läuft **bevorzugt über Groq** (schnell, kostenlos).
+ElevenLabs ist die Rückfallebene — der Key lohnt sich trotzdem, weil
+ElevenLabs auch Musik und Soundeffekte erzeugen kann. Es reicht EINER
+der beiden Keys, ideal sind beide.
 
-Falls der Key noch nicht hinterlegt ist, weise den Nutzer freundlich darauf hin:
+Prüfe, ob `~~groq-api-key` und `~~elevenlabs-api-key` noch unersetzte
+Platzhalter sind (d. h. der Nutzer hat sie noch nicht konfiguriert).
 
-> "Bevor wir starten: Du benötigst einen persönlichen ElevenLabs API-Key für die automatische Transkription. Den bekommst du so:
-> 1. Gehe auf **elevenlabs.io** und erstelle ein kostenloses Konto
-> 2. Klicke oben rechts auf dein Profilbild → **API Keys**
-> 3. Erstelle einen neuen Key und kopiere ihn
+**Fehlen beide**, weise den Nutzer freundlich darauf hin:
+
+> "Bevor wir starten: Für die automatische Transkription brauchst du
+> einen kostenlosen **Groq**-API-Key. So bekommst du ihn:
+> 1. Gehe auf **console.groq.com** und erstelle ein kostenloses Konto
+> 2. Links auf **API Keys** → **Create API Key** → Key kopieren
 >
-> Gib mir den Key und ich speichere ihn einmalig in deinem Plugin. Du wirst nie wieder danach gefragt."
+> Empfehlenswert ist zusätzlich ein **ElevenLabs**-Key — als
+> Rückfallebene für die Transkription, und weil ElevenLabs Musik und
+> Soundeffekte erzeugen kann:
+> 1. Auf **elevenlabs.io** ein kostenloses Konto erstellen
+> 2. Oben rechts aufs Profilbild → **API Keys** → Key erstellen und kopieren
+>
+> Gib mir einen oder beide Keys und ich speichere sie einmalig in
+> deinem Plugin. Du wirst nie wieder danach gefragt."
 
-Nimm den Key entgegen und speichere ihn als `~~elevenlabs-api-key` für diesen und alle zukünftigen Durchläufe.
+**Fehlt nur einer**, arbeite ohne Rückfrage weiter — erwähne nur in
+einem Satz, dass der fehlende Key sich lohnt (Groq: schnellere und
+kostenlose Transkription; ElevenLabs: Rückfallebene + Musik/Soundeffekte),
+und biete an, ihn jederzeit nachzutragen.
 
-Falls der Key bereits konfiguriert ist: direkt zu Schritt 1 weitergehen, ohne den Nutzer zu fragen.
+Erhaltene Keys als `~~groq-api-key` bzw. `~~elevenlabs-api-key` für
+diesen und alle zukünftigen Durchläufe speichern.
+
+Sind die Keys bereits konfiguriert: direkt zu Schritt 1 weitergehen,
+ohne den Nutzer zu fragen.
 
 ---
 
@@ -74,13 +94,18 @@ Claude führt das mitgelieferte Script selbst aus — läuft auf Windows, macOS
 und Linux gleichermaßen. Es gibt **keine .bat-Datei mehr**, die war
 Windows-only und auf dem Mac nicht lauffähig.
 
-    <python> scripts/transkribieren.py "<workspace>/audio_temp.mp3" "~~elevenlabs-api-key" -o "<workspace>/transkript.json"
+    <python> scripts/transkribieren.py "<workspace>/audio_temp.mp3" "~~elevenlabs-api-key" --groq-key "~~groq-api-key" -o "<workspace>/transkript.json"
 
 (`<python>` = `python` unter Windows, meist `python3` auf macOS/Linux.)
 
-Optionen: `--sprache de` (Standard), `--modell scribe_v1` (Standard).
-Der Key kann alternativ über die Umgebungsvariable `ELEVENLABS_API_KEY`
-kommen, dann entfällt das zweite Argument.
+Das Script nimmt **Groq zuerst** und weicht bei Fehlern automatisch auf
+ElevenLabs aus; unersetzte `~~`-Platzhalter erkennt es selbst als „nicht
+gesetzt". Die Ausgabe hat bei beiden Diensten dasselbe Format — für alle
+weiteren Schritte ist der Dienst egal.
+
+Optionen: `--sprache de` (Standard), `--modell scribe_v1` (nur für die
+ElevenLabs-Rückfallebene). Die Keys können alternativ über die
+Umgebungsvariablen `GROQ_API_KEY` / `ELEVENLABS_API_KEY` kommen.
 
 Das Script schreibt direkt ans Ziel, meldet die Anzahl der Wortmarken und
 erklärt Fehler verständlich (abgelehnter Key, aufgebrauchtes Guthaben, keine

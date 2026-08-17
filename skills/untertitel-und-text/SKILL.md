@@ -74,9 +74,10 @@ Frage (falls nicht aus dem Kontext klar):
    `video-schneiden`, DANN untertiteln (Untertitel müssen zur finalen
    Schnittfassung passen — nie Zeitstempel des Rohmaterials recyceln).
 
-Benötigt: ffmpeg + ElevenLabs-API-Key (derselbe wie beim Video-Schneiden,
-`~~elevenlabs-api-key`). Fehlt der Key → wie im Skill `video-schneiden`
-Schritt 0 beschrieben einrichten.
+Benötigt: ffmpeg + die Transkriptions-Keys aus dem Video-Schneiden
+(bevorzugt Groq `~~groq-api-key`, Rückfallebene ElevenLabs
+`~~elevenlabs-api-key` — einer reicht). Fehlen beide → wie im Skill
+`video-schneiden` Schritt 0 beschrieben einrichten.
 
 ## Schritt 1: Tonspur extrahieren und transkribieren
 
@@ -87,7 +88,7 @@ ffmpeg -i "VIDEO" -vn -ac 1 -acodec libmp3lame -q:a 4 "audio_temp.mp3" -y -logle
 Transkription mit Wort-Zeitstempeln über das Script aus dem Skill
 `video-schneiden` (läuft auf Windows, macOS und Linux):
 
-    <python> ../video-schneiden/scripts/transkribieren.py "audio_temp.mp3" "~~elevenlabs-api-key" -o "transkript.json"
+    <python> ../video-schneiden/scripts/transkribieren.py "audio_temp.mp3" "~~elevenlabs-api-key" --groq-key "~~groq-api-key" -o "transkript.json"
 
 (`<python>` = `python` unter Windows, meist `python3` auf macOS/Linux.)
 

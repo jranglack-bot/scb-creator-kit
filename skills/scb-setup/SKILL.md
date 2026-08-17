@@ -242,17 +242,24 @@ Cockpit öffnet Claude auf Zuruf; es spielt das Video und überspringt
 Schnitte live. Kein Server, kein Umschalten. Gespeichert wird direkt in die
 projekt.json (Datei beim ersten Speichern einmal wählen).
 
-Benötigt: ffmpeg (Schritt 4) + einen **ElevenLabs-API-Key** (kostenloses
-Konto reicht) für die Transkription. So bekommt ihn der User — Schritt für
-Schritt hinführen:
+Benötigt: ffmpeg (Schritt 4) + API-Keys für die Transkription. Die läuft
+**bevorzugt über Groq** (schnell, kostenlos); **ElevenLabs** ist die
+Rückfallebene und lohnt sich zusätzlich, weil es Musik und Soundeffekte
+erzeugen kann. Einer der beiden Keys reicht zum Start, ideal sind beide.
+So bekommt sie der User — Schritt für Schritt hinführen:
 
+**Groq (bevorzugt):**
+1. **https://console.groq.com** öffnen → kostenloses Konto erstellen
+2. Links **API Keys** → **Create API Key** → Key kopieren und Claude im Chat geben
+
+**ElevenLabs (Rückfallebene + Musik/Soundeffekte):**
 1. **https://elevenlabs.io** öffnen → kostenloses Konto erstellen
 2. Oben rechts aufs **Profilbild** klicken → **API Keys**
 3. **Create Key** → Key kopieren und Claude im Chat geben
 
-Der Key wird beim ersten Aufruf des Skills `video-schneiden` gespeichert und
-gilt danach auch für `untertitel-und-text` (Untertitel + Hook-Texte). Nie den
-Key im Chat wiederholen oder in Notizen ablegen.
+Die Keys werden beim ersten Aufruf des Skills `video-schneiden` gespeichert
+und gelten danach auch für `untertitel-und-text` (Untertitel + Hook-Texte).
+Nie einen Key im Chat wiederholen oder in Notizen ablegen.
 
 **Sound-Effekte (optional erwähnen):** Das Kit bringt sechs lizenzfreie
 Basis-Sounds mit (Whoosh, Klick, Pop …). Wer hochwertigere will: kostenlos

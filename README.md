@@ -131,7 +131,7 @@ danach neu starten.
 ## Was du brauchst (je nach Funktion)
 
 - **KI-Videos:** Higgsfield-Account (higgsfield.ai) — Free-Plan zum Testen
-- **Video-Schnitt & Untertitel:** kostenloser ElevenLabs-API-Key + ffmpeg (installiert der Assistent)
+- **Video-Schnitt & Untertitel:** kostenloser Groq-API-Key (Transkription; ElevenLabs-Key als Rückfallebene und für Musik/Soundeffekte) + ffmpeg (installiert der Assistent)
 - **Auto-Posting:** Airtable- + Make.com-Account, Instagram Business-/Creator-Konto
 - **Audit & Recherche:** kostenloses Apify-Konto (apify.com)
 

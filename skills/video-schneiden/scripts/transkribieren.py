@@ -1,11 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Transkribiert eine Audiodatei ueber ElevenLabs - Windows, macOS, Linux.
+"""Transkribiert eine Audiodatei - Windows, macOS, Linux.
 
-Ersetzt die frueher genutzte .bat-Datei, die nur unter Windows lief.
+Bevorzugt laeuft die Transkription ueber Groq (Whisper, schnell und
+kostenlos). ElevenLabs ist die Rueckfallebene - der Key bleibt trotzdem
+wertvoll, weil ElevenLabs auch Musik und Soundeffekte erzeugen kann.
 
-    python transkribieren.py <audio.mp3> <api-key> [-o transkript.json]
+    python transkribieren.py <audio.mp3> [elevenlabs-key]
+                             [--groq-key <key>] [-o transkript.json]
                              [--sprache de] [--modell scribe_v1]
+
+Keys (Reihenfolge = Vorrang):
+  --groq-key oder Umgebungsvariable GROQ_API_KEY        -> Groq Whisper
+  Positionsargument oder ELEVENLABS_API_KEY             -> ElevenLabs Scribe
+Werte, die mit "~~" beginnen, sind unersetzte Platzhalter und gelten
+als nicht gesetzt.
+
+Ausgabeformat ist bei BEIDEN Diensten identisch (ElevenLabs-Schema):
+{"text": ..., "words": [{"text","start","end","type":"word"}, ...]} -
+nachgelagerte Scripts muessen den Dienst nicht kennen.
 
 Exit 0 = fertig, Exit 1 = fehlgeschlagen (Grund steht dabei).
 """
@@ -18,7 +31,8 @@ import urllib.error
 import urllib.request
 import uuid
 
-URL = "https://api.elevenlabs.io/v1/speech-to-text"
+URL_GROQ = "https://api.groq.com/openai/v1/audio/transcriptions"
+URL_ELEVEN = "https://api.elevenlabs.io/v1/speech-to-text"
 
 
 def multipart(felder, dateipfad, feldname="file"):
@@ -46,18 +60,83 @@ def multipart(felder, dateipfad, feldname="file"):
     return b"".join(zeilen), f"multipart/form-data; boundary={grenze}"
 
 
+def anfrage(url, body, content_type, extra_header):
+    req = urllib.request.Request(
+        url, data=body,
+        headers={"Content-Type": content_type, **extra_header})
+    with urllib.request.urlopen(req, timeout=900) as antwort:
+        return json.loads(antwort.read().decode("utf-8"))
+
+
+def echter_key(wert):
+    """None fuer leere Werte und unersetzte ~~Platzhalter."""
+    if not wert or wert.startswith("~~"):
+        return None
+    return wert
+
+
+def via_groq(audio, key, sprache):
+    felder = {"model": "whisper-large-v3",
+              "response_format": "verbose_json",
+              "timestamp_granularities[]": "word"}
+    if sprache:
+        felder["language"] = sprache
+    body, ct = multipart(felder, audio)
+    daten = anfrage(URL_GROQ, body, ct,
+                    {"Authorization": "Bearer " + key})
+    # Auf das ElevenLabs-Schema normalisieren, damit alle nachgelagerten
+    # Scripts (Schnitt-Analyse, Untertitel, animated_captions) den
+    # Dienst nicht kennen muessen.
+    return {"text": daten.get("text", ""),
+            "words": [{"text": (w.get("word") or "").strip(),
+                       "start": round(w["start"], 2),
+                       "end": round(w["end"], 2),
+                       "type": "word"}
+                      for w in daten.get("words", []) or []]}
+
+
+def via_eleven(audio, key, sprache, modell):
+    felder = {"model_id": modell, "timestamps_granularity": "word"}
+    if sprache:
+        felder["language_code"] = sprache
+    body, ct = multipart(felder, audio)
+    return anfrage(URL_ELEVEN, body, ct, {"xi-api-key": key})
+
+
+def fehler_text(e, dienst):
+    if isinstance(e, urllib.error.HTTPError):
+        if e.code == 401:
+            return f"{dienst}: API-Key abgelehnt (401)."
+        if e.code == 429:
+            return f"{dienst}: Limit erreicht oder Guthaben aufgebraucht (429)."
+        roh = e.read().decode("utf-8", errors="replace")[:300]
+        return f"{dienst}: HTTP {e.code}: {roh}"
+    if isinstance(e, urllib.error.URLError):
+        return f"{dienst}: Keine Verbindung ({e.reason})."
+    return f"{dienst}: {e}"
+
+
 def main():
-    p = argparse.ArgumentParser(description="Audio ueber ElevenLabs transkribieren")
+    p = argparse.ArgumentParser(
+        description="Audio transkribieren (Groq bevorzugt, ElevenLabs als "
+                    "Rueckfallebene)")
     p.add_argument("audio", help="Pfad zur Audiodatei (z. B. audio_temp.mp3)")
-    p.add_argument("api_key", nargs="?", default=os.environ.get("ELEVENLABS_API_KEY"),
-                   help="ElevenLabs API-Key (oder Umgebungsvariable ELEVENLABS_API_KEY)")
+    p.add_argument("api_key", nargs="?",
+                   default=os.environ.get("ELEVENLABS_API_KEY"),
+                   help="ElevenLabs-Key (oder ELEVENLABS_API_KEY)")
+    p.add_argument("--groq-key", default=os.environ.get("GROQ_API_KEY"),
+                   help="Groq-Key (oder GROQ_API_KEY) - bevorzugter Dienst")
     p.add_argument("-o", "--ausgabe", default="transkript.json")
     p.add_argument("--sprache", default="de")
-    p.add_argument("--modell", default="scribe_v1")
+    p.add_argument("--modell", default="scribe_v1",
+                   help="ElevenLabs-Modell (nur fuer die Rueckfallebene)")
     a = p.parse_args()
 
-    if not a.api_key:
-        print("FEHLER: Kein API-Key uebergeben.")
+    groq = echter_key(a.groq_key)
+    eleven = echter_key(a.api_key)
+    if not groq and not eleven:
+        print("FEHLER: Kein API-Key. Groq-Key (bevorzugt) oder "
+              "ElevenLabs-Key angeben.")
         return 1
     if not os.path.exists(a.audio):
         print(f"FEHLER: Audiodatei nicht gefunden: {a.audio}")
@@ -65,32 +144,31 @@ def main():
 
     groesse_mb = os.path.getsize(a.audio) / (1024 * 1024)
     print(f"Transkribiere {os.path.basename(a.audio)} ({groesse_mb:.1f} MB) ...")
-    print("Das dauert je nach Laenge etwas. Bitte warten.")
 
-    body, content_type = multipart(
-        {"model_id": a.modell,
-         "language_code": a.sprache,
-         "timestamps_granularity": "word"},
-        a.audio)
-
-    anfrage = urllib.request.Request(
-        URL, data=body,
-        headers={"xi-api-key": a.api_key, "Content-Type": content_type})
-
-    try:
-        with urllib.request.urlopen(anfrage, timeout=900) as antwort:
-            daten = json.loads(antwort.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        rohtext = e.read().decode("utf-8", errors="replace")[:500]
-        if e.code == 401:
-            print("FEHLER: API-Key wurde abgelehnt (401). Key pruefen.")
-        elif e.code == 429:
-            print("FEHLER: Zu viele Anfragen oder Guthaben aufgebraucht (429).")
+    daten = None
+    fehler = []
+    if groq:
+        print("Dienst: Groq Whisper (bevorzugt)")
+        try:
+            daten = via_groq(a.audio, groq, a.sprache)
+        except Exception as e:
+            fehler.append(fehler_text(e, "Groq"))
+            print(f"  {fehler[-1]}")
+    if daten is None and eleven:
+        if groq:
+            print("Weiche auf die Rueckfallebene aus: ElevenLabs Scribe")
         else:
-            print(f"FEHLER von ElevenLabs (HTTP {e.code}): {rohtext}")
-        return 1
-    except urllib.error.URLError as e:
-        print(f"FEHLER: Keine Verbindung zu ElevenLabs ({e.reason}).")
+            print("Dienst: ElevenLabs Scribe")
+        try:
+            daten = via_eleven(a.audio, eleven, a.sprache, a.modell)
+        except Exception as e:
+            fehler.append(fehler_text(e, "ElevenLabs"))
+            print(f"  {fehler[-1]}")
+
+    if daten is None:
+        print("FEHLER: Transkription fehlgeschlagen.")
+        for f in fehler:
+            print("  -", f)
         return 1
 
     # Direkt neben das Ziel schreiben - kein Umweg ueber temporaere Ordner
