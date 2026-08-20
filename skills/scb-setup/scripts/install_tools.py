@@ -14,15 +14,17 @@ Werkzeuge: ffmpeg, node, yt-dlp, gh
 Exit 0 = alles da/installiert
 Exit 1 = fehlgeschlagen (Grund steht dabei)
 Exit 2 = auf macOS fehlt Homebrew UND es blieb ein Werkzeug uebrig, das
-         nur Homebrew installieren kann (node, gh). ffmpeg/ffprobe und
-         yt-dlp brauchen KEIN Homebrew mehr - die laedt das Script als
-         fertige Programme direkt herunter (ohne Passwort, ohne Terminal).
+         nur Homebrew installieren kann (aktuell nur noch gh).
+         ffmpeg/ffprobe, yt-dlp und Node.js brauchen KEIN Homebrew - die
+         laedt das Script als fertige Pakete direkt von den offiziellen
+         Quellen (ohne Passwort, ohne Terminal, ohne Adminrechte).
 """
 import os
 import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -57,7 +59,11 @@ FFMPEG_REDIRECT = ("https://ffmpeg.martin-riedl.de/redirect/latest/"
                    "macos/{arch}/{kanal}/{name}.zip")
 YTDLP_MACOS = ("https://github.com/yt-dlp/yt-dlp/releases/latest/"
                "download/yt-dlp_macos")
+NODE_INDEX = "https://nodejs.org/dist/index.json"
+NODE_TAR = "https://nodejs.org/dist/{ver}/node-{ver}-darwin-{arch}.tar.gz"
+NODE_SUMS = "https://nodejs.org/dist/{ver}/SHASUMS256.txt"
 BIN_DIR = Path.home() / ".local" / "bin"
+NODE_DIR = Path.home() / ".local" / "scb-node"
 
 
 def run(cmd, **kw):
@@ -204,26 +210,118 @@ def statisch_ytdlp():
     os.chmod(ziel, 0o755)
     return True
 
-STATISCH = {"ffmpeg": statisch_ffmpeg, "yt-dlp": statisch_ytdlp}
+def statisch_node():
+    """Node.js (LTS) als offizielles Paket nach ~/.local/scb-node (macOS).
+
+    Kein Homebrew, kein sudo, kein Passwort - nodejs.org liefert fertige
+    Archive. npm landet mit im Paket; spaetere 'npm install -g' schreiben
+    dann in den Benutzerordner statt in Systemordner.
+    """
+    import tarfile
+    arch = "arm64" if platform.machine() == "arm64" else "x64"
+
+    # Neueste LTS-Version ermitteln (Fallback: fest verdrahtete Fassung)
+    ver = None
+    roh = _text_von(NODE_INDEX)
+    if roh:
+        try:
+            ver = next(r["version"] for r in json.loads(roh) if r.get("lts"))
+        except Exception:
+            ver = None
+    if not ver:
+        ver = "v24.19.0"
+
+    url = NODE_TAR.format(ver=ver, arch=arch)
+    tar_pfad = Path(tempfile.gettempdir()) / f"node-{ver}-{arch}.tar.gz"
+    if not _lade(url, tar_pfad):
+        return False
+
+    # Pruefsumme gegen die veroeffentlichte SHASUMS256.txt
+    sums = _text_von(NODE_SUMS.format(ver=ver))
+    if sums:
+        dateiname = url.rsplit("/", 1)[-1]
+        soll = next((z.split()[0] for z in sums.splitlines()
+                     if z.strip().endswith(dateiname)), None)
+        if soll:
+            import hashlib
+            h = hashlib.sha256()
+            with open(tar_pfad, "rb") as f:
+                for block in iter(lambda: f.read(1 << 20), b""):
+                    h.update(block)
+            if h.hexdigest() != soll.lower():
+                print("  FEHLER: Node-Pruefsumme falsch - Datei verworfen.")
+                tar_pfad.unlink(missing_ok=True)
+                return False
+
+    ziel_eltern = NODE_DIR.parent
+    ziel_eltern.mkdir(parents=True, exist_ok=True)
+    if NODE_DIR.exists():
+        shutil.rmtree(NODE_DIR, ignore_errors=True)
+    try:
+        with tarfile.open(tar_pfad, "r:gz") as t:
+            wurzel = t.getnames()[0].split("/")[0]
+            t.extractall(ziel_eltern)
+        (ziel_eltern / wurzel).rename(NODE_DIR)
+    except Exception as e:
+        print(f"  FEHLER beim Entpacken von Node: {e}")
+        return False
+    finally:
+        tar_pfad.unlink(missing_ok=True)
+
+    # node/npm/npx im Suchpfad verfuegbar machen
+    BIN_DIR.mkdir(parents=True, exist_ok=True)
+    for name in ("node", "npm", "npx"):
+        quelle = NODE_DIR / "bin" / name
+        link = BIN_DIR / name
+        if not quelle.exists():
+            continue
+        if link.exists() or link.is_symlink():
+            link.unlink()
+        try:
+            link.symlink_to(quelle)
+        except OSError:
+            # Falls Symlinks nicht erlaubt sind: kleiner Starter statt Link
+            starter = "#!/bin/sh" + chr(10) + f'exec "{quelle}" "$@"' + chr(10)
+            link.write_text(starter, encoding="utf-8")
+            os.chmod(link, 0o755)
+    return True
+
+
+STATISCH = {"ffmpeg": statisch_ffmpeg, "yt-dlp": statisch_ytdlp,
+            "node": statisch_node}
 
 
 def pfad_eintragen():
-    """~/.local/bin dauerhaft in den PATH haengen (zsh + bash)."""
-    if str(BIN_DIR) in os.environ.get("PATH", ""):
+    """~/.local/bin und Nodes bin-Ordner dauerhaft in den PATH haengen.
+
+    Nodes eigener bin-Ordner MUSS mit hinein: "npm install -g <paket>"
+    legt Programme wie die Higgsfield-CLI DORT ab, nicht in ~/.local/bin.
+    """
+    kandidaten = [(BIN_DIR, 'export PATH="$HOME/.local/bin:$PATH"')]
+    if NODE_DIR.exists():
+        kandidaten.append(
+            (NODE_DIR / "bin",
+             'export PATH="$HOME/.local/scb-node/bin:$PATH"'))
+    pfad = os.environ.get("PATH", "")
+    zeilen = [z for ordner, z in kandidaten if str(ordner) not in pfad]
+    if not zeilen:
         return
-    zeile = 'export PATH="$HOME/.local/bin:$PATH"'
     for rc in (Path.home() / ".zshrc", Path.home() / ".bashrc"):
         try:
             inhalt = rc.read_text(encoding="utf-8") if rc.exists() else ""
-            if zeile not in inhalt:
+            fehlend = [z for z in zeilen if z not in inhalt]
+            if fehlend:
                 with open(rc, "a", encoding="utf-8") as f:
-                    f.write(f"\n# SCB Creator Kit: Werkzeuge in ~/.local/bin\n"
-                            f"{zeile}\n")
+                    f.write(chr(10))
+                    f.write("# SCB Creator Kit: Werkzeuge im Benutzerordner")
+                    f.write(chr(10))
+                    for z in fehlend:
+                        f.write(z + chr(10))
         except OSError:
             pass
-    print(f"  Hinweis: {BIN_DIR} wurde in den Suchpfad eingetragen "
-          "(gilt ab dem naechsten Terminal/Neustart; Scripts des Kits "
-          "finden die Programme auch so).")
+    print("  Hinweis: Suchpfad ergaenzt (" + ", ".join(
+        str(o) for o, _ in kandidaten) + ") - gilt ab dem naechsten "
+        "Terminal/Neustart; Scripts des Kits finden die Programme auch so.")
 
 
 def paketmanager():
