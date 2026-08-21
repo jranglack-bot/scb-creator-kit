@@ -29,6 +29,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 import uuid
 
 URL_GROQ = "https://api.groq.com/openai/v1/audio/transcriptions"
@@ -66,6 +67,41 @@ def anfrage(url, body, content_type, extra_header):
         headers={"Content-Type": content_type, **extra_header})
     with urllib.request.urlopen(req, timeout=900) as antwort:
         return json.loads(antwort.read().decode("utf-8"))
+
+
+KEY_DATEI = Path.home() / ".scb-creator-kit" / "keys.env"
+
+
+def aus_keydatei(name):
+    """Liest name aus ~/.scb-creator-kit/keys.env - oder None.
+
+    Zeilenformat: GROQ_API_KEY=abc...  (Kommentare mit # sind erlaubt)
+    Damit ueberleben die Keys jede neue Sitzung und muessen nicht bei
+    jedem Aufruf neu in den Chat geschrieben werden.
+    """
+    try:
+        if not KEY_DATEI.exists():
+            return None
+        for zeile in KEY_DATEI.read_text(encoding="utf-8").splitlines():
+            zeile = zeile.strip()
+            if not zeile or zeile.startswith("#") or "=" not in zeile:
+                continue
+            schluessel, _, wert = zeile.partition("=")
+            if schluessel.strip() == name:
+                return wert.strip().strip('"').strip("'") or None
+    except OSError:
+        pass
+    return None
+
+
+def key_holen(direkt, umgebung):
+    """Reihenfolge: Aufrufargument, Umgebungsvariable, Key-Datei."""
+    for wert in (direkt, os.environ.get(umgebung), aus_keydatei(umgebung)):
+        geprueft = echter_key(wert)
+        if geprueft:
+            return geprueft
+    return None
+
 
 
 def echter_key(wert):
@@ -132,8 +168,8 @@ def main():
                    help="ElevenLabs-Modell (nur fuer die Rueckfallebene)")
     a = p.parse_args()
 
-    groq = echter_key(a.groq_key)
-    eleven = echter_key(a.api_key)
+    groq = key_holen(a.groq_key, "GROQ_API_KEY")
+    eleven = key_holen(a.api_key, "ELEVENLABS_API_KEY")
     if not groq and not eleven:
         print("FEHLER: Kein API-Key. Groq-Key (bevorzugt) oder "
               "ElevenLabs-Key angeben.")

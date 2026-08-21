@@ -44,8 +44,18 @@ einem Satz, dass der fehlende Key sich lohnt (Groq: schnellere und
 kostenlose Transkription; ElevenLabs: Rückfallebene + Musik/Soundeffekte),
 und biete an, ihn jederzeit nachzutragen.
 
-Erhaltene Keys als `~~groq-api-key` bzw. `~~elevenlabs-api-key` für
-diesen und alle zukünftigen Durchläufe speichern.
+**Erhaltene Keys SOFORT dauerhaft ablegen** — sonst fragt das Kit bei
+jeder neuen Sitzung erneut danach (real passiert). Schreibe sie in
+`~/.scb-creator-kit/keys.env` (Windows: `%USERPROFILE%\.scb-creator-kit\keys.env`),
+Ordner bei Bedarf anlegen, Format eine Zeile je Key:
+
+    GROQ_API_KEY=gsk_...
+    ELEVENLABS_API_KEY=...
+
+Alle Transkriptions-Scripts des Kits lesen diese Datei selbst — danach
+muss nie wieder ein Key in den Chat. Zusätzlich als `~~groq-api-key`
+bzw. `~~elevenlabs-api-key` merken. Den Key **nie** im Chat wiederholen
+und nie in Cloud-Notizen ablegen.
 
 Sind die Keys bereits konfiguriert: direkt zu Schritt 1 weitergehen,
 ohne den Nutzer zu fragen.

@@ -19,6 +19,30 @@ import sys
 import tempfile
 
 
+KEY_DATEI = os.path.join(os.path.expanduser('~'), '.scb-creator-kit',
+                         'keys.env')
+
+
+def key_holen(name):
+    """Key aus Umgebungsvariable oder ~/.scb-creator-kit/keys.env."""
+    wert = os.environ.get(name)
+    if wert and not wert.startswith('~~'):
+        return wert
+    try:
+        with open(KEY_DATEI, encoding='utf-8') as f:
+            for zeile in f:
+                zeile = zeile.strip()
+                if not zeile or zeile.startswith('#') or '=' not in zeile:
+                    continue
+                schluessel, _, w = zeile.partition('=')
+                if schluessel.strip() == name:
+                    w = w.strip().strip('"').strip("'")
+                    return w if w and not w.startswith('~~') else None
+    except OSError:
+        pass
+    return None
+
+
 def main():
     pj_path = os.path.abspath(sys.argv[1])
     video = sys.argv[2]
@@ -31,8 +55,8 @@ def main():
                     '-ac', '1', '-acodec', 'libmp3lame', '-q:a', '4', audio],
                    check=True)
 
-    groq = os.environ.get('GROQ_API_KEY')
-    eleven = os.environ.get('ELEVENLABS_API_KEY')
+    groq = key_holen('GROQ_API_KEY')
+    eleven = key_holen('ELEVENLABS_API_KEY')
     out = os.path.join(tempfile.gettempdir(), 'transkript_result.json')
     if groq:
         cmd = ['curl', '-s', '-X', 'POST',

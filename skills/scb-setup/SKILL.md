@@ -304,9 +304,20 @@ So bekommt sie der User — Schritt für Schritt hinführen:
 2. Oben rechts aufs **Profilbild** klicken → **API Keys**
 3. **Create Key** → Key kopieren und Claude im Chat geben
 
-Die Keys werden beim ersten Aufruf des Skills `video-schneiden` gespeichert
-und gelten danach auch für `untertitel-und-text` (Untertitel + Hook-Texte).
-Nie einen Key im Chat wiederholen oder in Notizen ablegen.
+**Frag hier IMMER zuerst nach dem Groq-Key** — er ist der Standardweg der
+Transkription. ElevenLabs danach als Zusatz anbieten, nie umgekehrt und
+nie nur ElevenLabs.
+
+Erhaltene Keys sofort in `~/.scb-creator-kit/keys.env` schreiben (Windows:
+`%USERPROFILE%\.scb-creator-kit\keys.env`), eine Zeile je Key:
+
+    GROQ_API_KEY=gsk_...
+    ELEVENLABS_API_KEY=...
+
+Alle Transkriptions-Scripts lesen diese Datei selbst, damit die Keys jede
+Sitzung überleben. Zusätzlich als `~~groq-api-key` /
+`~~elevenlabs-api-key` merken. Nie einen Key im Chat wiederholen oder in
+Cloud-Notizen ablegen.
 
 **Sound-Effekte (optional erwähnen):** Das Kit bringt sechs lizenzfreie
 Basis-Sounds mit (Whoosh, Klick, Pop …). Wer hochwertigere will: kostenlos

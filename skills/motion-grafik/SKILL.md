@@ -85,6 +85,30 @@ Fehlerquelle**):
 Nutzer das Ergebnis ab und scrubbt durch die Timeline — das kostet ihn keine
 Token.
 
+> ### ⛔ NIEMALS im eingebauten Browser öffnen
+>
+> `localhost:9000` gehört **ausschließlich in den echten Browser des
+> Nutzers**. Öffne den Editor NIE mit deinen eigenen Browser-Werkzeugen
+> (`preview_start`, `navigate`, Chrome-MCP) — dieses Fenster sieht der
+> Nutzer nicht.
+>
+> Zwei Schäden entstehen sonst gleichzeitig (real passiert am 21.08.2026,
+> Kosten: 20 Minuten Leerlauf):
+> 1. Der Nutzer weiß nicht, dass auf seinen Klick gewartet wird, und sitzt
+>    vor einem scheinbar hängenden Chat.
+> 2. Browser frieren unsichtbare Tabs ein — gemessen **0 Bilder in 30
+>    Sekunden** statt 349 in gut einer Minute.
+>
+> **Immer so öffnen:**
+>
+>     <python> scripts/editor_oeffnen.py
+>
+> Das Script prüft, ob der Editor läuft, öffnet ihn im Standardbrowser und
+> gibt dir den Wortlaut vor, den du dem Nutzer sagen musst. **Sag danach
+> ausdrücklich:** „Es hat sich gerade ein Browserfenster geöffnet — schau
+> bitte in deinen eigenen Browser." Wartest du auf einen Klick von ihm,
+> sag es in derselben Nachricht, sonst wartet ihr aneinander vorbei.
+
 **Referenzebene:** In der Szene einen Schalter vorsehen, der das geschnittene
 Video unter die Grafik legt:
 
@@ -104,8 +128,17 @@ solange er schaut.
 nach. Den Tab einmal öffnen, danach nur noch sagen „schau in deinen offenen
 Tab". Nie ein zweites Mal öffnen.
 
-**Erst nach seinem Okay** `PREVIEW = false` setzen und im Editor auf *Render*
-klicken. Ergebnis: eine PNG-Sequenz mit Alphakanal unter `output/<projekt>/`.
+**Erst nach seinem Okay** `PREVIEW = false` setzen. Den Render startet der
+Nutzer im Editor per Klick auf *Render* — **in seinem eigenen, sichtbaren
+Browserfenster**. Ergebnis: eine PNG-Sequenz mit Alphakanal unter
+`output/<projekt>/`.
+
+Ihm dabei zwei Dinge sagen: **wo** er klickt (unten rechts im gerade
+geöffneten Fenster) und dass das Fenster **sichtbar im Vordergrund bleiben
+muss** — minimiert oder im Hintergrund drosselt der Browser den Render bis
+zum Stillstand. Richtwert zur Einordnung: rund 350 Bilder brauchen im
+sichtbaren Fenster gut eine Minute. Läuft es spürbar langsamer, ist das
+Fenster verdeckt.
 
 ### Was sich bewährt hat
 
@@ -239,8 +272,10 @@ Details zu `alpha` und `fullframe`: siehe `pro-look-editing`.
 ## Token-Regeln
 
 - Zuerst prüfen, ob das Cockpit den Wunsch schon erfüllt. Wenn ja: dort.
-- Der Nutzer klickt *Render* selbst. Claude soll den Editor nicht fernsteuern
-  — das kostet pro Runde ein Vielfaches der eigentlichen Codeänderung.
+- Der Nutzer klickt *Render* selbst, in SEINEM Browser. Claude soll den
+  Editor nicht fernsteuern — das kostet pro Runde ein Vielfaches der
+  eigentlichen Codeänderung, und im eingebauten Browser steht der Render
+  ohnehin still (siehe Warnkasten oben).
 - Beurteilt wird in der Vorschau auf localhost:9000, nicht an Einzelbildern.
   Nach einem fertigen Render höchstens ein Kontrollbild.
 - Effekte, die schon gebaut wurden, wiederverwenden statt neu schreiben.
