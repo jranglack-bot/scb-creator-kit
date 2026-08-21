@@ -14,32 +14,33 @@ In der App oben auf den Tab **Code** klicken und einen beliebigen Ordner
 wählen (z. B. deinen Dokumente-Ordner). Beim allerersten Mal richtet die App
 sich kurz selbst ein — einfach durchklicken.
 
-### Windows: Git für Windows — der allererste Schritt
+### Erster Schritt: Git — auf BEIDEN Systemen
 
-Auf **Windows** braucht die Claude-App zwingend **Git für Windows**.
-Ohne das kannst du im Code-Tab nicht einmal eine Nachricht abschicken —
-es geht also nichts, bevor das installiert ist.
+Die Claude-App braucht im Hintergrund **Git**. Fehlt es, kannst du im
+Code-Tab nicht einmal eine Nachricht abschicken. Das gilt für Windows
+**und** für den Mac — nur der Weg dorthin ist unterschiedlich.
 
-Die App sagt dir das selbst: Es erscheint ein Fenster
-„Git Bash is required but was not found" mit einem Knopf
-**„Download Git for Windows"**. Klick den an — oder hol es direkt hier:
-👉 [git-scm.com/download/win](https://git-scm.com/download/win)
+**Windows:** Es erscheint das Fenster „Git Bash is required but was not
+found" mit dem Knopf **„Download Git for Windows"**. Den anklicken (oder
+direkt [git-scm.com/download/win](https://git-scm.com/download/win)),
+Installer starten und **immer „Next", zum Schluss „Install"** klicken.
+Nichts umstellen, die Voreinstellungen passen.
 
-Dann den Installer starten und einfach **immer auf „Next" und zum
-Schluss „Install"** klicken. Nichts umstellen, die Voreinstellungen
-passen. Danach **Claude einmal komplett schließen und neu öffnen.**
+- Als **Administrator** fragt Windows einmal nach Bestätigung → „Ja".
+- Als **Standardbenutzer** (Firmen- oder Familiengerät) installiert Git
+  sich in deinen eigenen Benutzerordner. Kommt „Zugriff verweigert", ist
+  meist noch ein altes Git registriert: in den Windows-Einstellungen
+  unter **Apps** das alte „Git" deinstallieren, dann erneut starten.
 
-- Bist du auf deinem PC **Administrator**, fragt Windows einmal nach
-  Bestätigung — auf „Ja" klicken.
-- Bist du **kein Administrator** (Firmen- oder Familiengerät), installiert
-  Git sich in deinen eigenen Benutzerordner. Kommt trotzdem „Zugriff
-  verweigert", ist meist noch ein altes Git registriert: In den
-  Windows-Einstellungen unter **Apps** das alte „Git" deinstallieren und
-  den Installer erneut starten.
+**Mac:** Dort heißt dieselbe Sache **Xcode-Befehlszeilentools**. Fehlen
+sie, meldet die App „no developer tools were found". Es öffnet sich ein
+Fenster mit einem **„Installieren"-Knopf** — einmal anklicken und warten
+(dauert einige Minuten, lädt im Hintergrund). **Kein Passwort nötig,
+keine Webseite, kein Terminal.** Falls kein Fenster kommt, sag Claude:
+„Führe `xcode-select --install` aus" — dann erscheint es.
 
-Auf dem **Mac** entfällt dieser Schritt komplett — dort ist alles
-Nötige an Bord, und falls doch etwas fehlt, erscheint ein Fenster mit
-einem „Installieren"-Knopf, den du einmal anklickst.
+**Danach auf beiden Systemen: Claude einmal komplett schließen und neu
+öffnen.**
 
 ---
 

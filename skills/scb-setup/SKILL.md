@@ -227,17 +227,17 @@ macOS und Linux:
 
 (`<python>` = der Aufruf, der in Schritt 2 funktioniert hat.)
 
-- **Git** ist auf Windows eine harte VORBEDINGUNG, keine Kit-Aufgabe:
-  Die Desktop-App braucht Git Bash, sonst laesst sich im Code-Tab nicht
-  einmal eine Nachricht abschicken — es kann also gar nichts laufen,
-  bevor der User Git fuer Windows selbst installiert hat (die App bietet
-  dafuer einen Knopf „Download Git for Windows" an). Wenn dieses Setup
-  laeuft, ist Git folglich immer schon da. Auf dem Mac ist Git ebenfalls
-  vorhanden; fehlt es ausnahmsweise, loest `xcode-select --install` ein
-  Fenster mit „Installieren"-Knopf aus (ein Klick, kein Passwort).
-  `install_tools.py git` kann Git auf Windows zusaetzlich als MinGit
+- **Git ist auf BEIDEN Systemen eine harte VORBEDINGUNG**, keine
+  Kit-Aufgabe: Ohne Git laesst sich im Code-Tab der Desktop-App nicht
+  einmal eine Nachricht abschicken (die App meldet unter Windows „Git
+  Bash is required", auf dem Mac „no developer tools were found" — beides
+  derselbe Fehlercode GIT_NOT_FOUND). Wenn dieses Setup laeuft, ist Git
+  also immer schon da. Windows: Git fuer Windows durchklicken. Mac:
+  Xcode-Befehlszeilentools ueber das Fenster mit „Installieren"-Knopf,
+  bei Bedarf per `xcode-select --install` ausgeloest (ein Klick, kein
+  Passwort). `install_tools.py git` kann auf Windows zusaetzlich MinGit
   nachziehen — das hilft aber NUR, wenn `git.exe` fehlt und Git Bash
-  vorhanden ist (Sonderfall); Git Bash selbst kann es nicht ersetzen.
+  vorhanden ist; Git Bash selbst kann es nicht ersetzen.
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde
 - **ffmpeg** nur nötig für Video-Schnitt und Posting
 - Prüfen ohne zu installieren: `<python> scripts/install_tools.py --pruefen ffmpeg node`
@@ -288,6 +288,19 @@ Datei, auf macOS und Linux auf Zuruf durch Claude). Das
 Cockpit öffnet Claude auf Zuruf; es spielt das Video und überspringt
 Schnitte live. Kein Server, kein Umschalten. Gespeichert wird direkt in die
 projekt.json (Datei beim ersten Speichern einmal wählen).
+
+**Direkt nach ffmpeg einmalig den Tempo-Check laufen lassen** (dauert
+30–60 s, misst statt zu raten):
+
+    <python> scripts/tempo_check.py
+
+Er misst CPU gegen Hardware-Encoder, prüft die Freistellung und
+schreibt das Ergebnis nach `~/.scb-creator-kit/tempo.json`. Alle
+Video-Skills lesen das danach selbst und passen den Ablauf an — ohne
+diese Messung merkt der User erst beim ersten Video, dass etwas lange
+dauert (real passiert: über 20 Minuten Wartezeit). Dem User in einem
+Satz sagen, was rauskam („dein Rechner schafft X, deshalb rechne ich
+die Freistellung nur in kurzen Abschnitten").
 
 Benötigt: ffmpeg (Schritt 4) + API-Keys für die Transkription. Die läuft
 **bevorzugt über Groq** (schnell, kostenlos); **ElevenLabs** ist die

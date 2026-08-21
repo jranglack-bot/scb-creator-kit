@@ -52,6 +52,26 @@ Wird eine Stelle gefunden, die nur ein System bedient: reparieren, nicht
 dokumentieren. Ein Hinweis „unter Windows zusätzlich …" ist eine Lücke,
 keine Lösung.
 
+## Tempo dieses Rechners kennen (vor dem ERSTEN Video)
+
+Lies `~/.scb-creator-kit/tempo.json`. Fehlt die Datei, einmal
+`<python> ../scb-setup/scripts/tempo_check.py` laufen lassen (30–60 s)
+— danach nie wieder. Die Datei sagt dir:
+
+| Feld | Bedeutung fürs Vorgehen |
+|---|---|
+| `klasse` | `schnell` / `mittel` / `langsam` |
+| `freistellung_max_sek` | So viele Sekunden Freistellung am Stück höchstens rechnen |
+| `hw_encoder`, `hw_faktor` | Welcher Hardware-Encoder greift und wie viel er bringt |
+| `freistellung.onnxruntime` | Fehlt der Wert, läuft die Freistellung auf MediaPipe und flackert unter Grafik |
+
+**Danach handeln, nicht nur wissen:** Bei `langsam` die Freistellung
+strikt auf den angesagten Abschnitt begrenzen und dem User vorher
+sagen, wie lange es dauert. Fehlt `onnxruntime` und es soll etwas
+*hinter* der Person liegen: erst `install_tools.py` bzw. den
+Freistellungs-Bereich des Setups anbieten, sonst wird das Ergebnis
+sichtbar schlechter.
+
 ## Projekt-Struktur
 
 ```
