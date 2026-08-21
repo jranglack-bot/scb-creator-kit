@@ -57,17 +57,6 @@ genau dort, wo du ihm auch „Hallo" schreiben würdest:
 > Er braucht kein Admin-Passwort. Findet die Shell den Befehl danach
 > nicht, nutze den vollen Pfad `~/.local/bin/claude`.**
 > **2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`**
-> **Meldet der Befehl, dass `git` fehlt, installiere es selbst — ohne
-> Adminrechte, ohne mich zu fragen:**
-> **Windows (PowerShell):**
-> **`$a=(irm https://api.github.com/repos/git-for-windows/git/releases/latest).assets|?{$_.name -like 'MinGit*-64-bit.zip'}|select -First 1`**
-> **`iwr $a.browser_download_url -OutFile "$env:TEMP\mingit.zip"`**
-> **`Expand-Archive "$env:TEMP\mingit.zip" "$env:LOCALAPPDATA\scb-git" -Force`**
-> **`$p=[Environment]::GetEnvironmentVariable("Path","User"); [Environment]::SetEnvironmentVariable("Path","$env:LOCALAPPDATA\scb-git\cmd;$p","User"); $env:Path="$env:LOCALAPPDATA\scb-git\cmd;$env:Path"`**
-> **(Auf ARM-Windows `MinGit*-arm64.zip` nehmen.) Danach den Befehl aus
-> Schritt 2 wiederholen.**
-> **Mac: führe `xcode-select --install` aus und bitte mich, im aufgehenden
-> Fenster auf „Installieren" zu klicken; danach den Befehl wiederholen.**
 > **3. `claude plugin install scb-creator-kit@scb-creator-kit`**
 > **4. Verweigert dir der Berechtigungs-Modus das Ausführen der
 > claude-plugin-Befehle: Gib mir genau diese Befehle als anklickbare
@@ -144,6 +133,18 @@ cmd /c claude plugin install scb-creator-kit@scb-creator-kit
 Meldet das Terminal nach der ersten Zeile „command not found: claude",
 das Terminalfenster einmal schließen, neu öffnen und die letzten zwei
 Zeilen wiederholen. Danach weiter mit Schritt 2 (Neustart).
+
+**„git not found" bei `claude plugin marketplace add`?**
+In der Desktop-App kann das nicht vorkommen — dort läuft ohne Git gar
+nichts. Im **Terminal** aber schon: Dort startet Claude Code auch ohne
+Git, und erst der Marketplace-Befehl stolpert darüber. Dann sag Claude:
+
+> Der Befehl meldet, dass git fehlt. Installier es bitte selbst ohne
+> Adminrechte — Windows: MinGit-ZIP aus dem neuesten
+> git-for-windows-Release nach `%LOCALAPPDATA%\scb-git` entpacken und
+> `\cmd` in meinen Benutzer-PATH eintragen. Mac: `xcode-select --install`
+> ausführen und mich im Fenster auf „Installieren" klicken lassen.
+> Danach den Befehl wiederholen.
 
 **Du nutzt Claude Code im Terminal statt der Desktop-App?**
 Dann funktioniert alles genauso — Nachricht aus Schritt 1 in die

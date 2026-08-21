@@ -89,12 +89,6 @@ Die ausführliche Anleitung mit Bildern steht in
    > Er braucht kein Admin-Passwort. Findet die Shell den Befehl danach
    > nicht, nutze den vollen Pfad `~/.local/bin/claude`.
    > 2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`
-   > Meldet der Befehl, dass `git` fehlt, installiere es selbst ohne
-   > Adminrechte — Windows: MinGit-ZIP vom neuesten
-   > git-for-windows-Release nach `%LOCALAPPDATA%\scb-git` entpacken und
-   > `\cmd` in den Benutzer-PATH eintragen. Mac: `xcode-select --install`
-   > ausführen und mich im Fenster auf „Installieren" klicken lassen.
-   > Danach den Befehl wiederholen.
    > 3. `claude plugin install scb-creator-kit@scb-creator-kit`
    > 4. Verweigert dir der Berechtigungs-Modus diese Befehle: Gib sie mir
    > als anklickbare Codeblöcke zum Selbst-Anklicken — auf Windows jeweils
