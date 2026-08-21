@@ -479,12 +479,14 @@ Bei Ja: `<python> scripts/install_rtk.py` — das Script nimmt automatisch
 winget (Windows) bzw. brew (macOS) und lädt nur, wenn es beides nicht
 gibt, das Paket vom offiziellen Release.
 
-Hältst du (Claude) die Installation trotzdem für nicht vertretbar, dann
-**sag das ehrlich und lass den User nicht in einer Sackgasse stehen**:
-Gib ihm die zwei Befehle zum Selbst-Einfügen ins Terminal —
-Windows: `winget install rtk-ai.rtk`, Mac: `brew install rtk`,
-danach jeweils `rtk init -g`. Das darf er jederzeit selbst tun; danach
-funktioniert das Kit mit RTK, ohne dass du etwas installiert hast.
+Hältst du (Claude) die Installation trotzdem für nicht vertretbar:
+**sag das ehrlich, aber schick den User NICHT ins Terminal.** RTK ist
+komplett freiwillig — das Kit funktioniert ohne es vollständig, nur mit
+höherem Token-Verbrauch. Also einfach sagen, dass du es übersprungen
+hast, und mit dem nächsten Bereich weitermachen. Wer es später doch
+will, sagt „Richte mir RTK ein" und das Script erledigt es (auf einem
+Mac ohne Homebrew lädt es das Paket direkt vom offiziellen Release —
+auch dafür braucht niemand ein Terminal).
 
 **/watch (Video-Analyse)** — Fremd-Plugin: https://github.com/bradautomates/claude-video
 Vorher erklären: Stammt nicht aus dem SCB Kit, sondern von einem anderen
