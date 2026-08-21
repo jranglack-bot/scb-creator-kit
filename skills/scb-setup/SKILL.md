@@ -5,9 +5,12 @@ description: >
   Schritt für Schritt durch die Einrichtung: prüft welche Tools und Accounts
   vorhanden sind (Higgsfield, Make, Airtable, ffmpeg, Node.js) und
   richtet nur das ein, was gewünscht ist. Verwende diesen Skill, wenn jemand
-  sagt: "richte das SCB Kit ein", "Setup starten", "SCB Setup", "hilf mir bei
-  der Einrichtung", "was brauche ich für das Creator Kit", oder direkt nach
-  der Installation des Plugins.
+  sagt: "richte das SCB Kit ein", "richte mir das SCB Plugin ein", "SCB
+  Plugin einrichten", "Creator Kit einrichten", "Setup starten", "SCB
+  Setup", "hilf mir bei der Einrichtung", "was brauche ich für das Creator
+  Kit", oder direkt nach der Installation des Plugins. Auch bei
+  Schreibweisen, die eine Spracherkennung daraus macht (SCP statt SCB,
+  "richtig mir das SCB Plugin ein").
 ---
 
 # SCB Creator Kit — Setup-Assistent
