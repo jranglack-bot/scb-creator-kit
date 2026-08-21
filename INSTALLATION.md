@@ -14,42 +14,29 @@ In der App oben auf den Tab **Code** klicken und einen beliebigen Ordner
 wählen (z. B. deinen Dokumente-Ordner). Beim allerersten Mal richtet die App
 sich kurz selbst ein — einfach durchklicken.
 
-### Erster Schritt: Git — auf BEIDEN Systemen
+### Erster Schritt: Das fehlende Hilfsprogramm installieren
 
-Die Claude-App braucht im Hintergrund **Git**. Fehlt es, kannst du im
-Code-Tab nicht einmal eine Nachricht abschicken. Das gilt für Windows
-**und** für den Mac — nur der Weg dorthin ist unterschiedlich.
+Beim ersten Öffnen des **Code**-Tabs sagt Claude dir, wenn ihm ein
+Hilfsprogramm fehlt. Solange das nicht installiert ist, kannst du dort
+**keine Nachricht abschicken** — auf beiden Systemen. Es heißt nur
+unterschiedlich:
 
-**Windows:** Es erscheint das Fenster „Git Bash is required but was not
-found" mit dem Knopf **„Download Git for Windows"**. Den anklicken (oder
-direkt [git-scm.com/download/win](https://git-scm.com/download/win)),
-Installer starten und **immer „Next", zum Schluss „Install"** klicken.
-Nichts umstellen, die Voreinstellungen passen.
+| | Claude sagt | Was du tust |
+|---|---|---|
+| **Windows** | „Git Bash is required" / du musst **Git** installieren | Knopf **„Download Git for Windows"** anklicken (oder [git-scm.com/download/win](https://git-scm.com/download/win)), Installer starten, immer **„Next"**, zum Schluss **„Install"** |
+| **Mac** | du musst die **Xcode Command Line Tools** installieren | Im aufgehenden Fenster auf **„Installieren"** klicken und warten (einige Minuten). Kein Passwort, keine Webseite |
 
-- Als **Administrator** fragt Windows einmal nach Bestätigung → „Ja".
-- Als **Standardbenutzer** (Firmen- oder Familiengerät) installiert Git
-  sich in deinen eigenen Benutzerordner. Kommt „Zugriff verweigert", ist
-  meist noch ein altes Git registriert: in den Windows-Einstellungen
-  unter **Apps** das alte „Git" deinstallieren, dann erneut starten.
+**Danach Claude einmal komplett schließen und neu öffnen.** Das war's —
+dieser Schritt kommt nie wieder.
 
-**Mac:** Dort kommt Git mit den **Xcode-Befehlszeilentools** — einem
-kostenlosen Apple-Paket, das auf vielen Macs schon da ist. Fehlt es,
-zeigt **macOS selbst** ein Fenster mit einem **„Installieren"-Knopf**,
-sobald Git zum ersten Mal gebraucht wird. Einmal anklicken und warten
-(einige Minuten, lädt im Hintergrund). **Kein Passwort, keine Webseite,
-kein Terminal.**
+**Windows-Sonderfall:** Bist du auf deinem PC kein Administrator
+(Firmen- oder Familiengerät) und der Installer meldet „Zugriff
+verweigert", ist meist noch ein altes Git registriert: in den
+Windows-Einstellungen unter **Apps** das alte „Git" deinstallieren, dann
+den Installer erneut starten.
 
-Kommt kein Fenster von allein, sag Claude einfach:
+**Mac-Sonderfall:** Kommt gar kein Fenster, sag Claude:
 „Führe `xcode-select --install` aus" — dann erscheint es.
-
-> Hinweis für Helfende: Anders als unter Windows zeigt die Claude-App
-> auf dem Mac **keinen** eigenen Hinweis und keinen Download-Knopf für
-> Git. Der Dialog kommt vom Betriebssystem. Wenn ein Mac-Nutzer meldet,
-> dass nichts geht: zuerst prüfen lassen, ob `git --version` etwas
-> ausgibt.
-
-**Danach auf beiden Systemen: Claude einmal komplett schließen und neu
-öffnen.**
 
 ---
 

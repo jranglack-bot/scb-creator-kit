@@ -72,13 +72,14 @@ Die ausführliche Anleitung mit Bildern steht in
 
 1. **Claude Desktop-App öffnen**, oben den Tab **Code** wählen
    (App kostenlos hier: [claude.ai/download](https://claude.ai/download)).
-   **Zuerst Git — auf beiden Systemen:** Ohne Git lässt sich im Code-Tab
-   nicht einmal eine Nachricht abschicken. *Windows:* Knopf „Download Git
-   for Windows" in der App oder
-   [git-scm.com/download/win](https://git-scm.com/download/win), Installer
-   mit den Voreinstellungen durchklicken. *Mac:* Es erscheint ein Fenster
-   mit „Installieren"-Knopf für die Xcode-Befehlszeilentools — einmal
-   klicken und warten, kein Passwort nötig. Danach Claude neu starten.
+   **Zuerst das fehlende Hilfsprogramm:** Claude sagt dir beim ersten
+   Öffnen, was ihm fehlt — ohne das lässt sich im Code-Tab keine
+   Nachricht abschicken. *Windows:* **Git** über den Knopf „Download Git
+   for Windows" bzw. [git-scm.com/download/win](https://git-scm.com/download/win),
+   Installer mit den Voreinstellungen durchklicken. *Mac:* die **Xcode
+   Command Line Tools** über den „Installieren"-Knopf im aufgehenden
+   Fenster (kein Passwort nötig). Danach Claude neu starten.
+
 2. **Diese Nachricht an Claude schicken** (komplett kopieren):
 
    > Installiere bitte das SCB Creator Kit:

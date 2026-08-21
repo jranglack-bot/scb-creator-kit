@@ -227,22 +227,15 @@ macOS und Linux:
 
 (`<python>` = der Aufruf, der in Schritt 2 funktioniert hat.)
 
-- **Git ist auf BEIDEN Systemen eine harte VORBEDINGUNG**, keine
-  Kit-Aufgabe: Ohne Git laesst sich im Code-Tab der Desktop-App nicht
-  einmal eine Nachricht abschicken. Wenn dieses Setup laeuft, ist Git
-  also immer schon da.
-  **Windows:** Die App prueft zusaetzlich Git BASH (nur dort, im Code
-  mit `process.platform !== 'win32'` abgesichert) und zeigt selbst einen
-  Knopf „Download Git for Windows".
-  **Mac:** Dort prueft die App nur, ob `git --version` laeuft, und gibt
-  KEINEN eigenen Hinweis. Git kommt auf dem Mac mit den
-  Xcode-Befehlszeilentools; fehlt es, zeigt macOS selbst ein Fenster mit
-  „Installieren"-Knopf. Ausloesen laesst es sich mit
-  `xcode-select --install` (ein Klick, kein Passwort). Bei einem
-  Mac-Nutzer, bei dem nichts geht, deshalb IMMER zuerst
-  `git --version` pruefen. `install_tools.py git` kann auf Windows zusaetzlich MinGit
-  nachziehen — das hilft aber NUR, wenn `git.exe` fehlt und Git Bash
-  vorhanden ist; Git Bash selbst kann es nicht ersetzen.
+- **VORBEDINGUNG auf beiden Systemen, keine Kit-Aufgabe:** Ohne das
+  jeweilige Hilfsprogramm laesst sich im Code-Tab nicht einmal eine
+  Nachricht abschicken. Claude Code sagt es dem User selbst — unter
+  Windows „Git Bash is required" (Loesung: Git fuer Windows), auf dem
+  Mac verlangt es die **Xcode Command Line Tools** (Loesung: im Fenster
+  auf „Installieren" klicken, notfalls `xcode-select --install`
+  ausloesen; ein Klick, kein Passwort). Laeuft dieses Setup, ist das
+  also immer schon erledigt. Bei einem Nutzer, bei dem gar nichts geht:
+  IMMER zuerst `git --version` pruefen lassen.
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde
 - **ffmpeg** nur nötig für Video-Schnitt und Posting
 - Prüfen ohne zu installieren: `<python> scripts/install_tools.py --pruefen ffmpeg node`
