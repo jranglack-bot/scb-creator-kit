@@ -427,7 +427,8 @@ def main():
     # das Bild verschieben, den Effekt aber stehen lassen.
     for k, v in (pj.get('effekte') or pj.get('effects') or {}).items():
         if k in ('punchin', 'grade', 'grain', 'transition', 'progressbar',
-                 'broll', 'overlays', 'sfx', 'voice_master', 'loudnorm'):
+                 'broll', 'overlays', 'sfx', 'voice_master', 'loudnorm',
+                 'pip'):
             cfg[k] = sfx_verschieben(v, master_lane) if k == 'sfx' else v
 
     # --- Freistellung ("hinter mir"): automatisch aus der projekt.json -----

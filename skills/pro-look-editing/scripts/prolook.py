@@ -20,7 +20,12 @@ config.json Beispiel:
   "width": 1080, "height": 1920,
   "pip": {"enabled": true, "background": "bg_loop.mp4",
            "fg_scale": 0.82, "y_pos": 0.30,
-           "border_px": 6, "border_color": "white"},
+           "border_px": 6, "border_color": "white",
+           "von": 12.4, "bis": 21.0},
+           // von/bis (Sekunden im FERTIGEN Video) sind optional: nur in
+           // diesem Fenster wird das Bild klein und der Hintergrund
+           // sichtbar, davor und danach laeuft das normale Vollbild.
+           // Ohne von/bis gilt das PiP fuer das ganze Video.
   "punchin": {"enabled": true, "zoom": 1.06,
                "cuts": [3.2, 7.8, 12.1]},
   "grade": {"enabled": true, "contrast": 1.06, "saturation": 1.12},
@@ -143,20 +148,39 @@ def main():
         fgw = int(W * float(pip.get('fg_scale', 0.82)) // 2 * 2)
         border = int(pip.get('border_px', 6))
         bcolor = pip.get('border_color', 'white')
+        # y_pos = Abstand der OBERKANTE vom oberen Rand (Anteil der Hoehe).
+        # x = ZENTRUM des Fensters als Anteil der Breite (wie im Cockpit).
         ypos = float(pip.get('y_pos', 0.30))
+        xpos = float(pip.get('x', 0.5))
         tpad = ',tpad=stop_mode=clone:stop=-1' if freeze else ''
+        # Zeitfenster in Sekunden des FERTIGEN Videos: "von"/"bis".
+        # Ohne Angabe gilt das PiP fuer das ganze Video (bisheriges
+        # Verhalten, unveraendert).
+        von = pip.get('von', pip.get('from'))
+        bis = pip.get('bis', pip.get('to'))
+        fenster = von is not None or bis is not None
+        quelle = vlabel
+        if fenster:
+            # Das Original einmal spalten: eine Spur bleibt in voller
+            # Groesse. Ohne sie waere ausserhalb des Fensters der
+            # Hintergrund zu sehen statt des normalen Bildes.
+            fc.append('{}split=2[pipfull][pipsrc]'.format(vlabel))
+            quelle = '[pipsrc]'
         fc.append('[{}:v]scale={}:{}:force_original_aspect_ratio=increase,'
                   'crop={}:{},setsar=1{}[bg]'.format(bg_idx, W, H, W, H, tpad))
         fc.append('{}scale={}:-2,pad=iw+{}:ih+{}:{}:{}:{}[fg]'
-                  .format(vlabel, fgw, border * 2, border * 2,
+                  .format(quelle, fgw, border * 2, border * 2,
                           border, border, bcolor))
-        # y_pos = Abstand der OBERKANTE vom oberen Rand (Anteil der Hoehe).
-        # x = ZENTRUM des Fensters als Anteil der Breite (wie im Cockpit);
-        # Default 0.5 = mittig.
-        xpos = float(pip.get('x', 0.5))
         fc.append("[bg][fg]overlay='{}*W-w/2':{}*H:shortest=1[pipd]"
                   .format(xpos, ypos))
-        vlabel = '[pipd]'
+        if fenster:
+            a = float(von) if von is not None else 0.0
+            b = float(bis) if bis is not None else 999999.0
+            fc.append("[pipfull][pipd]overlay=0:0:"
+                      "enable='between(t,{},{})'[pipw]".format(a, b))
+            vlabel = '[pipw]'
+        else:
+            vlabel = '[pipd]'
 
     # --- Punch-In pro Segment ---------------------------------------------
     pi = cfg.get('punchin') or {}

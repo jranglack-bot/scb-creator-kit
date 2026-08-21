@@ -518,7 +518,9 @@ def main():
                   newline='') as f:
             f.write('@echo off\r\n'
                     'echo SCB Video-Render laeuft - Fenster offen lassen ...\r\n'
-                    'python "{}" "%~dp0projekt.json"\r\n'
+                    'set PY=py\r\n'
+                    'where /q py || set PY=python\r\n'
+                    '%PY% "{}" "%~dp0projekt.json"\r\n'
                     'echo.\r\n'
                     'echo Fertig! Das Video liegt in diesem Ordner.\r\n'
                     'pause\r\n'.format(rp))

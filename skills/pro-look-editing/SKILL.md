@@ -53,7 +53,11 @@ Templates in `scripts/` sind getestet; nur Parameter setzen und ausführen.
 - **Punch-Ins**: Schnittzeiten aus dem Schneide-Schritt als `cuts` übergeben
 - **Picture-in-Picture**: nur wenn ein Hintergrund-Video da ist — z. B. mit
   Higgsfield/Kling generierter Loop (Skill `higgsfield-generate`; passend
-  zum Thema, subtil, ohne eigenen Bildfokus) oder eigenes B-Roll
+  zum Thema, subtil, ohne eigenen Bildfokus) oder eigenes B-Roll.
+  **Nur für einen Abschnitt** („ab hier werde ich klein, hier wieder
+  groß"): `"von"` und `"bis"` in Sekunden des FERTIGEN Videos in den
+  `pip`-Block schreiben. Davor und danach läuft automatisch das normale
+  Vollbild. Ohne `von`/`bis` gilt das PiP für das ganze Video.
 - **Grade + Grain**: dezenter Standard-Look (contrast 1.06, saturation 1.12,
   grain 6) — nicht übertreiben
 - **Wisch-Übergänge**: `transition` in der Config (Typ z. B. `wipeleft`,
