@@ -227,17 +227,17 @@ macOS und Linux:
 
 (`<python>` = der Aufruf, der in Schritt 2 funktioniert hat.)
 
-- **Git** installiert das Script auf Windows selbst — als MinGit-Paket
-  nach `~/.local/scb-git`, **ohne Installer, ohne UAC-Fenster, ohne
-  Adminrechte** (`install_tools.py git`). Den User dafür NIE auf
-  git-scm.com schicken und NIEMALS `winget install Git.Git` nehmen —
-  das öffnet ein Adminfenster, das du nicht bedienen kannst. Auf dem Mac
-  löst `xcode-select --install` ein Fenster mit „Installieren"-Knopf aus
-  (ein Klick, kein Passwort). Prüfen: `install_tools.py --pruefen git`.
-  Einzige Ausnahme, die der User selbst erledigen muss: Wenn die
-  Desktop-App den Code-Tab ohne Git gar nicht erst öffnet — dann kann
-  hier nichts laufen, und der Installer von git-scm.com muss einmal
-  geklickt werden.
+- **Git** ist auf Windows eine harte VORBEDINGUNG, keine Kit-Aufgabe:
+  Die Desktop-App braucht Git Bash, sonst laesst sich im Code-Tab nicht
+  einmal eine Nachricht abschicken — es kann also gar nichts laufen,
+  bevor der User Git fuer Windows selbst installiert hat (die App bietet
+  dafuer einen Knopf „Download Git for Windows" an). Wenn dieses Setup
+  laeuft, ist Git folglich immer schon da. Auf dem Mac ist Git ebenfalls
+  vorhanden; fehlt es ausnahmsweise, loest `xcode-select --install` ein
+  Fenster mit „Installieren"-Knopf aus (ein Klick, kein Passwort).
+  `install_tools.py git` kann Git auf Windows zusaetzlich als MinGit
+  nachziehen — das hilft aber NUR, wenn `git.exe` fehlt und Git Bash
+  vorhanden ist (Sonderfall); Git Bash selbst kann es nicht ersetzen.
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde
 - **ffmpeg** nur nötig für Video-Schnitt und Posting
 - Prüfen ohne zu installieren: `<python> scripts/install_tools.py --pruefen ffmpeg node`

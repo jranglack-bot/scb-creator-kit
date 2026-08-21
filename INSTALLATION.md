@@ -14,21 +14,32 @@ In der App oben auf den Tab **Code** klicken und einen beliebigen Ordner
 wählen (z. B. deinen Dokumente-Ordner). Beim allerersten Mal richtet die App
 sich kurz selbst ein — einfach durchklicken.
 
-**Zum Thema Git:** Das Kit braucht im Hintergrund ein Programm namens
-Git. **Du musst dich darum nicht kümmern** — fehlt es, installiert Claude
-es im nächsten Schritt selbst, in deinen eigenen Benutzerordner: ohne
-Adminrechte, ohne Passwort, ohne dass du etwas suchen oder anklicken
-musst.
+### Windows: Git für Windows — der allererste Schritt
 
-> ⚠️ **Wichtig, falls dir jemand rät, Git von git-scm.com zu holen:**
-> Dieser Installer schreibt nach `C:\Program Files` und **braucht
-> Adminrechte**. Bist du auf deinem PC kein Administrator (typisch bei
-> Firmen- und Familiengeräten), bricht er mit „Zugriff verweigert" ab.
-> Der Weg über Claude hat dieses Problem nicht — lass ihn einfach machen.
+Auf **Windows** braucht die Claude-App zwingend **Git für Windows**.
+Ohne das kannst du im Code-Tab nicht einmal eine Nachricht abschicken —
+es geht also nichts, bevor das installiert ist.
 
-Auf dem **Mac** ist Git ebenfalls kein eigener Schritt: Fehlt es, öffnet
-sich ein Fenster mit einem „Installieren"-Knopf, den du einmal anklickst
-(kein Passwort nötig).
+Die App sagt dir das selbst: Es erscheint ein Fenster
+„Git Bash is required but was not found" mit einem Knopf
+**„Download Git for Windows"**. Klick den an — oder hol es direkt hier:
+👉 [git-scm.com/download/win](https://git-scm.com/download/win)
+
+Dann den Installer starten und einfach **immer auf „Next" und zum
+Schluss „Install"** klicken. Nichts umstellen, die Voreinstellungen
+passen. Danach **Claude einmal komplett schließen und neu öffnen.**
+
+- Bist du auf deinem PC **Administrator**, fragt Windows einmal nach
+  Bestätigung — auf „Ja" klicken.
+- Bist du **kein Administrator** (Firmen- oder Familiengerät), installiert
+  Git sich in deinen eigenen Benutzerordner. Kommt trotzdem „Zugriff
+  verweigert", ist meist noch ein altes Git registriert: In den
+  Windows-Einstellungen unter **Apps** das alte „Git" deinstallieren und
+  den Installer erneut starten.
+
+Auf dem **Mac** entfällt dieser Schritt komplett — dort ist alles
+Nötige an Bord, und falls doch etwas fehlt, erscheint ein Fenster mit
+einem „Installieren"-Knopf, den du einmal anklickst.
 
 ---
 
