@@ -231,10 +231,13 @@ macOS und Linux:
   jeweilige Hilfsprogramm laesst sich im Code-Tab nicht einmal eine
   Nachricht abschicken. Claude Code sagt es dem User selbst — unter
   Windows „Git Bash is required" (Loesung: Git fuer Windows), auf dem
-  Mac verlangt es die **Xcode Command Line Tools** (Loesung: im Fenster
-  auf „Installieren" klicken; kommt kein Fenster, muss der User selbst
-  einmal `xcode-select --install` im Terminal eingeben — dich fragen
-  kann er in dieser Lage NICHT). Laeuft dieses Setup, ist das
+  Mac verlangt es die **Xcode Command Line Tools**. Loesung: im Fenster
+  auf „Installieren" klicken. Kommt kein Fenster, holt der User den
+  Installer bei Apple (developer.apple.com/download/all → Apple-ID →
+  Suche „Command Line Tools" → laden und doppelklicken). Schick ihn
+  dafuer NICHT ins Terminal und sag ihm auch nicht, er solle dich um
+  `xcode-select --install` bitten — in dieser Lage kann er dir gar
+  keine Nachricht schicken. Laeuft dieses Setup, ist das
   also immer schon erledigt. Bei einem Nutzer, bei dem gar nichts geht:
   IMMER zuerst `git --version` pruefen lassen.
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde

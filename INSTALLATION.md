@@ -46,11 +46,14 @@ Dieser Schritt kommt nie wieder.
 - *Windows, „Zugriff verweigert":* Du bist kein Administrator und es ist
   noch ein altes Git registriert. In den Windows-Einstellungen unter
   **Apps** das alte „Git" deinstallieren, dann erneut starten.
-- *Mac, es erscheint kein Fenster:* Dann und **nur dann** einmal selbst
-  ins Terminal — Claude kannst du ja noch nicht fragen. `Cmd + Leertaste`
-  drücken, „Terminal" tippen, Enter. Dort diese Zeile einfügen und Enter:
-  `xcode-select --install` — daraufhin erscheint das Fenster, und du
-  klickst auf „Installieren". Terminal danach zumachen und vergessen.
+- *Mac, es erscheint kein Fenster:* Dann holst du dir den Installer
+  direkt bei Apple — auch das ist reines Klicken:
+  1. [developer.apple.com/download/all](https://developer.apple.com/download/all/) öffnen
+  2. Mit deiner **Apple-ID anmelden** (die, mit der dein Mac eingerichtet
+     ist — kein Entwicklerkonto, kein Geld)
+  3. Ins Suchfeld **„Command Line Tools"** eintippen
+  4. Den obersten Treffer herunterladen, die Datei im Downloads-Ordner
+     doppelklicken und den Installer durchklicken
 
 ---|---|---|
 | **Windows** | „Git Bash is required" / du musst **Git** installieren | Knopf **„Download Git for Windows"** anklicken (oder [git-scm.com/download/win](https://git-scm.com/download/win)), Installer starten, immer **„Next"**, zum Schluss **„Install"** |
@@ -65,11 +68,11 @@ verweigert", ist meist noch ein altes Git registriert: in den
 Windows-Einstellungen unter **Apps** das alte „Git" deinstallieren, dann
 den Installer erneut starten.
 
-**Mac-Sonderfall:** Kommt gar kein Fenster, hilft nur das Terminal —
-Claude fragen geht ja nicht, solange das Hilfsprogramm fehlt.
-`Cmd + Leertaste`, „Terminal" tippen, Enter, dann diese Zeile einfügen
-und Enter drücken: `xcode-select --install`. Jetzt kommt das Fenster,
-dort auf „Installieren" klicken.
+**Mac-Sonderfall:** Kommt gar kein Fenster von allein, lädst du den
+Installer bei Apple herunter:
+[developer.apple.com/download/all](https://developer.apple.com/download/all/)
+→ mit deiner Apple-ID anmelden → im Suchfeld **„Command Line Tools"**
+→ obersten Treffer laden, Datei doppelklicken, Installer durchklicken.
 
 ---
 
