@@ -232,8 +232,9 @@ macOS und Linux:
   Nachricht abschicken. Claude Code sagt es dem User selbst — unter
   Windows „Git Bash is required" (Loesung: Git fuer Windows), auf dem
   Mac verlangt es die **Xcode Command Line Tools** (Loesung: im Fenster
-  auf „Installieren" klicken, notfalls `xcode-select --install`
-  ausloesen; ein Klick, kein Passwort). Laeuft dieses Setup, ist das
+  auf „Installieren" klicken; kommt kein Fenster, muss der User selbst
+  einmal `xcode-select --install` im Terminal eingeben — dich fragen
+  kann er in dieser Lage NICHT). Laeuft dieses Setup, ist das
   also immer schon erledigt. Bei einem Nutzer, bei dem gar nichts geht:
   IMMER zuerst `git --version` pruefen lassen.
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde
