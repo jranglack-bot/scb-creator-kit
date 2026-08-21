@@ -73,9 +73,10 @@ Die ausführliche Anleitung mit Bildern steht in
 1. **Claude Desktop-App öffnen**, oben den Tab **Code** wählen
    (App kostenlos hier: [claude.ai/download](https://claude.ai/download)).
    *Um Git musst du dich nicht kümmern* — fehlt es, installiert Claude es
-   in Schritt 2 selbst (ohne Adminrechte). Nur falls die App den Code-Tab
-   gar nicht öffnet: [Git für Windows](https://git-scm.com/download/win)
-   einmal durchklicken, danach Claude neu starten.
+   in Schritt 2 selbst, in deinen Benutzerordner und ohne Adminrechte.
+   Den Installer von git-scm.com brauchst du nicht (er verlangt
+   Adminrechte und scheitert bei Standardbenutzern mit „Zugriff
+   verweigert").
 2. **Diese Nachricht an Claude schicken** (komplett kopieren):
 
    > Installiere bitte das SCB Creator Kit:

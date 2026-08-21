@@ -16,12 +16,19 @@ sich kurz selbst ein — einfach durchklicken.
 
 **Zum Thema Git:** Das Kit braucht im Hintergrund ein Programm namens
 Git. **Du musst dich darum nicht kümmern** — fehlt es, installiert Claude
-es im nächsten Schritt selbst (ohne Adminrechte, ohne Passwort). Nur falls
-die App den **Code**-Tab gar nicht erst öffnet und nach Git verlangt, hol
-es dir einmal hier und klick den Installer mit den Standardeinstellungen
-durch, danach Claude neu starten:
-👉 Windows: [git-scm.com/download/win](https://git-scm.com/download/win) ·
-Mac: passiert automatisch über ein Fenster mit „Installieren"-Knopf.
+es im nächsten Schritt selbst, in deinen eigenen Benutzerordner: ohne
+Adminrechte, ohne Passwort, ohne dass du etwas suchen oder anklicken
+musst.
+
+> ⚠️ **Wichtig, falls dir jemand rät, Git von git-scm.com zu holen:**
+> Dieser Installer schreibt nach `C:\Program Files` und **braucht
+> Adminrechte**. Bist du auf deinem PC kein Administrator (typisch bei
+> Firmen- und Familiengeräten), bricht er mit „Zugriff verweigert" ab.
+> Der Weg über Claude hat dieses Problem nicht — lass ihn einfach machen.
+
+Auf dem **Mac** ist Git ebenfalls kein eigener Schritt: Fehlt es, öffnet
+sich ein Fenster mit einem „Installieren"-Knopf, den du einmal anklickst
+(kein Passwort nötig).
 
 ---
 
