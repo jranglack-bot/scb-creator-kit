@@ -72,9 +72,10 @@ Die ausführliche Anleitung mit Bildern steht in
 
 1. **Claude Desktop-App öffnen**, oben den Tab **Code** wählen
    (App kostenlos hier: [claude.ai/download](https://claude.ai/download)).
-   *Windows einmalig:* Der Code-Tab braucht
-   [Git für Windows](https://git-scm.com/download/win) — Installer mit den
-   Standardeinstellungen durchklicken, danach Claude neu starten.
+   *Um Git musst du dich nicht kümmern* — fehlt es, installiert Claude es
+   in Schritt 2 selbst (ohne Adminrechte). Nur falls die App den Code-Tab
+   gar nicht öffnet: [Git für Windows](https://git-scm.com/download/win)
+   einmal durchklicken, danach Claude neu starten.
 2. **Diese Nachricht an Claude schicken** (komplett kopieren):
 
    > Installiere bitte das SCB Creator Kit:
@@ -85,11 +86,12 @@ Die ausführliche Anleitung mit Bildern steht in
    > Er braucht kein Admin-Passwort. Findet die Shell den Befehl danach
    > nicht, nutze den vollen Pfad `~/.local/bin/claude`.
    > 2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`
-   > Meldet der Befehl, dass `git` fehlt (typisch auf einem neuen Mac):
-   > führe `xcode-select --install` aus und bitte mich, im aufgehenden
-   > Fenster auf „Installieren" zu klicken; danach den Befehl wiederholen.
-   > Alternativ: das Repo als .tar.gz laden (`curl -L`, GitHub-Archiv von
-   > master), entpacken und den Ordner als lokalen Marketplace registrieren.
+   > Meldet der Befehl, dass `git` fehlt, installiere es selbst ohne
+   > Adminrechte — Windows: MinGit-ZIP vom neuesten
+   > git-for-windows-Release nach `%LOCALAPPDATA%\scb-git` entpacken und
+   > `\cmd` in den Benutzer-PATH eintragen. Mac: `xcode-select --install`
+   > ausführen und mich im Fenster auf „Installieren" klicken lassen.
+   > Danach den Befehl wiederholen.
    > 3. `claude plugin install scb-creator-kit@scb-creator-kit`
    > 4. Verweigert dir der Berechtigungs-Modus diese Befehle: Gib sie mir
    > als anklickbare Codeblöcke zum Selbst-Anklicken — auf Windows jeweils

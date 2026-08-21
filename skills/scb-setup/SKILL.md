@@ -224,14 +224,17 @@ macOS und Linux:
 
 (`<python>` = der Aufruf, der in Schritt 2 funktioniert hat.)
 
-- **Git** ist eine Voraussetzung, keine Kit-Komponente: Auf Windows
-  braucht schon der Code-Tab der Desktop-App **Git für Windows**
-  (https://git-scm.com/download/win, Installer durchklicken, Claude neu
-  starten) — ohne Git kommt der User gar nicht so weit, dass dieses
-  Setup läuft. Fehlt Git später trotzdem (z. B. auf dem Mac), löst
-  `xcode-select --install` ein Fenster mit einem „Installieren"-Knopf
-  aus (kein Passwort). Prüfen lässt es sich mit
-  `install_tools.py --pruefen git`.
+- **Git** installiert das Script auf Windows selbst — als MinGit-Paket
+  nach `~/.local/scb-git`, **ohne Installer, ohne UAC-Fenster, ohne
+  Adminrechte** (`install_tools.py git`). Den User dafür NIE auf
+  git-scm.com schicken und NIEMALS `winget install Git.Git` nehmen —
+  das öffnet ein Adminfenster, das du nicht bedienen kannst. Auf dem Mac
+  löst `xcode-select --install` ein Fenster mit „Installieren"-Knopf aus
+  (ein Klick, kein Passwort). Prüfen: `install_tools.py --pruefen git`.
+  Einzige Ausnahme, die der User selbst erledigen muss: Wenn die
+  Desktop-App den Code-Tab ohne Git gar nicht erst öffnet — dann kann
+  hier nichts laufen, und der Installer von git-scm.com muss einmal
+  geklickt werden.
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde
 - **ffmpeg** nur nötig für Video-Schnitt und Posting
 - Prüfen ohne zu installieren: `<python> scripts/install_tools.py --pruefen ffmpeg node`

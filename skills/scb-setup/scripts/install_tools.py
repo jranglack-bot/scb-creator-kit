@@ -67,6 +67,8 @@ NODE_TAR = "https://nodejs.org/dist/{ver}/node-{ver}-darwin-{arch}.tar.gz"
 NODE_SUMS = "https://nodejs.org/dist/{ver}/SHASUMS256.txt"
 BIN_DIR = Path.home() / ".local" / "bin"
 NODE_DIR = Path.home() / ".local" / "scb-node"
+MINGIT_API = ("https://api.github.com/repos/git-for-windows/git/releases/latest")
+GIT_DIR = Path.home() / ".local" / "scb-git"
 
 
 def run(cmd, **kw):
@@ -171,6 +173,89 @@ def _entpacke_binary(zip_pfad, name):
         with z.open(eintrag) as quelle, open(ziel, "wb") as f:
             shutil.copyfileobj(quelle, f)
     os.chmod(ziel, 0o755)
+    return True
+
+
+def windows_pfad_eintragen(ordner):
+    """Ordner dauerhaft in den Benutzer-PATH schreiben (Windows-Registry).
+
+    Kein Adminrecht noetig: der Environment-Schluessel unter HKEY_CURRENT_USER
+    gehoert dem Benutzer selbst.
+    """
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0,
+                            winreg.KEY_READ | winreg.KEY_WRITE) as k:
+            try:
+                alt, typ = winreg.QueryValueEx(k, "Path")
+            except OSError:
+                alt, typ = "", winreg.REG_EXPAND_SZ
+            if str(ordner).lower() in (alt or "").lower():
+                return
+            neu = (str(ordner) + os.pathsep + alt) if alt else str(ordner)
+            winreg.SetValueEx(k, "Path", 0, typ or winreg.REG_EXPAND_SZ, neu)
+        os.environ["PATH"] = str(ordner) + os.pathsep + os.environ.get("PATH", "")
+        print("  Suchpfad ergaenzt: " + str(ordner)
+              + " (dauerhaft; neue Fenster sehen es sofort)")
+    except Exception as e:
+        print("  Hinweis: Suchpfad konnte nicht ergaenzt werden (" + str(e) + ").")
+
+
+def statisch_git():
+    """Git auf Windows ohne Installer und ohne Adminrechte (MinGit-ZIP).
+
+    MinGit ist die offizielle, entpackbare Fassung von Git fuer Windows.
+    Kein Setup-Assistent, kein UAC-Fenster, kein Passwort - genau deshalb
+    kann Claude das selbst erledigen. Verifiziert: damit laeuft
+    "claude plugin marketplace add" (HTTPS-Klon) einwandfrei.
+    """
+    import json as _json
+    m = platform.machine().lower()
+    if m in ("arm64", "aarch64"):
+        muster = "arm64"
+    elif m in ("amd64", "x86_64", "x64"):
+        muster = "64-bit"
+    else:
+        muster = "32-bit"
+
+    roh = _text_von(MINGIT_API)
+    if not roh:
+        print("  Konnte die Git-Release-Liste nicht laden.")
+        return False
+    url = None
+    try:
+        for a in _json.loads(roh).get("assets", []):
+            name = a.get("name", "")
+            if (name.startswith("MinGit") and muster in name
+                    and "busybox" not in name):
+                url = a.get("browser_download_url")
+                break
+    except Exception as e:
+        print("  Release-Liste unlesbar (" + str(e) + ").")
+        return False
+    if not url:
+        print("  Keine passende MinGit-Fassung fuer " + muster + " gefunden.")
+        return False
+
+    zip_pfad = Path(tempfile.gettempdir()) / "scb_mingit.zip"
+    if not _lade(url, zip_pfad):
+        return False
+    if GIT_DIR.exists():
+        shutil.rmtree(GIT_DIR, ignore_errors=True)
+    GIT_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        with zipfile.ZipFile(zip_pfad) as z:
+            z.extractall(GIT_DIR)
+    except Exception as e:
+        print("  Entpacken fehlgeschlagen (" + str(e) + ").")
+        return False
+    finally:
+        zip_pfad.unlink(missing_ok=True)
+
+    if not (GIT_DIR / "cmd" / "git.exe").exists():
+        print("  git.exe im Archiv nicht gefunden.")
+        return False
+    windows_pfad_eintragen(GIT_DIR / "cmd")
     return True
 
 
@@ -378,6 +463,21 @@ def main():
     if nur_pruefen:
         print("\nFehlend:", ", ".join(fehlend))
         return 0
+
+    # Windows: Git ohne Installer und ohne UAC nachziehen. winget wuerde
+    # hier ein Adminfenster oeffnen, das Claude nicht bedienen kann.
+    if platform.system() == "Windows" and "git" in fehlend:
+        print("Lade Git als fertiges Paket "
+              "(kein Installer, keine Adminrechte) ...")
+        if statisch_git() and vorhanden("git"):
+            print("  OK: git")
+            fehlend.remove("git")
+        else:
+            print("  Direkt-Weg fehlgeschlagen - versuche es ueber winget.")
+        if not fehlend:
+            print("")
+            print("FERTIG.")
+            return 0
 
     pm, basis = paketmanager()
 

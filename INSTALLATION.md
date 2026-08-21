@@ -14,17 +14,14 @@ In der App oben auf den Tab **Code** klicken und einen beliebigen Ordner
 wählen (z. B. deinen Dokumente-Ordner). Beim allerersten Mal richtet die App
 sich kurz selbst ein — einfach durchklicken.
 
-**Nur unter Windows, einmalig:** Der Code-Tab braucht **Git für Windows**.
-Fehlt es, meldet die App das beim ersten Öffnen (oder ein Befehl sagt später
-„git not found"). Dann hier holen und den Installer einfach mit den
-Standardeinstellungen durchklicken — danach Claude einmal komplett neu
-starten:
-👉 [git-scm.com/download/win](https://git-scm.com/download/win)
-
-Auf dem **Mac** ist das kein eigener Schritt: Fehlt Git dort, löst der
-Befehl `xcode-select --install` ein Fenster aus, in dem du einmal auf
-„Installieren" klickst (kein Passwort nötig) — Claude sagt dir das an der
-richtigen Stelle.
+**Zum Thema Git:** Das Kit braucht im Hintergrund ein Programm namens
+Git. **Du musst dich darum nicht kümmern** — fehlt es, installiert Claude
+es im nächsten Schritt selbst (ohne Adminrechte, ohne Passwort). Nur falls
+die App den **Code**-Tab gar nicht erst öffnet und nach Git verlangt, hol
+es dir einmal hier und klick den Installer mit den Standardeinstellungen
+durch, danach Claude neu starten:
+👉 Windows: [git-scm.com/download/win](https://git-scm.com/download/win) ·
+Mac: passiert automatisch über ein Fenster mit „Installieren"-Knopf.
 
 ---
 
@@ -41,14 +38,17 @@ genau dort, wo du ihm auch „Hallo" schreiben würdest:
 > Er braucht kein Admin-Passwort. Findet die Shell den Befehl danach
 > nicht, nutze den vollen Pfad `~/.local/bin/claude`.**
 > **2. `claude plugin marketplace add jranglack-bot/scb-creator-kit`**
-> **Meldet der Befehl, dass `git` fehlt (typisch auf einem neuen Mac):
-> führe `xcode-select --install` aus und bitte mich, im aufgehenden
-> Fenster auf „Installieren" zu klicken. Warte, bis es fertig ist
-> (ein paar Minuten), und wiederhole dann den Befehl. Alternativ ohne
-> Wartezeit: Lade https://github.com/jranglack-bot/scb-creator-kit/archive/refs/heads/master.tar.gz
-> per `curl -L` herunter, entpacke es mit `tar` und registriere den
-> entpackten Ordner als lokalen Marketplace
-> (`claude plugin marketplace add <ordnerpfad>`).**
+> **Meldet der Befehl, dass `git` fehlt, installiere es selbst — ohne
+> Adminrechte, ohne mich zu fragen:**
+> **Windows (PowerShell):**
+> **`$a=(irm https://api.github.com/repos/git-for-windows/git/releases/latest).assets|?{$_.name -like 'MinGit*-64-bit.zip'}|select -First 1`**
+> **`iwr $a.browser_download_url -OutFile "$env:TEMP\mingit.zip"`**
+> **`Expand-Archive "$env:TEMP\mingit.zip" "$env:LOCALAPPDATA\scb-git" -Force`**
+> **`$p=[Environment]::GetEnvironmentVariable("Path","User"); [Environment]::SetEnvironmentVariable("Path","$env:LOCALAPPDATA\scb-git\cmd;$p","User"); $env:Path="$env:LOCALAPPDATA\scb-git\cmd;$env:Path"`**
+> **(Auf ARM-Windows `MinGit*-arm64.zip` nehmen.) Danach den Befehl aus
+> Schritt 2 wiederholen.**
+> **Mac: führe `xcode-select --install` aus und bitte mich, im aufgehenden
+> Fenster auf „Installieren" zu klicken; danach den Befehl wiederholen.**
 > **3. `claude plugin install scb-creator-kit@scb-creator-kit`**
 > **4. Verweigert dir der Berechtigungs-Modus das Ausführen der
 > claude-plugin-Befehle: Gib mir genau diese Befehle als anklickbare
