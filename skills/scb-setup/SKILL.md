@@ -229,13 +229,18 @@ macOS und Linux:
 
 - **Git ist auf BEIDEN Systemen eine harte VORBEDINGUNG**, keine
   Kit-Aufgabe: Ohne Git laesst sich im Code-Tab der Desktop-App nicht
-  einmal eine Nachricht abschicken (die App meldet unter Windows „Git
-  Bash is required", auf dem Mac „no developer tools were found" — beides
-  derselbe Fehlercode GIT_NOT_FOUND). Wenn dieses Setup laeuft, ist Git
-  also immer schon da. Windows: Git fuer Windows durchklicken. Mac:
-  Xcode-Befehlszeilentools ueber das Fenster mit „Installieren"-Knopf,
-  bei Bedarf per `xcode-select --install` ausgeloest (ein Klick, kein
-  Passwort). `install_tools.py git` kann auf Windows zusaetzlich MinGit
+  einmal eine Nachricht abschicken. Wenn dieses Setup laeuft, ist Git
+  also immer schon da.
+  **Windows:** Die App prueft zusaetzlich Git BASH (nur dort, im Code
+  mit `process.platform !== 'win32'` abgesichert) und zeigt selbst einen
+  Knopf „Download Git for Windows".
+  **Mac:** Dort prueft die App nur, ob `git --version` laeuft, und gibt
+  KEINEN eigenen Hinweis. Git kommt auf dem Mac mit den
+  Xcode-Befehlszeilentools; fehlt es, zeigt macOS selbst ein Fenster mit
+  „Installieren"-Knopf. Ausloesen laesst es sich mit
+  `xcode-select --install` (ein Klick, kein Passwort). Bei einem
+  Mac-Nutzer, bei dem nichts geht, deshalb IMMER zuerst
+  `git --version` pruefen. `install_tools.py git` kann auf Windows zusaetzlich MinGit
   nachziehen — das hilft aber NUR, wenn `git.exe` fehlt und Git Bash
   vorhanden ist; Git Bash selbst kann es nicht ersetzen.
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde

@@ -32,12 +32,21 @@ Nichts umstellen, die Voreinstellungen passen.
   meist noch ein altes Git registriert: in den Windows-Einstellungen
   unter **Apps** das alte „Git" deinstallieren, dann erneut starten.
 
-**Mac:** Dort heißt dieselbe Sache **Xcode-Befehlszeilentools**. Fehlen
-sie, meldet die App „no developer tools were found". Es öffnet sich ein
-Fenster mit einem **„Installieren"-Knopf** — einmal anklicken und warten
-(dauert einige Minuten, lädt im Hintergrund). **Kein Passwort nötig,
-keine Webseite, kein Terminal.** Falls kein Fenster kommt, sag Claude:
+**Mac:** Dort kommt Git mit den **Xcode-Befehlszeilentools** — einem
+kostenlosen Apple-Paket, das auf vielen Macs schon da ist. Fehlt es,
+zeigt **macOS selbst** ein Fenster mit einem **„Installieren"-Knopf**,
+sobald Git zum ersten Mal gebraucht wird. Einmal anklicken und warten
+(einige Minuten, lädt im Hintergrund). **Kein Passwort, keine Webseite,
+kein Terminal.**
+
+Kommt kein Fenster von allein, sag Claude einfach:
 „Führe `xcode-select --install` aus" — dann erscheint es.
+
+> Hinweis für Helfende: Anders als unter Windows zeigt die Claude-App
+> auf dem Mac **keinen** eigenen Hinweis und keinen Download-Knopf für
+> Git. Der Dialog kommt vom Betriebssystem. Wenn ein Mac-Nutzer meldet,
+> dass nichts geht: zuerst prüfen lassen, ob `git --version` etwas
+> ausgibt.
 
 **Danach auf beiden Systemen: Claude einmal komplett schließen und neu
 öffnen.**
