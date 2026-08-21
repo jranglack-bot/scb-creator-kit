@@ -224,6 +224,14 @@ macOS und Linux:
 
 (`<python>` = der Aufruf, der in Schritt 2 funktioniert hat.)
 
+- **Git** ist eine Voraussetzung, keine Kit-Komponente: Auf Windows
+  braucht schon der Code-Tab der Desktop-App **Git für Windows**
+  (https://git-scm.com/download/win, Installer durchklicken, Claude neu
+  starten) — ohne Git kommt der User gar nicht so weit, dass dieses
+  Setup läuft. Fehlt Git später trotzdem (z. B. auf dem Mac), löst
+  `xcode-select --install` ein Fenster mit einem „Installieren"-Knopf
+  aus (kein Passwort). Prüfen lässt es sich mit
+  `install_tools.py --pruefen git`.
 - **Node.js** nur nötig, wenn Higgsfield gewählt wurde
 - **ffmpeg** nur nötig für Video-Schnitt und Posting
 - Prüfen ohne zu installieren: `<python> scripts/install_tools.py --pruefen ffmpeg node`

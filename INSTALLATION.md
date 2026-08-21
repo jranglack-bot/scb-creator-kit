@@ -14,6 +14,18 @@ In der App oben auf den Tab **Code** klicken und einen beliebigen Ordner
 wählen (z. B. deinen Dokumente-Ordner). Beim allerersten Mal richtet die App
 sich kurz selbst ein — einfach durchklicken.
 
+**Nur unter Windows, einmalig:** Der Code-Tab braucht **Git für Windows**.
+Fehlt es, meldet die App das beim ersten Öffnen (oder ein Befehl sagt später
+„git not found"). Dann hier holen und den Installer einfach mit den
+Standardeinstellungen durchklicken — danach Claude einmal komplett neu
+starten:
+👉 [git-scm.com/download/win](https://git-scm.com/download/win)
+
+Auf dem **Mac** ist das kein eigener Schritt: Fehlt Git dort, löst der
+Befehl `xcode-select --install` ein Fenster aus, in dem du einmal auf
+„Installieren" klickst (kein Passwort nötig) — Claude sagt dir das an der
+richtigen Stelle.
+
 ---
 
 ## Schritt 1: Diese Nachricht an Claude schicken

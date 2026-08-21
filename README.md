@@ -71,7 +71,10 @@ Die ausführliche Anleitung mit Bildern steht in
 [INSTALLATION.md](INSTALLATION.md), die Kurzfassung:
 
 1. **Claude Desktop-App öffnen**, oben den Tab **Code** wählen
-   (App kostenlos hier: [claude.ai/download](https://claude.ai/download))
+   (App kostenlos hier: [claude.ai/download](https://claude.ai/download)).
+   *Windows einmalig:* Der Code-Tab braucht
+   [Git für Windows](https://git-scm.com/download/win) — Installer mit den
+   Standardeinstellungen durchklicken, danach Claude neu starten.
 2. **Diese Nachricht an Claude schicken** (komplett kopieren):
 
    > Installiere bitte das SCB Creator Kit:

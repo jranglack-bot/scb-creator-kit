@@ -9,7 +9,7 @@ Der User muss KEIN Terminal oeffnen und nichts abtippen.
     python install_tools.py node yt-dlp gh
     python install_tools.py --pruefen ffmpeg node
 
-Werkzeuge: ffmpeg, node, yt-dlp, gh
+Werkzeuge: ffmpeg, node, yt-dlp, git, gh
 
 Exit 0 = alles da/installiert
 Exit 1 = fehlgeschlagen (Grund steht dabei)
@@ -40,6 +40,9 @@ PAKETE = {
     "yt-dlp": {"winget": "yt-dlp.yt-dlp",        "brew": "yt-dlp",
                "apt": "yt-dlp",                  "dnf": "yt-dlp",
                "pruefbefehl": ["yt-dlp", "--version"]},
+    "git":    {"winget": "Git.Git",              "brew": "git",
+               "apt": "git",                     "dnf": "git",
+               "pruefbefehl": ["git", "--version"]},
     "gh":     {"winget": "GitHub.cli",           "brew": "gh",
                "apt": "gh",                      "dnf": "gh",
                "pruefbefehl": ["gh", "--version"]},
