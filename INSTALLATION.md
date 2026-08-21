@@ -14,15 +14,42 @@ In der App oben auf den Tab **Code** klicken und einen beliebigen Ordner
 wählen (z. B. deinen Dokumente-Ordner). Beim allerersten Mal richtet die App
 sich kurz selbst ein — einfach durchklicken.
 
-### Erster Schritt: Das fehlende Hilfsprogramm installieren
+### Erster Schritt: Hilfsprogramm herunterladen und installieren
 
-Beim ersten Öffnen des **Code**-Tabs sagt Claude dir, wenn ihm ein
+Beim ersten Öffnen des **Code**-Tabs sagt Claude dir, dass ihm ein
 Hilfsprogramm fehlt. Solange das nicht installiert ist, kannst du dort
-**keine Nachricht abschicken** — auf beiden Systemen. Es heißt nur
-unterschiedlich:
+**keine Nachricht abschicken** — auf beiden Systemen.
 
-| | Claude sagt | Was du tust |
-|---|---|---|
+Das ist eine **richtige Installation mit Download**, kein schneller
+Klick. Plan dafür Zeit ein und lass den Rechner am Strom:
+
+| | Claude verlangt | Download | Dauer |
+|---|---|---|---|
+| **Windows** | **Git für Windows** | ca. 65 MB | 2–5 Minuten |
+| **Mac** | **Xcode Command Line Tools** | ca. 700 MB (belegt danach ~1,2 GB) | 5–15 Minuten, je nach Internet |
+
+**Windows — so geht's:** Auf den Knopf **„Download Git for Windows"**
+klicken (oder [git-scm.com/download/win](https://git-scm.com/download/win)),
+die heruntergeladene Datei im Downloads-Ordner doppelklicken, dann im
+Installer **immer „Next"** und zum Schluss **„Install"**. Nichts
+umstellen, die Voreinstellungen passen. Am Ende „Finish".
+
+**Mac — so geht's:** Es erscheint ein Fenster, dort auf **„Installieren"**
+klicken und den Lizenzbedingungen zustimmen. Dann lädt macOS im
+Hintergrund — das dauert und sieht zwischendurch aus, als würde nichts
+passieren. Fenster offen lassen, nicht abbrechen.
+
+**Danach auf beiden Systemen: Claude komplett schließen und neu öffnen.**
+Dieser Schritt kommt nie wieder.
+
+**Wenn es hakt:**
+- *Windows, „Zugriff verweigert":* Du bist kein Administrator und es ist
+  noch ein altes Git registriert. In den Windows-Einstellungen unter
+  **Apps** das alte „Git" deinstallieren, dann erneut starten.
+- *Mac, es erscheint kein Fenster:* Sag Claude „Führe
+  `xcode-select --install` aus" — dann kommt es.
+
+---|---|---|
 | **Windows** | „Git Bash is required" / du musst **Git** installieren | Knopf **„Download Git for Windows"** anklicken (oder [git-scm.com/download/win](https://git-scm.com/download/win)), Installer starten, immer **„Next"**, zum Schluss **„Install"** |
 | **Mac** | du musst die **Xcode Command Line Tools** installieren | Im aufgehenden Fenster auf **„Installieren"** klicken und warten (einige Minuten). Kein Passwort, keine Webseite |
 

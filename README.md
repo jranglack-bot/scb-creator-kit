@@ -72,13 +72,12 @@ Die ausführliche Anleitung mit Bildern steht in
 
 1. **Claude Desktop-App öffnen**, oben den Tab **Code** wählen
    (App kostenlos hier: [claude.ai/download](https://claude.ai/download)).
-   **Zuerst das fehlende Hilfsprogramm:** Claude sagt dir beim ersten
-   Öffnen, was ihm fehlt — ohne das lässt sich im Code-Tab keine
-   Nachricht abschicken. *Windows:* **Git** über den Knopf „Download Git
-   for Windows" bzw. [git-scm.com/download/win](https://git-scm.com/download/win),
-   Installer mit den Voreinstellungen durchklicken. *Mac:* die **Xcode
-   Command Line Tools** über den „Installieren"-Knopf im aufgehenden
-   Fenster (kein Passwort nötig). Danach Claude neu starten.
+   **Zuerst ein Hilfsprogramm herunterladen und installieren** — ohne das
+   lässt sich im Code-Tab keine Nachricht abschicken. Das ist eine echte
+   Installation, kein Klick: *Windows* **Git für Windows** (~65 MB,
+   2–5 Min., Installer durchklicken), *Mac* **Xcode Command Line Tools**
+   (~700 MB, 5–15 Min., im Fenster auf „Installieren"). Danach Claude
+   komplett neu starten.
 
 2. **Diese Nachricht an Claude schicken** (komplett kopieren):
 
