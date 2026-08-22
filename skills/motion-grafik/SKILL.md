@@ -12,7 +12,7 @@ description: >
   großen Accounts", "aufwendigere Effekte als das Cockpit kann".
 ---
 
-# Motion-Grafik (Motion Canvas + Freistellung)
+# Motion-Grafik (Motion Canvas / Remotion + Freistellung)
 
 Dieser Skill ist die **Stufe 2 und 3** der Videoproduktion. Stufe 1 ist und
 bleibt das Cockpit (`video-projekt`).
@@ -22,8 +22,29 @@ bleibt das Cockpit (`video-projekt`).
 | Stufe | Werkzeug | Wofür | Kosten für den Nutzer |
 |---|---|---|---|
 | 1 | **Cockpit** (`video-projekt`) | Schnitt, Untertitel, Musik, **einfache Texte und Hooks** | 0 Token, er ändert selbst |
-| 2 | **Motion Canvas** | animierte Grafik, die das Cockpit nicht kann | jede Änderung = eine Coderunde |
+| 2a | **Motion Canvas** | animierte Grafik, die das Cockpit nicht kann — der **Regelfall** | jede Änderung = eine Coderunde |
+| 2b | **Remotion** | nur wirklich **schwierige** Grafik (echtes 3D, Räume, Kamerafahrten) | mehr Bauzeit je Runde |
 | 3 | **Freistellung** (`freistellen.py`) | alles, was **hinter** der Person liegt | zusätzlich Rechenzeit |
+
+### 2a oder 2b? — im Zweifel IMMER 2a
+
+**Motion Canvas (2a)** ist für einfache Bewegtgrafik schneller gebaut und
+schneller geändert. Es bleibt der Standard:
+
+- Text-Einblendungen, Lower Thirds, Ecken-Klammern
+- Ringe, Balken, hochzählende Zahlen, Prozentanzeigen
+- Ein- und Ausblenden, Verschieben, Skalieren in der Fläche
+- Pseudo-3D durch Extrusion (versetzte Kopien) — reicht für 3D-Schrift
+
+**Remotion (2b)** nur, wenn Motion Canvas an eine echte Grenze stößt:
+
+- **Echtes 3D**: frei rotierende Körper, Räume, Kamerafahrten, Beleuchtung
+- Szenen mit vielen gleichzeitig bewegten Elementen und Tiefenstaffelung
+- Wenn ein Motion-Canvas-Versuch bereits gescheitert ist
+
+Nicht nach Geschmack wählen, sondern nach dieser Liste. Ein Ring, der
+hochzählt, gehört auch dann in Motion Canvas, wenn Remotion gerade
+eingerichtet ist.
 
 **Ein Text, den das Cockpit als `texts`-Overlay kann, gehört ins Cockpit** —
 auch wenn er in Motion Canvas hübscher würde. Grund ist nicht Bequemlichkeit,
@@ -48,7 +69,7 @@ nicht in jeder Runde neu fragen:
 Danach die Stufen **einzeln nacheinander** abarbeiten, mit Freigabe
 dazwischen. Nicht alles auf einmal bauen.
 
-## Stufe 2: Motion Canvas
+## Stufe 2a: Motion Canvas (der Regelfall)
 
 Kostenloses Open-Source-Werkzeug (MIT), das Animationen als Code beschreibt.
 Kein Konto, keine Lizenz, kein Abo. Braucht **Node.js** — das bringt der
@@ -155,6 +176,49 @@ Fenster verdeckt.
 - Ein einziges Signal für Bogen, Tiefenschichten und Zähler, sonst laufen
   sie auseinander.
 
+## Stufe 2b: Remotion (nur für schwierige Grafik)
+
+React-basiert, sehr aktiv gepflegt (Stand 22.08.2026: Release v4.0.515 vom
+Vortag; Motion Canvas hatte seit Dezember 2024 keines mehr). Kann alles,
+was Motion Canvas kann, **plus echtes 3D** über Three.js.
+
+**Lizenz — vorher sagen, nicht verschweigen:** Remotion ist nicht MIT.
+Kostenlos für Einzelpersonen, Firmen **bis 3 Mitarbeiter** und
+Non-Profits; größere Firmen brauchen eine kostenpflichtige Lizenz. Für
+Creator ist das unkritisch, aber der Nutzer muss es einmal gehört haben.
+
+### Der große Vorteil: Render ohne Browser
+
+Remotion rendert über die Kommandozeile — **kein sichtbares Fenster, kein
+Render-Knopf, kein eingefrorener Tab**:
+
+    npx remotion render <Komposition> out/<name>.mp4
+
+Damit entfällt der ganze Ärger aus Stufe 2a (siehe Warnkasten dort). Claude
+startet den Render selbst und wartet auf das Ergebnis.
+
+Für eine Ebene MIT Alphakanal (Grafik über dem Video):
+
+    npx remotion render <Komposition> out/<name>.mkv --codec=prores --prores-profile=4444
+
+### Einrichten
+
+Braucht Node.js (bringt der Setup-Assistent mit). Neues Projekt:
+
+    npx create-video@latest --blank
+
+Existiert beim Nutzer bereits ein Remotion-Projekt, dieses verwenden statt
+ein zweites anzulegen. Kompositionen werden in `src/Root.tsx` registriert —
+ohne Eintrag dort ist eine Szene unsichtbar (dasselbe Prinzip wie
+`vite.config.ts` bei Motion Canvas).
+
+### Vorschau
+
+`npm run dev` startet das Remotion Studio. Es gilt dieselbe Regel wie bei
+Motion Canvas: **nur im echten Browser des Nutzers öffnen**, nie im
+eingebauten. Gebraucht wird die Vorschau aber seltener, weil der Render
+ohnehin über die Kommandozeile läuft.
+
 ## Stufe 3: Freistellung („Text hinter mir")
 
 `scripts/freistellen.py` erkennt die Person in jedem Bild und legt sie als
@@ -260,8 +324,9 @@ Details zu `alpha` und `fullframe`: siehe `pro-look-editing`.
 
 ## Grenzen — ehrlich bleiben
 
-- **Kein echtes 3D.** Keine Beleuchtung, keine Kamera, keine Reflexionen.
-  Wer einen frei im Raum rotierenden Körper will, braucht Blender.
+- **Motion Canvas kann kein echtes 3D.** Keine Beleuchtung, keine Kamera,
+  keine Reflexionen. Genau dafür gibt es Stufe 2b (Remotion mit Three.js) —
+  Blender braucht es dafür nicht mehr.
 - **Die Freistellung wird an Haaren nicht perfekt.** Bei ruhigem Hintergrund
   und gutem Licht sitzt sie gut; bei schnellen Handbewegungen reißt sie.
 - **Motion Canvas rendert im Browser**, per Klick — kein CLI-Befehl.
