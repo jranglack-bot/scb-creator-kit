@@ -93,6 +93,25 @@ def versionszahl(text):
 
 
 # ---------------------------------------------------------------- Pruefungen
+def quelle_des_kits():
+    """'github', 'lokal' oder None.
+
+    Ein aus der heruntergeladenen Datei installiertes Kit haengt an einem
+    ORDNER, nicht an GitHub - 'claude plugin update' hat dort nichts zum
+    Nachladen und meldet trotzdem Erfolg. Das muss erkannt werden, sonst
+    bleibt so ein Kit fuer immer auf seiner alten Fassung stehen.
+    """
+    pfad = Path.home() / ".claude" / "plugins" / "known_marketplaces.json"
+    try:
+        with open(pfad, encoding="utf-8-sig") as f:
+            eintrag = json.load(f).get("scb-creator-kit") or {}
+        q = (eintrag.get("source") or {}).get("source")
+        return "github" if q == "github" else "lokal"
+    except Exception:
+        return None
+
+
+
 def pruefe_kit():
     cli = claude_cli()
     installiert = None
@@ -196,6 +215,33 @@ def pruefe_freistellung():
         return (FEHLT, "nicht eingerichtet (nur fuer 'Text hinter mir')")
 
 
+def pruefe_grafik():
+    """Motion Canvas / Remotion - beide werden BEI BEDARF angelegt.
+
+    Sie gehoeren bewusst nicht zur Grundinstallation: Erst wenn der Nutzer
+    animierte Grafik will und sich fuer eines der beiden entscheidet, wird
+    das Projekt erzeugt. Fehlt hier etwas, ist das KEIN Mangel.
+    """
+    node = shutil.which("node")
+    if not node:
+        return (FEHLT, "Node.js fehlt - ohne das geht keines von beiden")
+    gefunden = []
+    for name, marker in (("Motion Canvas", "motion-canvas"),
+                         ("Remotion", "remotion")):
+        for basis in (Path.home(), Path("D:/Instagram Content"),
+                      Path.cwd()):
+            try:
+                if (basis / marker / "package.json").exists():
+                    gefunden.append(name)
+                    break
+            except Exception:
+                pass
+    if gefunden:
+        return (OK, " + ".join(gefunden) + " eingerichtet")
+    return (UNKLAR, "noch keins angelegt - wird bei Bedarf erzeugt")
+
+
+
 def pruefe_keys():
     if not KEY_DATEI.exists():
         return (FEHLT, "keine keys.env")
@@ -216,9 +262,23 @@ def aktualisiere(befunde):
     cli = claude_cli()
 
     if befunde["kit"][0] == ALT and cli:
-        print("Aktualisiere das SCB Creator Kit ...")
-        r = run([cli, "plugin", "update", "scb-creator-kit@scb-creator-kit"])
-        (getan if r.returncode == 0 else offen).append("SCB Creator Kit")
+        if quelle_des_kits() == "lokal":
+            # Aus der Datei installiert: 'plugin update' hat keine Quelle
+            # und meldet trotzdem Erfolg. Also umhaengen auf GitHub, dann
+            # bleibt das Kit dauerhaft aktuell.
+            print("Das Kit haengt an einem Ordner statt an GitHub - "
+                  "haenge es um, damit Updates kuenftig ankommen ...")
+            run([cli, "plugin", "marketplace", "remove", "scb-creator-kit"])
+            r1 = run([cli, "plugin", "marketplace", "add",
+                      "jranglack-bot/scb-creator-kit"])
+            r2 = run([cli, "plugin", "install",
+                      "scb-creator-kit@scb-creator-kit"])
+            ok = r1.returncode == 0 and r2.returncode == 0
+            (getan if ok else offen).append("SCB Creator Kit (auf GitHub umgehaengt)")
+        else:
+            print("Aktualisiere das SCB Creator Kit ...")
+            r = run([cli, "plugin", "update", "scb-creator-kit@scb-creator-kit"])
+            (getan if r.returncode == 0 else offen).append("SCB Creator Kit")
 
     zustand, version, neueste, hook = befunde["rtk"]
     exe = rtk_binary()
@@ -273,8 +333,12 @@ def main():
 
     b["kit"] = pruefe_kit()
     zustand, inst, akt = b["kit"]
-    zeile("SCB Creator Kit", zustand,
-          inst + (" -> " + akt if zustand == ALT and akt else ""))
+
+    quelle = quelle_des_kits()
+    zusatz = inst + (" -> " + akt if zustand == ALT and akt else "")
+    if quelle == "lokal":
+        zusatz += " | aus Datei installiert - bekommt KEINE Updates"
+    zeile("SCB Creator Kit", zustand, zusatz)
 
     b["rtk"] = pruefe_rtk()
     zustand, v, neu, hook = b["rtk"]
@@ -298,6 +362,8 @@ def main():
     print("")
     b["freistellung"] = pruefe_freistellung()
     zeile("Freistellung", b["freistellung"][0], b["freistellung"][1])
+    b["grafik"] = pruefe_grafik()
+    zeile("Grafik-Werkzeuge", b["grafik"][0], b["grafik"][1])
     b["keys"] = pruefe_keys()
     zeile("Transkriptions-Keys", b["keys"][0], b["keys"][1])
 

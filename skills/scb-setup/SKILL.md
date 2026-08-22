@@ -76,6 +76,22 @@ Fehlen Werkzeuge, meldet das Script den passenden `install_tools.py`-
 Aufruf gleich mit — den dann ausführen. Fehlen Keys, kurz anbieten, sie
 einzurichten (Groq zuerst), aber nicht drängen.
 
+**Die Falle „aus Datei installiert":** Wer das Kit seinerzeit aus der
+heruntergeladenen `.plugin`-Datei eingerichtet hat, hängt an einem
+ORDNER statt an GitHub. `claude plugin update` hat dort nichts zum
+Nachladen und meldet trotzdem Erfolg — so ein Kit bleibt für immer auf
+seiner alten Fassung stehen (real beobachtet: Stand 0.39.0, während
+GitHub längst weiter war). Das Script erkennt das, schreibt „aus Datei
+installiert — bekommt KEINE Updates" in den Bericht und hängt beim
+`--update`-Lauf automatisch auf GitHub um.
+
+**Grafik-Werkzeuge sind kein Mangel, wenn sie fehlen:** Motion Canvas
+und Remotion gehören bewusst NICHT zur Grundinstallation. Sie werden
+erst angelegt, wenn der Nutzer animierte Grafik will und sich für eines
+von beiden entschieden hat (siehe Skill `motion-grafik`). Steht im
+Bericht „noch keins angelegt", ist das der Normalfall — nicht
+ungefragt nachinstallieren.
+
 ### Schritt 1: Begrüßung und Überblick
 
 Begrüße den User und zeige kurz, was das Kit kann:
