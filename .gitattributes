@@ -1,6 +1,7 @@
 # Diese Pfade sind zwar versioniert (Backup auf GitHub),
 # landen aber NICHT im ausgelieferten .plugin-Paket (git archive).
 tools/         export-ignore
+.github/       export-ignore
 .gitattributes export-ignore
 
 # Shell-Dateien MUESSEN Unix-Zeilenenden behalten — mit \r\n findet der

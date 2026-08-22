@@ -1,0 +1,59 @@
+name: Release bei Versionswechsel
+
+# Warum es das gibt (21.08.2026, teuer gelernt):
+# Auf master wurde ueber Tage weiterentwickelt, ein Release aber nur
+# einmal veroeffentlicht. Wer die .plugin-Datei herunterlud, bekam
+# monatealten Stand (0.39.0 statt 0.46.0) - inklusive fehlender
+# Funktionen, die er im Kurs erwartet hatte. Ab jetzt macht das GitHub
+# selbst, sobald sich die Versionsnummer aendert.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.claude-plugin/plugin.json'
+  workflow_dispatch:        # notfalls von Hand ausloesbar
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version auslesen
+        id: v
+        run: |
+          VERSION=$(python -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Gefundene Version: $VERSION"
+
+      - name: Gibt es das Release schon?
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.v.outputs.version }}" >/dev/null 2>&1; then
+            echo "vorhanden=ja" >> "$GITHUB_OUTPUT"
+            echo "v${{ steps.v.outputs.version }} existiert bereits - nichts zu tun."
+          else
+            echo "vorhanden=nein" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Paket bauen
+        if: steps.check.outputs.vorhanden == 'nein'
+        run: |
+          git archive --format=zip -o scb-creator-kit.plugin HEAD
+          echo "Enthaltene Dateien: $(unzip -l scb-creator-kit.plugin | tail -1)"
+
+      - name: Veroeffentlichen
+        if: steps.check.outputs.vorhanden == 'nein'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.v.outputs.version }}" \
+            scb-creator-kit.plugin \
+            --title "v${{ steps.v.outputs.version }}" \
+            --generate-notes
