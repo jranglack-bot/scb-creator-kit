@@ -85,12 +85,22 @@ GitHub längst weiter war). Das Script erkennt das, schreibt „aus Datei
 installiert — bekommt KEINE Updates" in den Bericht und hängt beim
 `--update`-Lauf automatisch auf GitHub um.
 
-**Grafik-Werkzeuge sind kein Mangel, wenn sie fehlen:** Motion Canvas
-und Remotion gehören bewusst NICHT zur Grundinstallation. Sie werden
-erst angelegt, wenn der Nutzer animierte Grafik will und sich für eines
-von beiden entschieden hat (siehe Skill `motion-grafik`). Steht im
-Bericht „noch keins angelegt", ist das der Normalfall — nicht
-ungefragt nachinstallieren.
+**Grafik-Werkzeuge liefert das Update nach.** Motion Canvas und
+Remotion liegen an einem gemeinsamen Ort
+(`~/.scb-creator-kit/grafik/`), den alle Videoprojekte mitbenutzen.
+Fehlt eines davon, richtet der `--update`-Lauf es ein — denn ein Update
+muss auch neu dazugekommene Fähigkeiten wirklich bringen (real
+passiert: Remotion kam in v0.43.0 dazu und fehlte nach dem Update
+trotzdem, weil es nur „auf Zuruf" vorgesehen war).
+
+Einzeln geht es mit:
+
+    <python> scripts/grafik_einrichten.py --nur remotion
+
+Vorhandene Projekte des Nutzers (z. B. unter `D:\Instagram Content`)
+werden erkannt und nicht doppelt angelegt. **Vor dem Einrichten von
+Remotion die Lizenz erwähnen** (kostenlos für Einzelpersonen und Firmen
+bis 3 Mitarbeiter) und dazusagen, dass einige hundert MB geladen werden.
 
 ### Schritt 1: Begrüßung und Überblick
 

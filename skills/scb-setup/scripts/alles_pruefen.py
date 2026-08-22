@@ -312,6 +312,20 @@ def aktualisiere(befunde):
         if r.returncode == 0 and "updated" in (r.stdout or "").lower():
             getan.append("/watch")
 
+    # Neu dazugekommene Faehigkeiten wirklich nachliefern: Wenn das
+    # Kit ein Grafik-Werkzeug kennt, das hier fehlt, wird es beim
+    # Update eingerichtet. Sonst waere "Update" ein leeres Wort -
+    # der Nutzer bekaeme neue Skills, aber nicht das, was sie
+    # brauchen (real passiert: Remotion kam in v0.43.0 dazu und
+    # fehlte nach dem Update trotzdem).
+    if befunde.get("grafik", ("",))[0] != OK:
+        eigener = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "grafik_einrichten.py")
+        print("Richte fehlende Grafik-Werkzeuge ein "
+              "(laedt einige hundert MB) ...")
+        r = run([sys.executable, eigener])
+        (getan if r.returncode == 0 else offen).append("Grafik-Werkzeuge")
+
     return getan, offen
 
 
