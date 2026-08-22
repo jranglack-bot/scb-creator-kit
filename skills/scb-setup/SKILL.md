@@ -10,7 +10,10 @@ description: >
   Setup", "hilf mir bei der Einrichtung", "was brauche ich für das Creator
   Kit", oder direkt nach der Installation des Plugins. Auch bei
   Schreibweisen, die eine Spracherkennung daraus macht (SCP statt SCB,
-  "richtig mir das SCB Plugin ein").
+  "richtig mir das SCB Plugin ein"). Ebenso beim Rundum-Check und
+  Aktualisieren: "ist alles aktuell", "ist alles auf dem neuesten Stand",
+  "mach mal ein Update", "aktualisiere alles", "update das SCB Kit",
+  "sind meine Tools aktuell", "pruef mal alles durch".
 ---
 
 # SCB Creator Kit — Setup-Assistent
@@ -48,6 +51,30 @@ der User keinen Key erneut eingeben muss. Danach sagen: Claude einmal
 neu starten und wieder „Richte das SCB Kit ein" schreiben — es geht dann
 mit der frischen Fassung weiter. Bei Nein: einfach weitermachen, nicht
 nachhaken.
+
+### Sonderfall: „Ist alles aktuell?" / „Mach mal ein Update"
+
+Fragt der User danach, **nicht** das ganze Setup starten. Stattdessen:
+
+    <python> scripts/alles_pruefen.py
+
+Das Script prüft in einem Durchgang: Kit-Version gegen GitHub, RTK
+(installiert / Hook wirklich aktiv / aktuell), /watch, ffmpeg, ffprobe,
+node, yt-dlp, git, die Freistellung und ob Transkriptions-Keys hinterlegt
+sind. Exit 0 = alles aktuell, Exit 1 = es gibt etwas zu tun.
+
+**Den Bericht in eigenen Worten zusammenfassen**, nicht die Rohausgabe
+hinwerfen — der User ist kein Techniker. Gibt es etwas zu tun, kurz
+fragen, ob aktualisiert werden soll, und bei Ja:
+
+    <python> scripts/alles_pruefen.py --update
+
+Danach **immer** sagen: Claude Code einmal komplett neu starten, sonst
+greifen Plugin-Updates und der RTK-Hook nicht.
+
+Fehlen Werkzeuge, meldet das Script den passenden `install_tools.py`-
+Aufruf gleich mit — den dann ausführen. Fehlen Keys, kurz anbieten, sie
+einzurichten (Groq zuerst), aber nicht drängen.
 
 ### Schritt 1: Begrüßung und Überblick
 

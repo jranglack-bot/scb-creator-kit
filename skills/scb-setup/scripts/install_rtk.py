@@ -224,7 +224,11 @@ def installiere_via_paketmanager():
                  "-e", "--id", "rtk-ai.rtk"])
         if r.returncode == 0 or winget_sagt_installiert():
             pfad_nachladen()
-            exe = bereits_da()
+            # --neu: vorhandene Fassung ignorieren und die neueste holen
+            # (noetig, wenn winget das Paket nicht kennt, weil es seinerzeit
+            #  per Direkt-Download kam - winget upgrade scheitert dann).
+            erzwingen = "--neu" in sys.argv
+            exe = None if erzwingen else bereits_da()
             if exe:
                 return exe
             # winget meldet Erfolg, aber die Binary ist (noch) nicht
@@ -256,7 +260,11 @@ def installiere():
 
     ist_windows = platform.system() == "Windows"
     binname = "rtk.exe" if ist_windows else "rtk"
-    ziel = zielordner()
+    # Gibt es schon eine Fassung, diese ERSETZEN statt eine zweite
+    # Kopie anzulegen - sonst liegen zwei rtk.exe herum und welche
+    # gewinnt, entscheidet die Reihenfolge im Suchpfad.
+    vorhanden = finde_binary()
+    ziel = os.path.dirname(vorhanden) if vorhanden else zielordner()
     os.makedirs(ziel, exist_ok=True)
 
     tmp = tempfile.mkdtemp(prefix="rtk_")
@@ -281,11 +289,15 @@ def installiere():
 def main():
     print(f"System: {platform.system()} / {arch()}")
 
-    exe = bereits_da()
+    # --neu: vorhandene Fassung ignorieren und die neueste direkt holen
+    # (noetig, wenn der Paketmanager das Paket nicht kennt, weil es
+    #  seinerzeit per Direkt-Download kam - upgrade scheitert dann).
+    erzwingen = "--neu" in sys.argv
+    exe = None if erzwingen else bereits_da()
     if exe:
         print(f"RTK ist bereits installiert: {exe}")
     else:
-        exe = installiere_via_paketmanager()
+        exe = (installiere() if erzwingen else installiere_via_paketmanager())
         if exe == "NEUSTART_NOETIG":
             # Frueher wurde hier mit Exit 0 abgebrochen ("bitte neu starten
             # und Script nochmal aufrufen"). Das las sich fuer Claude wie
