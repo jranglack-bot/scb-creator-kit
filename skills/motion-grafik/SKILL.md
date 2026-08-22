@@ -22,38 +22,50 @@ bleibt das Cockpit (`video-projekt`).
 | Stufe | Werkzeug | Wofür | Kosten für den Nutzer |
 |---|---|---|---|
 | 1 | **Cockpit** (`video-projekt`) | Schnitt, Untertitel, Musik, **einfache Texte und Hooks** | 0 Token, er ändert selbst |
-| 2a | **Motion Canvas** | animierte Grafik, die das Cockpit nicht kann — der **Regelfall** | jede Änderung = eine Coderunde |
-| 2b | **Remotion** | nur wirklich **schwierige** Grafik (echtes 3D, Räume, Kamerafahrten) | mehr Bauzeit je Runde |
+| 2a | **Motion Canvas** | animierte Grafik — schneller gebaut und geändert | jede Änderung = eine Coderunde |
+| 2b | **Remotion** | animierte Grafik — mehr möglich, u. a. echtes 3D | mehr Bauzeit je Runde |
+
+**Zwischen 2a und 2b wählt der NUTZER**, nicht du — siehe Pflichtfrage unten.
 | 3 | **Freistellung** (`freistellen.py`) | alles, was **hinter** der Person liegt | zusätzlich Rechenzeit |
 
-### 2a oder 2b? — im Zweifel IMMER 2a
+### 2a oder 2b? — das entscheidet IMMER der Nutzer, nie du
 
-**Motion Canvas (2a)** ist für einfache Bewegtgrafik schneller gebaut und
-schneller geändert. Es bleibt der Standard:
+**Sobald animierte Grafik gewünscht ist, MUSST du fragen** — mit
+AskUserQuestion, genau einmal, bevor irgendetwas gebaut wird. Nicht
+selbst wählen, auch dann nicht, wenn eines der beiden offensichtlich
+besser passt.
 
-- Text-Einblendungen, Lower Thirds, Ecken-Klammern
-- Ringe, Balken, hochzählende Zahlen, Prozentanzeigen
-- Ein- und Ausblenden, Verschieben, Skalieren in der Fläche
-- Pseudo-3D durch Extrusion (versetzte Kopien) — reicht für 3D-Schrift
+> **Frage:** „Für die animierte Grafik habe ich zwei Werkzeuge. Womit
+> soll ich arbeiten?"
+>
+> **Antwort A — Motion Canvas (schneller):** Schneller gebaut und
+> schneller geändert. Ideal für Text-Einblendungen, Ringe, hochzählende
+> Zahlen, Balken und Lower Thirds. Wenn du danach noch etwas ändern
+> willst, geht das zügig.
+>
+> **Antwort B — Remotion (schönere Effekte):** Kann deutlich mehr,
+> unter anderem echtes 3D mit Räumen, Kamerafahrten und Beleuchtung.
+> Dafür dauert jede Runde länger.
 
-**Remotion (2b)** nur, wenn Motion Canvas an eine echte Grenze stößt:
+**Antwort merken** und für dieses Projekt beibehalten — nicht bei jeder
+Grafik neu fragen.
 
-- **Echtes 3D**: frei rotierende Körper, Räume, Kamerafahrten, Beleuchtung
-- Szenen mit vielen gleichzeitig bewegten Elementen und Tiefenstaffelung
-- Wenn ein Motion-Canvas-Versuch bereits gescheitert ist
+**Wenn der Nutzer unsicher ist oder zurückfragt**, darfst du beraten —
+aber als Empfehlung, nicht als Entscheidung:
 
-Nicht nach Geschmack wählen, sondern nach dieser Liste. Ein Ring, der
-hochzählt, gehört auch dann in Motion Canvas, wenn Remotion gerade
-eingerichtet ist.
+| Wunsch | Empfehlung |
+|---|---|
+| Text, Lower Thirds, Ecken-Klammern | Motion Canvas |
+| Ringe, Balken, hochzählende Zahlen, Prozente | Motion Canvas |
+| Ein-/Ausblenden, Verschieben, Skalieren in der Fläche | Motion Canvas |
+| 3D-Schrift durch Extrusion (versetzte Kopien) | Motion Canvas |
+| Echtes 3D: rotierende Körper, Räume, Kamerafahrten, Licht | Remotion |
+| Viele gleichzeitig bewegte Elemente mit Tiefenstaffelung | Remotion |
+| Ein Motion-Canvas-Versuch ist bereits gescheitert | Remotion |
 
-**Ein Text, den das Cockpit als `texts`-Overlay kann, gehört ins Cockpit** —
-auch wenn er in Motion Canvas hübscher würde. Grund ist nicht Bequemlichkeit,
-sondern Geld: Im Cockpit justiert der Nutzer selbst und ohne Token; jede
-Motion-Canvas-Änderung kostet eine Runde über Claude.
-
-Stufe 3 nur einschalten, wenn wirklich etwas hinter der Person liegen soll.
-Die Freistellung kostet rund **1,5 Minuten Rechenzeit je 12 Sekunden**
-Material.
+**Bei Remotion vor dem Start einmal die Lizenz erwähnen:** kostenlos für
+Einzelpersonen, Firmen bis 3 Mitarbeiter und Non-Profits, größere Firmen
+brauchen eine kostenpflichtige Lizenz.
 
 ## EINGANGSFRAGE (einmal stellen, Antwort merken)
 
@@ -69,7 +81,10 @@ nicht in jeder Runde neu fragen:
 Danach die Stufen **einzeln nacheinander** abarbeiten, mit Freigabe
 dazwischen. Nicht alles auf einmal bauen.
 
-## Stufe 2a: Motion Canvas (der Regelfall)
+**Sagt er ja zu animierter Grafik, folgt sofort die zweite Pflichtfrage:
+Motion Canvas oder Remotion** (siehe oben). Erst danach wird gebaut.
+
+## Stufe 2a: Motion Canvas
 
 Kostenloses Open-Source-Werkzeug (MIT), das Animationen als Code beschreibt.
 Kein Konto, keine Lizenz, kein Abo. Braucht **Node.js** — das bringt der
@@ -176,7 +191,7 @@ Fenster verdeckt.
 - Ein einziges Signal für Bogen, Tiefenschichten und Zähler, sonst laufen
   sie auseinander.
 
-## Stufe 2b: Remotion (nur für schwierige Grafik)
+## Stufe 2b: Remotion
 
 React-basiert, sehr aktiv gepflegt (Stand 22.08.2026: Release v4.0.515 vom
 Vortag; Motion Canvas hatte seit Dezember 2024 keines mehr). Kann alles,
