@@ -20,6 +20,7 @@ Nur wenn kein Paketmanager da ist, laedt das Script das passende Paket
 direkt aus dem offiziellen GitHub-Release (rtk-ai/rtk).
 """
 import io
+import json
 import os
 import platform
 import shutil
@@ -74,6 +75,52 @@ def zielordner():
         return os.path.join(os.environ.get("LOCALAPPDATA", ""),
                             "Microsoft", "WinGet", "Links")
     return os.path.join(os.path.expanduser("~"), ".local", "bin")
+
+
+def bekannte_orte():
+    """Orte, an denen die Paketmanager rtk ablegen - auch wenn der
+    laufende Prozess den neuen Suchpfad noch nicht kennt."""
+    if platform.system() == "Windows":
+        la = os.environ.get("LOCALAPPDATA", "")
+        return [
+            os.path.join(la, "Programs", "rtk", "rtk.exe"),
+            os.path.join(la, "Microsoft", "WinGet", "Links", "rtk.exe"),
+        ] + [os.path.join(d, "rtk.exe") for d in _winget_paketordner()]
+    return ["/opt/homebrew/bin/rtk", "/usr/local/bin/rtk",
+            os.path.join(os.path.expanduser("~"), ".local", "bin", "rtk")]
+
+
+def _winget_paketordner():
+    """Unterordner von WinGet-Packages, die nach rtk aussehen."""
+    la = os.environ.get("LOCALAPPDATA", "")
+    basis = os.path.join(la, "Microsoft", "WinGet", "Packages")
+    try:
+        return [os.path.join(basis, n) for n in os.listdir(basis)
+                if n.lower().startswith("rtk-ai.rtk")]
+    except OSError:
+        return []
+
+
+def finde_binary():
+    """rtk finden: erst PATH, dann die bekannten Installationsorte."""
+    p = shutil.which("rtk")
+    if p and run([p, "--version"]).returncode == 0:
+        return p
+    for kandidat in bekannte_orte():
+        if os.path.exists(kandidat) and run([kandidat, "--version"]).returncode == 0:
+            return kandidat
+    return None
+
+
+def hook_aktiv():
+    """True, wenn der Rewrite-Hook wirklich in der Konfiguration steht."""
+    pfad = os.path.join(os.path.expanduser("~"), ".claude", "settings.json")
+    try:
+        with open(pfad, encoding="utf-8-sig") as f:
+            return "rtk" in json.dumps(json.load(f).get("hooks") or {})
+    except Exception:
+        return False
+
 
 
 def bereits_da():
@@ -240,11 +287,20 @@ def main():
     else:
         exe = installiere_via_paketmanager()
         if exe == "NEUSTART_NOETIG":
-            print("")
-            print("FAST FERTIG: Claude Code einmal neu starten, dann dieses "
-                  "Script erneut ausfuehren - es richtet dann nur noch den "
-                  "Hook ein ('rtk init -g').")
-            return 0
+            # Frueher wurde hier mit Exit 0 abgebrochen ("bitte neu starten
+            # und Script nochmal aufrufen"). Das las sich fuer Claude wie
+            # Erfolg - RTK war installiert, aber der Hook wurde NIE
+            # eingerichtet, und niemand rief das Script erneut auf.
+            # Jetzt: Binary am bekannten Ort suchen und direkt weitermachen.
+            exe = finde_binary()
+            if not exe:
+                print("")
+                print("RTK ist installiert, aber die Programmdatei ist noch "
+                      "nicht auffindbar. Claude Code einmal neu starten, "
+                      "dann dieses Script erneut ausfuehren - es richtet "
+                      "dann nur noch den Hook ein.")
+                return 3
+            print(f"Programmdatei gefunden: {exe}")
         if not exe:
             print("Kein Paketmanager verfuegbar - lade direkt vom "
                   "offiziellen Release.")
@@ -260,6 +316,14 @@ def main():
         return 1
     print("Hook eingerichtet.")
 
+    # NACHWEIS statt Behauptung: steht der Hook wirklich in der Konfig?
+    if not hook_aktiv():
+        print("")
+        print("WARNUNG: 'rtk init -g' meldete Erfolg, aber in")
+        print("~/.claude/settings.json steht kein rtk-Hook. RTK spart so")
+        print("KEINE Tokens. Bitte pruefen, bevor du dem User Erfolg meldest.")
+        return 2
+
     v = run([exe, "--version"])
     print("Version:", text(v, "stdout", "stderr") or "(keine Ausgabe)")
     if run([exe, "gain"]).returncode == 0:
@@ -269,7 +333,9 @@ def main():
               "einem anderen Programm namens rtk (Rust Type Kit).")
 
     print("")
-    print("FERTIG. RTK ist aktiv. Neue Terminals/Sessions nutzen es sofort.")
+    print("FERTIG. Hook ist in settings.json eingetragen und verifiziert.")
+    print("WICHTIG: Er greift erst nach einem NEUSTART von Claude Code -")
+    print("in der laufenden Sitzung wird noch ungefiltert gearbeitet.")
     print("Rueckgaengig machen: rtk init -g --uninstall")
     return 0
 

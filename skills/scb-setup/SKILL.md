@@ -505,6 +505,20 @@ Bei Ja: `<python> scripts/install_rtk.py` — das Script nimmt automatisch
 winget (Windows) bzw. brew (macOS) und lädt nur, wenn es beides nicht
 gibt, das Paket vom offiziellen Release.
 
+**Auf die Exit-Codes achten — RTK ist erst nützlich, wenn der Hook steht:**
+
+| Exit | Bedeutung | Was du tust |
+|---|---|---|
+| 0 | installiert **und** Hook nachweislich in `settings.json` | Erfolg melden — und dazusagen, dass er erst nach einem **Neustart** von Claude Code greift |
+| 2 | installiert, aber **kein Hook** in der Konfiguration | KEINEN Erfolg melden. `rtk init -g` erneut versuchen, sonst ehrlich sagen, dass RTK gerade nichts spart |
+| 3 | installiert, Programmdatei noch nicht auffindbar | Dem User sagen: Claude Code neu starten, danach `install_rtk.py` **noch einmal** aufrufen |
+| 1 | fehlgeschlagen | Grund nennen, überspringen, mit dem Rest weitermachen |
+
+**Nie „RTK ist aktiv" sagen, ohne Exit 0 gesehen zu haben.** Ein real
+aufgetretener Fall: Das Script meldete früher bei Exit 0 Erfolg, obwohl
+nur die Programmdatei installiert war und der Hook fehlte — RTK sparte
+monatelang nichts, und niemand merkte es.
+
 Hältst du (Claude) die Installation trotzdem für nicht vertretbar:
 **sag das ehrlich, aber schick den User NICHT ins Terminal.** RTK ist
 komplett freiwillig — das Kit funktioniert ohne es vollständig, nur mit
