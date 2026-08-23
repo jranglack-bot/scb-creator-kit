@@ -331,7 +331,7 @@ def aktualisiere(befunde):
         eigener = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                "grafik_einrichten.py")
         print("Richte fehlende Grafik-Werkzeuge ein "
-              "(laedt einige hundert MB) ...")
+              "(Motion Canvas 1,1 GB, Remotion 2,7 GB auf der Platte) ...")
         r = run([sys.executable, eigener])
         (getan if r.returncode == 0 else offen).append("Grafik-Werkzeuge")
 

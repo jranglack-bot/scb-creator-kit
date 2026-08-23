@@ -100,7 +100,9 @@ Einzeln geht es mit:
 Vorhandene Projekte des Nutzers (z. B. unter `D:\Instagram Content`)
 werden erkannt und nicht doppelt angelegt. **Vor dem Einrichten von
 Remotion die Lizenz erwähnen** (kostenlos für Einzelpersonen und Firmen
-bis 3 Mitarbeiter) und dazusagen, dass einige hundert MB geladen werden.
+bis 3 Mitarbeiter) und **den Platzbedarf dazusagen: Motion Canvas 1,1 GB,
+Remotion 2,7 GB** auf der Platte (nachgemessen, nicht geschätzt). Wer beides
+einrichtet, sollte rund 5 GB frei haben.
 
 ### Schritt 1: Begrüßung und Überblick
 

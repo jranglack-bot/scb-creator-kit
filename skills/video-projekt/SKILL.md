@@ -306,7 +306,33 @@ korrigiert wird, ist verlorene Wartezeit. Rechenintensives (Stabilisierung,
 finaler Render) kommt ans ENDE und läuft im Hintergrund, während der Nutzer
 schon im Cockpit arbeitet.
 
+### 1a-Start. Projekt anlegen = EIN Aufruf, nicht sechs
+
+```
+<python> scripts/projekt_starten.py <clip1> [clip2 ...] [--name reel-42]
+```
+
+Das erledigt in einem Durchgang: Ordner anlegen, Clips zusammenfügen,
+`projekt.json` schreiben, transkribieren, Pausen messen, Cockpit bauen.
+Am Ende steht eine Bilanz, welcher Abschnitt wie lange gebraucht hat, und
+die Schnittvorschläge stehen da. Danach geht es bei 1b Punkt 3 weiter
+(Inhalt prüfen) — die Punkte 1 und 2 sind erledigt.
+
+> **Warum das Pflicht ist (gemessen am 23.08.2026):** Derselbe Ablauf aus
+> Einzelschritten brauchte **sieben Minuten** — davon rund **drei Minuten,
+> in denen der Rechner nichts tat**, weil zwischen sechs bis acht
+> Script-Aufrufen jeweils neu nachgedacht wurde. Die Rechenzeit war nie
+> das Problem, die Anzahl der Runden war es.
+
+Nur wenn der Nutzer schon „mach fertig" gesagt hat, zusätzlich `--setzen`:
+dann werden die Vorschläge direkt als Schnitte gesetzt und es geht sofort
+zu `pruef_text.py`. Ohne dieses ausdrückliche Okay **nicht** verwenden —
+sonst fällt die inhaltliche Prüfung aus.
+
 ### 1b. Schnitt-Analyse — PFLICHTABLAUF (Reihenfolge einhalten!)
+
+Punkt 1 und 2 macht `projekt_starten.py` bereits mit. Einzeln nur nötig,
+wenn nachträglich etwas wiederholt werden muss.
 
 1. **Transkript** per `scripts/transkript_untertitel.py` (Wortliste nie in
    den Kontext laden).

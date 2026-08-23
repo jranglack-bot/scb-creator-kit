@@ -32,10 +32,13 @@ BASIS = Path.home() / ".scb-creator-kit" / "grafik"
 # Wo der Nutzer schon eigene Projekte haben koennte
 EIGENE_ORTE = [Path.home(), Path("D:/Instagram Content"), Path("C:/Instagram Content")]
 
+# "groesse": auf der Platte NACH dem Einrichten - nachgemessen, nicht
+# geschaetzt. Wer 5 GB frei hat, kann beide einrichten.
 WERKZEUGE = {
     "motion-canvas": {
         "titel": "Motion Canvas",
         "hinweis": "kostenlos (MIT), schneller fuer einfache Grafik",
+        "groesse": "1,1 GB",
         "befehl": ["npm", "create", "@motion-canvas@latest", "--", "--name",
                    "scb", "--path", "{ziel}", "--language", "ts",
                    "--plugins", "ffmpeg"],
@@ -44,6 +47,7 @@ WERKZEUGE = {
         "titel": "Remotion",
         "hinweis": ("kostenlos fuer Einzelpersonen und Firmen bis 3 "
                     "Mitarbeiter, darueber kostenpflichtig; kann echtes 3D"),
+        "groesse": "2,7 GB",
         "befehl": ["npx", "--yes", "create-video@latest", "{ziel}",
                    "--blank", "--yes", "--no-tailwind"],
     },
@@ -104,7 +108,8 @@ def einrichten(schluessel):
     BASIS.mkdir(parents=True, exist_ok=True)
     print("Richte {} ein ({}) ...".format(info["titel"], info["hinweis"]))
     print("  Ziel: {}".format(ziel))
-    print("  Das laedt einige hundert MB und dauert ein paar Minuten.")
+    print("  Das braucht {} auf der Platte und dauert ein paar Minuten."
+          .format(info.get("groesse", "etwa 1-3 GB")))
 
     befehl = [t.replace("{ziel}", str(ziel)) for t in info["befehl"]]
     programm = npm_befehl(befehl[0])

@@ -202,7 +202,44 @@ Kostenlos für Einzelpersonen, Firmen **bis 3 Mitarbeiter** und
 Non-Profits; größere Firmen brauchen eine kostenpflichtige Lizenz. Für
 Creator ist das unkritisch, aber der Nutzer muss es einmal gehört haben.
 
-### Der große Vorteil: Render ohne Browser
+### PFLICHT: erst das Studio, dann der Render
+
+**Das Remotion Studio ist für Stufe 2b das, was das Cockpit für Stufe 1
+ist.** Es wird geöffnet, BEVOR irgendetwas gerendert wird — nicht danach,
+nicht „bei Bedarf":
+
+    <python> skills/motion-grafik/scripts/editor_oeffnen.py --remotion
+
+Das Script findet das Projekt, startet das Studio falls nötig und öffnet
+es im **echten** Browser des Nutzers. Danach gilt das Ein-Tab-Prinzip:
+einmal öffnen, ab dann nur noch „schau in deinen offenen Tab".
+
+Im Studio kostet jede Änderung NULL Rechenzeit — Text, Farbe, Timing,
+Reihenfolge ändern und der Nutzer sieht es sofort. Erst wenn er sagt „so
+ist es gut", wird EIN einziges Mal gerendert.
+
+> **Teuer gelernt am 23.08.2026: 25 Minuten für 15 Sekunden Grafik.**
+> Das Studio blieb zu. Stattdessen wurde die Grafik „blind" über
+> einzelne CLI-Aufrufe geprüft — ein Testrender und zwei Kontrollbilder.
+> Jeder `npx remotion`-Aufruf baut das Projekt komplett neu (rund 40 s),
+> und die ersten schleppten zusätzlich 78 MB Videomaterial mit. Der
+> Nutzer sah die Grafik zum ersten Mal im fertigen Video — da konnte er
+> nichts mehr ändern. Sein Satz dazu: „Und jetzt kann ich sie nicht
+> bearbeiten." Mit offenem Studio: 0 Sekunden, 0 Fragen.
+
+Daraus drei harte Regeln:
+
+1. **Nie `remotion still` für Kontrollbilder.** Dafür ist das Studio da.
+   Beurteilt wird an der laufenden Vorschau, nie an Standbildern.
+2. **Nie ein Testrender „nur zum Schauen".** Pro Grafik gibt es genau
+   EINEN Render, nach der Freigabe.
+3. **Nie Videomaterial nach `public/` legen.** Jeder Bundle kopiert den
+   Ordner mit, bei jedem einzelnen Aufruf. Die Grafik wird MIT ALPHA
+   gerendert und erst per ffmpeg über das Video gelegt. Braucht die Szene
+   das Video wirklich als Hintergrund, gehört ein kurzer, kleiner
+   Ausschnitt hinein — nie das ganze Material.
+
+### Render — nach der Freigabe, ein Befehl
 
 Remotion rendert über die Kommandozeile — **kein sichtbares Fenster, kein
 Render-Knopf, kein eingefrorener Tab**:
@@ -212,9 +249,23 @@ Render-Knopf, kein eingefrorener Tab**:
 Damit entfällt der ganze Ärger aus Stufe 2a (siehe Warnkasten dort). Claude
 startet den Render selbst und wartet auf das Ergebnis.
 
-Für eine Ebene MIT Alphakanal (Grafik über dem Video):
+Für eine Ebene MIT Alphakanal (Grafik über dem Video) — der Regelfall:
 
     npx remotion render <Komposition> out/<name>.mkv --codec=prores --prores-profile=4444
+
+**Die gültigen Befehle** — geprüft an `@remotion/cli 4.0.507`, nicht aus
+dem Gedächtnis schreiben:
+
+| Befehl | Zweck |
+|---|---|
+| `remotion studio` | Vorschau. **`remotion preview` gibt es nicht mehr.** |
+| `remotion render <comp> <datei>` | rendern |
+| `remotion compositions` | zeigt, welche Kompositionen registriert sind |
+| `remotion still <comp> <datei.png>` | Standbild — im Videoablauf **nicht** benutzen |
+
+Bei Unsicherheit `npx remotion help` fragen. Das kostet zwei Sekunden;
+ein Fehlversuch mit einem umbenannten Befehl kostet drei Minuten Render,
+die niemand zurückbekommt.
 
 ### Einrichten
 
@@ -227,12 +278,20 @@ ein zweites anzulegen. Kompositionen werden in `src/Root.tsx` registriert —
 ohne Eintrag dort ist eine Szene unsichtbar (dasselbe Prinzip wie
 `vite.config.ts` bei Motion Canvas).
 
+**Alte Kompositionen sind Vorlagen, kein Altlast.** Sie bleiben als Code im
+Projekt liegen und sind im Studio alle nebeneinander abrufbar. Vor jedem
+neuen Grafikauftrag deshalb erst `npx remotion compositions` bzw. das
+offene Studio ansehen: taugt eine bestehende als Ausgangspunkt, sind es
+Texte und Zeiten ändern statt neu bauen. Eine bestehende Komposition
+ändern kostet eine Coderunde plus einen Render.
+
 ### Vorschau
 
-`npm run dev` startet das Remotion Studio. Es gilt dieselbe Regel wie bei
-Motion Canvas: **nur im echten Browser des Nutzers öffnen**, nie im
-eingebauten. Gebraucht wird die Vorschau aber seltener, weil der Render
-ohnehin über die Kommandozeile läuft.
+Siehe oben: `editor_oeffnen.py --remotion`. Es gilt dieselbe Regel wie bei
+Motion Canvas — **nur im echten Browser des Nutzers öffnen**, nie im
+eingebauten. Und die Vorschau wird nicht seltener gebraucht als dort,
+sondern genauso: sie ist die einzige Stelle, an der der Nutzer die Grafik
+sieht, solange Änderungen noch nichts kosten.
 
 ## Stufe 3: Freistellung („Text hinter mir")
 
