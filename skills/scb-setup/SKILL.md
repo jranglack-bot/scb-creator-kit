@@ -422,9 +422,29 @@ das gibt. Die Werkzeuge dafür **sofort in diesem Schritt installieren**:
 
     <python> -m pip install mediapipe opencv-python numpy
 
-(Node.js für Motion Canvas kommt schon aus Schritt 4 mit; das
-Motion-Canvas-Projekt selbst entsteht später je Videoprojekt in Sekunden.)
-Schlägt die pip-Installation fehl: kurz sagen, weiter mit dem Setup —
+**Und direkt danach — der wichtigste Tempo-Schritt überhaupt:**
+
+    <python> scripts/beschleunigen.py
+
+Das installiert `onnxruntime` in der für das System passenden Fassung
+(Windows: `onnxruntime-directml` für die Grafikeinheit, Mac: `onnxruntime`
+mit CoreML), prüft das RVM-Modell und misst einmalig die Videoleistung.
+
+**Warum das nicht optional ist:** Ohne `onnxruntime` fällt die
+Freistellung still auf MediaPipe zurück — langsamer UND sichtbar
+schlechter, sobald Grafik hinter der Person liegt. Real passiert: Auf
+einem frisch eingerichteten Rechner dauerte das erste Video ewig, und
+niemand wusste warum. Das Setup installierte bis dahin nur
+mediapipe/opencv/numpy.
+
+Das Script sagt am Ende, welcher Rechenweg wirklich greift
+(`DmlExecutionProvider` / `CoreMLExecutionProvider` / nur CPU). Meldet es
+„nur CPU", ist das kein Fehler — es läuft, nur langsamer. Dem User das
+Ergebnis in einem Satz sagen.
+
+(Node.js für Motion Canvas kommt schon aus Schritt 4 mit; die
+Grafik-Projekte richtet `grafik_einrichten.py` ein.)
+Schlägt eine Installation fehl: kurz sagen, weiter mit dem Setup —
 sie wird bei der ersten Nutzung nachgeholt, der Einstieg scheitert daran
 nie.
 

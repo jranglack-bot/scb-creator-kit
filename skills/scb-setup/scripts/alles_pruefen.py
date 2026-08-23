@@ -318,6 +318,15 @@ def aktualisiere(befunde):
     # der Nutzer bekaeme neue Skills, aber nicht das, was sie
     # brauchen (real passiert: Remotion kam in v0.43.0 dazu und
     # fehlte nach dem Update trotzdem).
+    # Tempo-Wege nachziehen: fehlt onnxruntime, ist die Freistellung
+    # unnoetig langsam und schlechter. Das Update muss das mitbringen.
+    if befunde.get("freistellung", ("",))[0] != OK:
+        besch = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "beschleunigen.py")
+        print("Richte die schnellen Wege fuer die Freistellung ein ...")
+        r = run([sys.executable, besch])
+        (getan if r.returncode == 0 else offen).append("Beschleunigung")
+
     if befunde.get("grafik", ("",))[0] != OK:
         eigener = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                "grafik_einrichten.py")
