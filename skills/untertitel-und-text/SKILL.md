@@ -177,6 +177,21 @@ mit **relativem Pfad** angeben.
 3. Dem User 1–2 Vorschau-Frames zeigen und ein Okay einholen, bevor lange
    Renderläufe gestartet werden.
 
+## Kinetischer Untertitel (Zielbild, noch nicht gebaut)
+
+Julian will weg vom gleichförmigen Untertitelband: zwei Zeilen mit stark
+unterschiedlicher Größe, wechselnde Position, Schlüsselwort mal in Vollton,
+mal im Verlauf, mal als **Negativ des Videos dahinter** — und der Text liegt
+hinter der Person.
+
+Vollständige Bauanleitung mit den vier Merkmalen, dem gemessenen Vorbild und
+der Liste dessen, was dem Cockpit dafür fehlt:
+`references/kinetischer-untertitel.md`.
+
+Die eine echte Sperre steht dort auch: `prolook.py` brennt die Untertitel
+NACH der Overlay-Kette ein, der Freisteller hängt aber darin — Untertitel
+landen deshalb heute zwangsläufig VOR der Person, nie dahinter.
+
 ## Merkregeln
 
 - Reel ≠ Story: unterschiedliche Position UND Größe (64 px vs. 92 px).

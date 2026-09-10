@@ -60,6 +60,74 @@ def ffdur(path):
     return float(out.stdout.strip())
 
 
+def _ass_zeit(s):
+    """'0:00:12.34' -> 12.34"""
+    h, m, rest = s.split(':')
+    return int(h) * 3600 + int(m) * 60 + float(rest)
+
+
+def untertitel_y_regionen(ass_pfad, regionen, playresx=1080, playresy=1920):
+    """Laesst den Untertitel mitfahren, wenn das BILD faehrt.
+
+    `captions.y_regions` = [{"von": 4.5, "bis": 49.5, "y": 0.66,
+    "rampe": 0.6}] in OUTPUT-Zeit; `y` ist die Oberkante als Anteil der
+    Bildhoehe, genau wie `captions.y` im Cockpit. Faehrt das Bild fuer eine
+    Grafik nach unten, wandert der Untertitel sonst mitten ins Gesicht.
+
+    Umgesetzt wird das je Zeile ueber das MarginV-Feld der Dialogue-Zeile
+    (ASS erlaubt das pro Zeile). Eine Zeile, die genau ueber eine Kante
+    laeuft, bekommt zusaetzlich ein \\move — sonst springt der Untertitel
+    mitten in der Einblendung.
+    """
+    if not regionen:
+        return
+    with open(ass_pfad, encoding='utf-8-sig') as f:
+        zeilen = f.read().split('\n')
+
+    grund = None
+    for z in zeilen:
+        if z.startswith('Style: Cap,'):
+            grund = int(z.split(',')[-2])     # MarginV = vorletztes Feld
+            break
+    if grund is None:
+        return
+
+    def y_bei(t):
+        """MarginV zum Zeitpunkt t, mit weicher S-Kurve an den Kanten."""
+        for r in regionen:
+            von, bis = float(r['von']), float(r['bis'])
+            ziel = int(round(float(r['y']) * playresy))
+            ra = float(r.get('rampe', 0.6)) or 0.0001
+            if von <= t <= bis:
+                p = min(1.0, (t - von) / ra)
+                if t > bis - ra:
+                    p = min(p, max(0.0, (bis - t) / ra))
+                p = p * p * (3 - 2 * p)          # gleiche S-Kurve wie das Bild
+                return int(round(grund + (ziel - grund) * p))
+        return grund
+
+    raus = []
+    for z in zeilen:
+        if not z.startswith('Dialogue:'):
+            raus.append(z)
+            continue
+        f = z.split(',', 9)
+        if len(f) < 10:
+            raus.append(z)
+            continue
+        a, b = _ass_zeit(f[1]), _ass_zeit(f[2])
+        ya, yb = y_bei(a), y_bei(b)
+        f[7] = str(ya)
+        if ya != yb:
+            f[9] = '{{\\move({},{},{},{},0,{})}}'.format(
+                playresx // 2, ya, playresx // 2, yb,
+                int(round((b - a) * 1000))) + f[9]
+        raus.append(','.join(f))
+
+    with open(ass_pfad, 'w', encoding='utf-8-sig') as f:
+        f.write('\n'.join(raus))
+
+
 def has_video(path):
     out = subprocess.run(
         ['ffprobe', '-v', 'error', '-select_streams', 'v', '-show_entries',
@@ -309,8 +377,11 @@ def main():
     master_lane = main_lane
     master_cuts = to_source_cuts(master_lane)
 
+    # Ausgabeformat: Reel-Standard, per "render": {"width", "height"}
+    # umstellbar (z. B. Querformat-Material, das nicht beschnitten werden soll).
     cfg = {'input': input_file, 'output': out_name,
-           'width': 1080, 'height': 1920}
+           'width': int(render.get('width', 1080)),
+           'height': int(render.get('height', 1920))}
     for k in ('crf', 'preset'):
         if render.get(k):
             cfg[k] = render[k]
@@ -364,6 +435,8 @@ def main():
                     '--box-alpha', str(cap.get('box_alpha', 0.55)),
                     '--box-style', cap.get('box_style', 'line')]
         run(cmd)
+        # Untertitel faehrt mit, wenn das Bild fuer eine Grafik wegfaehrt
+        untertitel_y_regionen('untertitel.ass', cap.get('y_regions') or [])
         cfg['captions'] = 'untertitel.ass'
 
     # --- Freie Text-Overlays ----------------------------------------------
@@ -375,7 +448,8 @@ def main():
             texts.append(dict(t, start=round(s, 2), end=round(e, 2)))
     if texts:
         with open('r_texts.json', 'w', encoding='utf-8') as f:
-            json.dump({'texts': texts}, f, ensure_ascii=False)
+            json.dump({'texts': texts, 'width': cfg['width'],
+                       'height': cfg['height']}, f, ensure_ascii=False)
         run([sys.executable, TO, 'r_texts.json', 'texte.ass'])
         cfg['text_overlays'] = 'texte.ass'
 

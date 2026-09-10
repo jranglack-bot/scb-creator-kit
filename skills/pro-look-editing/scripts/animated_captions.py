@@ -163,7 +163,7 @@ def main():
 ScriptType: v4.00+
 PlayResX: {px}
 PlayResY: {py}
-WrapStyle: 2
+WrapStyle: 0
 ScaledBorderAndShadow: yes
 
 [V4+ Styles]

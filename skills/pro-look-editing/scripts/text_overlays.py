@@ -42,7 +42,11 @@ def fmt_time(sec):
 def main():
     pj = json.load(open(sys.argv[1], encoding='utf-8-sig'))
     texts = pj.get('texts') or []
-    W, H = 1080, 1920
+    # Ausgabeformat: kommt aus der Aufrufdatei, sonst Reel-Standard. Ohne das
+    # wuerde libass die 1080x1920-Flaeche auf ein anderes Format ziehen und
+    # die Schrift verzerren (z. B. bei Querformat-Projekten).
+    W = int(pj.get('width') or 1080)
+    H = int(pj.get('height') or 1920)
     styles, events = [], []
     for i, tx in enumerate(texts):
         box = tx.get('box', True)

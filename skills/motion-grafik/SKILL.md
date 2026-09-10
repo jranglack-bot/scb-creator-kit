@@ -285,6 +285,12 @@ offene Studio ansehen: taugt eine bestehende als Ausgangspunkt, sind es
 Texte und Zeiten ändern statt neu bauen. Eine bestehende Komposition
 ändern kostet eine Coderunde plus einen Render.
 
+### Konsolenfenster
+
+Remotion lässt auf Windows Terminalfenster aufblitzen — fünf Programme sind
+betroffen. Abstellen mit `scripts/konsolenfenster_abstellen.js`, beschrieben
+unter „Stufe 2c: HyperFrames". Vor dem ersten Render ungefragt prüfen.
+
 ### Vorschau
 
 Siehe oben: `editor_oeffnen.py --remotion`. Es gilt dieselbe Regel wie bei
@@ -292,6 +298,78 @@ Motion Canvas — **nur im echten Browser des Nutzers öffnen**, nie im
 eingebauten. Und die Vorschau wird nicht seltener gebraucht als dort,
 sondern genauso: sie ist die einzige Stelle, an der der Nutzer die Grafik
 sieht, solange Änderungen noch nichts kosten.
+
+## Stufe 2c: HyperFrames
+
+Drittes Grafikwerkzeug neben Motion Canvas und Remotion: HTML/CSS/JS statt
+React, rendert über Headless Chrome plus FFmpeg. **Der Nutzer wählt, nicht
+du** — dieselbe Regel wie zwischen 2a und 2b.
+
+Zwei echte Vorteile gegenüber Remotion:
+
+- **`hyperframes check` läuft VOR dem Render** und findet Fehler, die bei
+  Remotion erst im fertigen Clip auffallen. Beispiel vom 09.09.2026: ein
+  `<video>` ohne `id` friert im Export ein — `check` meldet das vorher.
+  Immer laufen lassen, bevor gerendert wird.
+- **Alpha ist ein Schalter:** `--format mov` (ProRes) oder `--format webm`.
+
+Zwei Fallstricke, beide gemessen:
+
+- **`--format webm` legt das Alpha in einen WebM-Alphablock.** `ffprobe`
+  zeigt dann `pix_fmt=yuv420p` und das Tag `ALPHA_MODE=1`; ffmpeg wirft die
+  Transparenz beim Compositing kommentarlos weg und das Bild wird schwarz.
+  Entweder `--format mov` nehmen, oder ffmpeg beim Zusammenbau den Dekoder
+  vorschreiben: `-c:v libvpx-vp9` **vor** jedem `-i <datei>.webm`.
+- **Der Geschwindigkeitsvorteil gilt nur für reine Grafik.** Ohne Video war
+  HyperFrames doppelt so schnell wie Remotion (63 s gegen 136 s). Mit sechs
+  Videos in der Szene fällt es auf den langsameren Screenshot-Modus zurück
+  (`beginFrameStalled` im Protokoll) und liegt nur noch knapp vorn
+  (160 s gegen 192 s, gemessen 09.09.2026).
+
+### Konsolenfenster auf Windows abstellen — gilt für HyperFrames UND Remotion
+
+**Betrifft beide Werkzeuge**, nicht nur HyperFrames: sie lassen auf Windows
+bei fast jedem Befehl Terminalfenster aufblitzen. Ursache sind Programme,
+die im Programmkopf als Konsolenprogramm markiert sind; Windows gibt denen
+zwingend ein Fenster, sobald sie aus einem Prozess ohne eigene Konsole
+starten. Das stört den Nutzer stark.
+
+Bei Remotion sind es fünf (gemessen 09.09.2026, alle auf CONSOLE):
+`esbuild.exe` (baut bei jedem Studio-Start und jedem Render),
+`chrome-headless-shell.exe`, `remotion.exe` (der Rust-Kodierer) sowie
+`ffmpeg.exe` und `ffprobe.exe` unter
+`node_modules/@remotion/compositor-win32-x64-msvc/`.
+
+Diese beiden ffmpeg-Kopien **dürfen** umgestellt werden, anders als das
+ffmpeg des Systems: sie liegen privat in `node_modules`, stehen nicht auf
+dem PATH, und der Nutzer ruft sie nie selbst auf.
+
+**Läuft ein Studio oder eine Vorschau, sind die Dateien gesperrt** (EBUSY).
+Das Script überspringt sie dann und nennt sie am Ende — erst beenden
+(Remotion-Server stoppen, `hyperframes preview --stop`), dann noch einmal
+`--setzen`.
+
+    <node> scripts/konsolenfenster_abstellen.js            Stand anzeigen
+    <node> scripts/konsolenfenster_abstellen.js --setzen   umstellen
+    <node> scripts/konsolenfenster_abstellen.js --zurueck  zurücknehmen
+
+`ffmpeg` bleibt absichtlich Konsolenprogramm — es wird im ganzen Kit und
+vom Nutzer im Terminal benutzt, auf GUI umgestellt wäre jede Fehlersuche
+blind.
+
+**Die Umstellung geht verloren**, sobald HyperFrames aktualisiert wird
+(neues `esbuild.exe`) oder ein neues Chrome lädt. Deshalb ungefragt prüfen,
+bevor ein Render startet.
+
+**Und die eigentliche Ursache abstellen:** `hyperframes ...` aufrufen, nicht
+`npx --yes hyperframes@X.Y.Z ...`. npx lädt sonst eine **zweite Kopie** in
+seinen Zwischenspeicher, auch wenn global bereits dieselbe Fassung
+installiert ist — und diese Kopie ist wieder Konsolenprogramm. Genau daran
+scheiterte es am 09.09.2026: der Bericht meldete „alles auf GUI", während
+zwei unbehandelte Kopien unter `AppData/Local/npm-cache/_npx` liefen. In den
+`package.json` der Projekte stehen die Befehle deshalb ohne `npx`. Preis
+dieser Umstellung: die Projekte sind nicht mehr auf eine Fassung
+festgenagelt — was sie reproduzierbar hielt.
 
 ## Stufe 3: Freistellung („Text hinter mir")
 
