@@ -54,4 +54,49 @@ Stellen, wo dasselbe Konzept oder dieselbe Information zweimal erklärt wird.
 - Typische Überleitungen vor Wiederholung: "also nochmal", "das heißt", "oder anders gesagt", "kurz zusammengefasst" (wenn danach inhaltlich dasselbe kommt)
 - Selbe Handlungsanweisung zweimal in leicht abgewandelter Form
 
-**Was KEINE Wiederholung 
+**Was KEINE Wiederholung ist:**
+- Die bewusste Zusammenfassung am Ende eines Abschnitts – die gehört zur Didaktik
+- Ein Beispiel, das eine vorher abstrakt erklärte Sache konkret macht
+- Dieselbe Aussage mit einem neuen Detail, das vorher nicht da war
+- Der Rückbezug auf etwas Früheres als Überleitung ("weißt du noch, der Hook von eben")
+
+**Welche Version bleibt stehen:**
+Die klarere und vollständigere – nicht automatisch die erste. Prüfe:
+1. Welche Version nennt alle nötigen Details?
+2. Welche ist flüssiger gesprochen, ohne Stocken?
+3. Passt der Anschluss an den Satz davor und danach noch?
+
+Im Zweifel die zweite behalten: der Sprecher hat meist deshalb wiederholt,
+weil ihm der erste Anlauf nicht gefiel.
+
+## Verbale Fehlersignale (höchste Priorität)
+Der Sprecher sagt selbst, dass er sich verhauen hat. Das sind die
+eindeutigsten Schnittmarken überhaupt.
+
+**Signalwörter:**
+- Flüche und Ausrufe: "fuck", "shit", "mist", "scheiße", "verdammt", "ach Gott"
+- Explizite Korrekturen: "nein warte", "moment", "ich mein", "also nochmal",
+  "ich hab mich versprochen", "von vorne"
+- Abbruch-Signale: "ähm nein", "warte mal", "stopp"
+
+**Wichtig:** Das Signal markiert das ENDE des Fehlers, nicht den Anfang.
+Geschnitten wird ab dem Beginn des fehlerhaften Inhalts bis dorthin, wo der
+Sprecher sauber neu ansetzt. Das Signalwort selbst fliegt mit raus.
+
+## Anfang und Ende
+- **Anfangsstille:** alles vor dem ersten Wort weg, 0.2s Luft davor lassen
+- **Endstille:** alles nach dem letzten Wort weg, 0.5s Luft danach lassen
+- Beides fast immer vorhanden: Aufnahme läuft vor dem Sprechen an und nach dem
+  letzten Satz weiter, bis der Nutzer den Knopf findet
+
+## Grundsätze für jeden Schnitt
+1. **Im Zweifel drin lassen.** Ein Schnitt zu viel zerstört den Redefluss,
+   ein Füllwort zu viel merkt niemand.
+2. **Nie mitten im Wort schneiden.** Cut-Grenzen liegen immer zwischen zwei
+   Wörtern, sonst hört man einen abgehackten Laut.
+3. **Den Ton entscheiden lassen, nicht das Bild.** Bei Sprechvideos fällt ein
+   holpriger Ton sofort auf, ein Sprung im Bild kaum.
+4. **Nach dem Schnitt gegenlesen.** Der verbleibende Text muss sich wie ein
+   geschriebenes Skript lesen lassen.
+5. **Nicht glattbügeln.** Umgangssprache, Tempo und kleine Unregelmäßigkeiten
+   sind der Stil. Weg soll nur, was nach Fehler klingt.

@@ -76,7 +76,7 @@ Frage dann:
 Nimm die Zeitstempel des Nutzers entgegen. Akzeptiere alle Formate: mm:ss, m:ss, Sekunden als Zahl. Wandle alles in Sekunden um. Speichere die Cuts. Springe direkt zu Schritt 2 und dann zu Schritt 7 (Transkription und KI-Analyse entfallen).
 
 **Modus B – Vollanalyse:**
-Führe alle Schritte 2–11 aus.
+Führe alle Schritte 2–9 aus.
 
 ---
 
@@ -298,15 +298,97 @@ aber der Kontext wurde nur mit dem kompakten Fließtext belastet.
 
 ---
 
-**Zeige dem Nutzer vor dem Schnitt eine klare Zusammenfassung** aller geplanten Cuts:
+## Schritt 7: Cut-Liste schreiben und bestätigen lassen
+
+Führe die Cuts aus Schritt 6a und 6b zu einer Datei `cuts.json` zusammen.
+Sortieren und Überlappungen auflösen musst du **nicht** — das macht das
+Schnitt-Script. Format:
+
+```json
+[
+  [12.40, 14.10, "Füllwort: ähm"],
+  [58.20, 63.75, "Fehlersignal: 'ach fuck, nochmal'"],
+  [180.00, 9999, "Endstille"]
+]
+```
+
+Zeiten in Sekunden, `9999` als Ende bedeutet „bis zum Schluss". Die
+Objekt-Schreibweise `{"start": ..., "end": ..., "grund": ...}` geht auch.
+
+**Schreibe die Datei im Script selbst, nicht per Umleitung** (`> cuts.json`):
+Windows-Python schreibt bei einer Umleitung in cp1252 statt UTF-8, dann stehen
+die Umlaute in den Begründungen falsch drin.
+
+Lass dir den Plan ausrechnen — das rendert noch nichts:
+
+    <python> scripts/schneiden.py "<video>" --cuts cuts.json --nur-plan
+
+**Zeige dem Nutzer diese Zusammenfassung** und dazu je Cut:
 - Kategorie (Fehlersignal / Versprecher / Wiederholung / Füllwort / Pause)
-- Kurzes Textzitat der betroffenen Stelle (3-5 Wörter)
+- Kurzes Textzitat der betroffenen Stelle (3–5 Wörter)
 - Timestamp
 
-Frage ob er einzelne Cuts ablehnen möchte. Passe die Liste an.
+Frage, ob er einzelne Cuts ablehnen möchte. Passe `cuts.json` an und zeige den
+Plan erneut. **Erst nach ausdrücklicher Bestätigung weiter zu Schritt 8.**
 
 ---
 
-## Schritt 7: Segmente berechnen
+## Schritt 8: Schneiden
 
-Kombiniere alle Cuts (M
+Ein Aufruf. Er berechnet die verbleibenden Segmente, schneidet bildgenau, fügt
+alles zusammen und räumt hinter sich auf:
+
+    <python> scripts/schneiden.py "<video>" --cuts cuts.json -o "<name>_geschnitten.mp4"
+
+Ohne `-o` landet das Ergebnis als `<name>_geschnitten.mp4` neben dem Original.
+Das Originalvideo wird **nie** überschrieben — das Script bricht ab, wenn Ziel
+und Quelle dieselbe Datei sind.
+
+Optionen: `--crf 18` (Bildqualität, kleiner = besser), `--preset medium`.
+
+Warum ein einziger ffmpeg-Lauf und keine Segmentdateien mit `concat`:
+Segmentdateien mit `-c copy` schneiden nur an Keyframes, laufen aus dem Ton und
+hinterlassen Bruchstücke im Ordner. Der eine Lauf sitzt bildgenau, kodiert nur
+einmal und legt an jede Schnittkante eine 20-ms-Blende gegen Knacksen.
+
+Auch hier gilt: **Der User startet nichts selbst.** Claude ruft das Script auf
+und wartet auf die Rückmeldung.
+
+---
+
+## Schritt 9: Ergebnis zeigen und nachjustieren
+
+Das Script meldet alte Länge, neue Länge und Dateigröße. Gib das weiter und
+**lass den Nutzer das Video anschauen, bevor ihr weitermacht** — beurteilt wird
+an abspielbarem Video, nicht an Zahlen und nicht an Standbildern.
+
+Frage danach:
+
+> "Passt der Schnitt so? Wenn eine Stelle zu früh oder zu spät sitzt, sag mir
+> welche — ich justiere die Cut-Liste nach und rendere neu."
+
+Bei Korrekturwünschen: `cuts.json` anpassen, zurück zu Schritt 7.
+
+Wenn alles passt: `transkript.json` und `cuts.json` sind nur noch nützlich,
+wenn der Nutzer sie behalten will. Kurz nachfragen, statt ungefragt zu löschen.
+
+Soll danach noch Untertitel, Musik oder ein Pro-Look drauf, übernimmt das
+`video-projekt` bzw. `pro-look-editing` — das geschnittene Video ist deren
+Eingangsmaterial.
+
+---
+
+## Wenn etwas schiefgeht
+
+| Meldung                              | Ursache und Lösung                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------ |
+| `Kein API-Key`                       | Schritt 0, Key holen und in `~/.scb-creator-kit/keys.env` ablegen         |
+| `API-Key abgelehnt (401/403)`        | Key falsch, abgelaufen oder noch der `~~`-Platzhalter                     |
+| `HTTP 403: error code: 1010`         | Cloudflare blockt den User-Agent — `KENNUNG` in `transkribieren.py` fehlt |
+| `Limit erreicht (429)`               | Groq-Kontingent oder ElevenLabs-Guthaben leer — anderen Dienst nutzen     |
+| `Keine Verbindung`                   | Kein Internet oder eine Firewall blockt                                   |
+| `0 Wortmarken`                       | Tonspur enthält keine erkennbare Sprache — Video prüfen                   |
+| `ffmpeg wurde nicht gefunden`        | `scb-setup` ausführen, das installiert ffmpeg                             |
+| `Nach den Cuts bliebe nichts uebrig` | Cut-Liste deckt das ganze Video ab — Zeiten prüfen                        |
+
+Weitere Details zu den Schnittregeln: `references/schnittregeln.md`.

@@ -35,6 +35,8 @@ import uuid
 URL_GROQ = "https://api.groq.com/openai/v1/audio/transcriptions"
 URL_ELEVEN = "https://api.elevenlabs.io/v1/speech-to-text"
 
+KENNUNG = "scb-creator-kit/0.52.0"
+
 
 def multipart(felder, dateipfad, feldname="file"):
     """Baut einen multipart/form-data-Body ohne Fremdbibliotheken."""
@@ -62,9 +64,16 @@ def multipart(felder, dateipfad, feldname="file"):
 
 
 def anfrage(url, body, content_type, extra_header):
+    # User-Agent MUSS gesetzt sein: Groq steht hinter Cloudflare, und
+    # Cloudflare weist den Standard "Python-urllib/3.x" mit HTTP 403
+    # (Cloudflare-Fehlercode 1010) ab - selbst wenn der API-Key voellig
+    # in Ordnung ist. Ohne diese Zeile schlaegt jede Groq-Transkription
+    # fehl und sieht dabei wie ein kaputter Key aus.
     req = urllib.request.Request(
         url, data=body,
-        headers={"Content-Type": content_type, **extra_header})
+        headers={"Content-Type": content_type,
+                 "User-Agent": KENNUNG,
+                 **extra_header})
     with urllib.request.urlopen(req, timeout=900) as antwort:
         return json.loads(antwort.read().decode("utf-8"))
 
