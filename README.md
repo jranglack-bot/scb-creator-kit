@@ -24,7 +24,7 @@ einem Setup-Assistenten.
 | **sfx-extraktion** | Soundeffekte aus Reels/Videos herausschneiden — automatische Erkennung in SFX-Compilation-Reels, Ablage als MP3 in deiner Bibliothek | „Hol mir den Sound aus dem Reel" |
 | **karussell-posts** | Komplette Instagram-Karussells (1080×1350): Texte nach Hook-Formel, gebrandete Folien aus Templates (gerendert vom vorinstallierten Browser — nichts zu installieren), Kontrolle über einen Kontaktbogen | „Mach mir ein Karussell zu [Thema]" |
 | **video-projekt** | Projekt-Modus mit Video-Cockpit: Browser-Editor zum Schnitte-Verschieben (Timeline mit rot markierten Schnitten), Untertitel-Ziehen und Bild-im-Bild-Skalieren — Feinarbeit kostet 0 Tokens; Stufen-Rendering + Editierbar-Export für Canva/CapCut (Master + SRT) | „Ich will die Schnitte selbst prüfen" / „Mach es editierbar" |
-| **motion-grafik** | Aufwendige Bewegtgrafik, die das Cockpit nicht kann: animierte Ringe & hochzählende Zahlen, extrudierte 3D-Schrift, Lower Thirds — plus der „Text schwebt hinter mir"-Effekt, bei dem du freigestellt wirst und vor der Grafik stehst | „Ich will einen 3D-Effekt" / „Text soll hinter mir schweben" |
+| **motion-grafik** | Aufwendige Bewegtgrafik, die das Cockpit nicht kann: animierte Ringe & hochzählende Zahlen, extrudierte 3D-Schrift, Lower Thirds — plus der „Text schwebt hinter mir"-Effekt, bei dem du freigestellt wirst und vor der Grafik stehst. Drei Werkzeuge zur Wahl (Motion Canvas, Remotion, HyperFrames) mit gemessenen Renderzeiten — und ein Script, das die aufblitzenden Windows-Konsolenfenster abstellt | „Ich will einen 3D-Effekt" / „Text soll hinter mir schweben" |
 
 ### Optionale Extras (bewusst nicht Teil der Einrichtung)
 
