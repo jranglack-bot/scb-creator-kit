@@ -159,6 +159,17 @@ def main():
                             end=max(0.0, w['end'] - shift)))
         words = adj
 
+    # Wortzeiten monoton machen. Transkriptionen setzen Wortanfaenge
+    # regelmaessig schon in die Stille davor (gemessen: bis 0,83 s zu
+    # frueh); stammen die Zeiten aus zwei Aufnahmen, ueberlappen sie sich
+    # sogar. Beides laesst ZWEI Wortgruppen gleichzeitig im Bild stehen —
+    # der Untertitel sieht doppelt aus. Das Wort-ENDE ist der zuverlaessige
+    # Wert, also wird der START nachgezogen. Dieselbe Regel benutzt
+    # render_projekt.py an Schnittkanten.
+    for i in range(1, len(words)):
+        if words[i]['start'] < words[i - 1]['end']:
+            words[i] = dict(words[i], start=words[i - 1]['end'])
+
     header = """[Script Info]
 ScriptType: v4.00+
 PlayResX: {px}
@@ -191,8 +202,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
            ml=mode['marginl'], mr=mode['marginr'], mv=marginv)
 
     lines = [header]
-    for cue in build_cues(words, args.group):
+    cues = build_cues(words, args.group)
+    for ci, cue in enumerate(cues):
+        # Die letzte Zeile einer Gruppe steht bis zum Ende ihres letzten
+        # Wortes. Reichen die Wortzeiten ueber den Beginn der naechsten
+        # Gruppe hinaus — etwa weil Wortzeiten aus zwei Aufnahmen stammen
+        # oder von Hand gesetzt wurden — stuenden BEIDE Gruppen gleich-
+        # zeitig im Bild und der Untertitel sieht doppelt aus. Deckel:
         cue_end = cue[-1]['end']
+        if ci + 1 < len(cues):
+            cue_end = min(cue_end, cues[ci + 1][0]['start'])
         for k, w in enumerate(cue):
             start = w['start']
             end = cue[k + 1]['start'] if k + 1 < len(cue) else cue_end

@@ -19,6 +19,7 @@ einem Setup-Assistenten.
 | **higgsfield-generate** (+ Soul ID, Photoshoot, Marketplace-Cards) | Eigene Fotos hochladen, Bilder & Videos generieren, Bild-zu-Video, Soul-Charakter für dein Gesicht — alles direkt über deinen Higgsfield-Account | „Generier mir ein Bild/Video" |
 | **instagram-audit** | Profil-Audit, Engagement-Rate & echter Wachstums-Check (15-Tage-Verlauf via Social Blade) über Apify (mit Kosten-Check vor jedem Lauf) | „Ist mein Profil gewachsen?" |
 | **reel-hooks** | Erprobte Hook-Formeln & Reel-Strukturen (Humor + Sales), fragt nach deinem Funnel-Keyword | „Schreib mir ein Reel" |
+| **reel-aufzaehlung** | Das Aufzählungs-Reel mit Urteil („Print on Demand — lass es sein. KI-Agentur — mach's."): Dramaturgie, feste Bewertungskästen, Logo-Kacheln die zur Seite rausfliegen — plus das Verfahren, eine sauber aufgenommene zweite Tonspur über ein Video mit schwachem Ton zu legen und die Untertitel danach automatisch nachzuziehen | „Mach mir ein Aufzählungs-Reel" |
 | **reel-layout** | Safe-Zones: wo Text in Reels & Stories sitzen darf | läuft automatisch beim Bearbeiten |
 | **reel-posting** | Auto-Posting-System mit Airtable + Make bauen | „Richte mein Auto-Posting ein" |
 | **sfx-extraktion** | Soundeffekte aus Reels/Videos herausschneiden — automatische Erkennung in SFX-Compilation-Reels, Ablage als MP3 in deiner Bibliothek | „Hol mir den Sound aus dem Reel" |

@@ -454,9 +454,20 @@ der Aufnahme in Downloads).
 
 `P.effekte.sfx` = `[{time, file, gain, trim?, len?, fade?, level?, peak?,
 name?}]` — beliebig viele Events auf einer eigenen Timeline-Spur.
-**`time` ist Timeline-Zeit wie bei Texten und Zooms**; `render_projekt.py`
-verschiebt sie um die Schnitte und wirft Effekte weg, die IN einem Schnitt
-liegen. (Die übrigen `effekte`-Schlüssel bleiben Output-Zeit.)
+**`time` ist ROHZEIT** (Zeit im zusammengefügten Quellmaterial, VOR den
+Schnitten) — genau wie bei Texten und Zooms. Die Cockpit-Timeline läuft
+über die volle Rohlänge und zeigt die Schnitte als rote Balken darin.
+**Niemals die Dauer der Schnitte herausrechnen** — `render_projekt.py`
+verschiebt die Zeiten selbst um die Schnitte und wirft Effekte weg, die IN
+einem Schnitt liegen. (Die übrigen `effekte`-Schlüssel bleiben Output-Zeit.)
+
+**Sprach-Schnipsel einer zweiten Aufnahme** (saubere Tonspur über ein Video
+mit schwachem Ton) gehören ebenfalls hierher — je gesprochene Einheit ein
+eigener Event, damit der Nutzer sie einzeln schieben kann. Sobald er
+geschoben hat, stimmen die Untertitel-Wortzeiten nicht mehr: der Untertitel
+läuft dem Ton voraus und steht stellenweise doppelt im Bild. Danach immer
+`reel-aufzaehlung/scripts/stimme_synchronisieren.py <projekt.json>` laufen
+lassen. Das ganze Verfahren steht im Skill `reel-aufzaehlung`.
 
 Bedienung: Kategorie + Effekt in der Kachel wählen, dann **auf die
 🔊-Spur klicken** = Effekt an dieser Stelle; **aufziehen** = Effekt mit
