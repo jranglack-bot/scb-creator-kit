@@ -655,3 +655,9 @@ Einzelschritte von Hand nachbauen; die Rechenzeit kostet keine Tokens.
   live); Claude prüft nur auf ausdrücklichen Wunsch, dann 1 Frame/
   Screenshot, nie mehrere pro Runde. Nach finalem Render: 1–2 Frames.
 - Alle Effekt-Extras bleiben Frag-zuerst (siehe `pro-look-editing`).
+- **Bevor ein Visual gesetzt wird, erst die Stelle bestimmen**, an der es
+  etwas erklärt, zeigt, vergleicht oder ordnet. Nicht jeder Satz bekommt
+  eins, und ein Icon, das nur das gesprochene Wort verdoppelt, ist keins.
+  Vorauswahl gemessen statt geraten:
+  `<python> skills/pro-look-editing/scripts/aussagen_finden.py <projekt.json>`
+  — Begründung und Regeln in `pro-look-editing`, Abschnitt 1b.

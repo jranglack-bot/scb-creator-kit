@@ -48,6 +48,47 @@ Templates in `scripts/` sind getestet; nur Parameter setzen und ausführen.
   `animated_captions.py` durchreichen. Existiert noch kein Profil: dort
   einmalig einrichten, dann weiter. Nie pro Video neu fragen.
 
+### 1b. Wo ein Visual überhaupt hingehört
+
+**NO VISUAL IS BETTER THAN A WEAK VISUAL.** Das ist keine Stilfrage, sondern
+die Regel, die verhindert, dass ein Video wie eine Powerpoint aussieht. Ein
+Visual muss eine Aufgabe haben: **erklären, zeigen, vergleichen oder ordnen.**
+Hat es keine, gehört an diese Stelle nichts.
+
+- **Keine Wort-zu-Icon-Logik.** Nicht jedes Substantiv bekommt ein Symbol.
+  Ein Icon, das nur das gesprochene Wort verdoppelt, erklärt nichts.
+- **Erst die Aussage, dann das Bild.** Die Kette lautet
+  `WORT → GEDANKENEINHEIT → AUSSAGE → VISUAL`. Satzgrenzen respektieren, nie
+  mitten in einen Gedanken hinein schneiden.
+- **Zusammengehörige Bilder weiterentwickeln statt austauschen.** Ein Visual
+  darf stehen bleiben und wachsen: aufbauen, halten, weiterentwickeln,
+  abgehen. Bei Aufzählungen heißt das progressive Liste — bereits genannte
+  Punkte bleiben sichtbar, am Ende ist die Liste vollständig lesbar. Für den
+  Sonderfall, dass jeder Punkt einzeln wieder verschwinden soll, siehe Skill
+  `reel-aufzaehlung`.
+- **Material in dieser Reihenfolge:** echtes Material des Nutzers, dann
+  freigegebene Assets aus seiner Bibliothek, dann selbst erzeugte Grafik,
+  dann gar kein Visual. Keine zufälligen Bilder aus dem Netz.
+- **Starke Typografie nur bei semantisch wichtigen Aussagen**, nicht bei
+  jedem Satz. Sonst hebt sie nichts mehr hervor.
+
+Die Vorauswahl macht ein Script, nicht das Bauchgefühl:
+
+```
+<python> skills/pro-look-editing/scripts/aussagen_finden.py <projekt.json>
+```
+
+Es zerlegt das Gesprochene an den **gemessenen** Sprechpausen in Gedanken-
+einheiten und bewertet, welche davon der Sprecher hervorhebt: Pause danach,
+lauter als sein Schnitt, kurz, Zahl, Gegensatz. Ausgegeben werden wenige
+Vorschläge mit Zeit, Wortlaut und Begründung, je eine Zeile. Die Wortliste
+landet nie im Kontext. `--max` und `--abstand` steuern, wie streng es
+auswählt, `--alle` zeigt die komplette Gliederung.
+
+**Die Liste ist eine Obergrenze, kein Soll.** Zwei starke Stellen schlagen
+sechs mittelmäßige. Welche Vorschläge wirklich ein Visual bekommen,
+entscheidet der Nutzer, nicht das Script und nicht Claude.
+
 ### 2. Effekte wählen (kurz fragen, nicht alles ungefragt aktivieren)
 - **Captions animiert** (fast immer ja)
 - **Punch-Ins**: Schnittzeiten aus dem Schneide-Schritt als `cuts` übergeben
