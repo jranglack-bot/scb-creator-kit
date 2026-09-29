@@ -60,6 +60,7 @@ aber als Empfehlung, nicht als Entscheidung:
 | Ein-/Ausblenden, Verschieben, Skalieren in der Fläche | Motion Canvas |
 | 3D-Schrift durch Extrusion (versetzte Kopien) | Motion Canvas |
 | Echtes 3D: rotierende Körper, Räume, Kamerafahrten, Licht | Remotion |
+| 3D-Logo, Logo-Wurf mit Glasriss, 3D-Bildschirme, Explosionsansicht, Ebenen-Effekt | fertige Vorlagen im Skill `3d-effekte` (Remotion ODER HyperFrames) |
 | Viele gleichzeitig bewegte Elemente mit Tiefenstaffelung | Remotion |
 | Ein Motion-Canvas-Versuch ist bereits gescheitert | Remotion |
 

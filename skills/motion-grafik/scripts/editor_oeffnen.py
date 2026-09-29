@@ -25,6 +25,7 @@ Exit 1 = Vorschau antwortet nicht / liess sich nicht starten
 """
 import argparse
 import json
+import os
 import platform
 import shutil
 import subprocess
@@ -106,8 +107,13 @@ def studio_starten(ordner, port):
         with open(log, "w", encoding="utf-8") as f:
             kw = {}
             if platform.system() == "Windows":
+                # CREATE_NO_WINDOW statt DETACHED_PROCESS: ein Prozess ganz
+                # ohne Konsole laesst jedes Kind (npx.cmd -> cmd -> node ->
+                # Remotion-Helfer) ein EIGENES sichtbares Terminalfenster
+                # oeffnen. Mit einer unsichtbaren Konsole erben alle Kinder
+                # sie, und es geht kein Fenster auf (23.09.2026).
                 kw["creationflags"] = (subprocess.CREATE_NEW_PROCESS_GROUP
-                                       | 0x00000008)   # DETACHED_PROCESS
+                                       | 0x08000000)   # CREATE_NO_WINDOW
             else:
                 kw["start_new_session"] = True
             subprocess.Popen(
@@ -136,8 +142,9 @@ def im_standardbrowser(url):
     system = platform.system()
     try:
         if system == "Windows":
-            # start ueber cmd: nimmt den eingestellten Standardbrowser
-            subprocess.run(["cmd", "/c", "start", "", url], check=True)
+            # os.startfile nimmt den Standardbrowser, ohne ueber cmd zu gehen
+            # (cmd /c start blitzt sonst kurz ein Konsolenfenster auf)
+            os.startfile(url)
         elif system == "Darwin":
             subprocess.run(["open", url], check=True)
         else:

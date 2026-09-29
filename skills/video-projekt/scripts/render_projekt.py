@@ -213,7 +213,12 @@ def prep(src, out, cuts, regions, base=1.0):
     if regions:
         af.append("volume='{}':eval=frame".format(vol_expr(regions, base)))
     if cuts:
-        sel = '+'.join('between(t,{},{})'.format(s, e) for s, e in cuts)
+        # ffmpeg bricht einen Ausdruck mit ~100 aneinandergehaengten Termen ab
+        # ("Cannot allocate memory", gemessen 27.09.2026: 99 geht, 100 nicht).
+        # In Klammergruppen zu je 50 bleibt die Verschachtelung flach.
+        terme = ['between(t,{},{})'.format(s, e) for s, e in cuts]
+        sel = '+'.join('(' + '+'.join(terme[i:i + 50]) + ')'
+                       for i in range(0, len(terme), 50))
         vf = "select='not({0})',setpts=N/FRAME_RATE/TB".format(sel)
         af.append("aselect='not({0})',asetpts=N/SR/TB".format(sel))
     cmd = ['ffmpeg', '-y', '-v', 'error', '-i', src]

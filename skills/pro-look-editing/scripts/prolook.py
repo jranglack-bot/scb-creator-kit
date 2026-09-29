@@ -529,16 +529,51 @@ def main():
         alabel = '[afin]'
 
     amap = alabel if alabel.startswith('[') else '{}'.format(alabel)
-    cmd = (['ffmpeg', '-y'] + inputs +
-           ['-filter_complex', ';'.join(fc),
-            '-map', vlabel, '-map', amap] +
-           video_encoder(cfg) +
-           ['-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k',
-            '-movflags', '+faststart', cfg['output']])
+
+    def befehl(encoder, ziel):
+        return (['ffmpeg', '-y'] + inputs +
+                ['-filter_complex', ';'.join(fc),
+                 '-map', vlabel, '-map', amap] +
+                encoder +
+                ['-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k',
+                 '-movflags', '+faststart', ziel])
+
+    ordner = os.path.dirname(os.path.abspath(cfg['output'])) or '.'
+    cmd = befehl(video_encoder(cfg), cfg['output'])
     print('FFMPEG:', ' '.join(cmd))
-    subprocess.run(cmd, check=True,
-                   cwd=os.path.dirname(os.path.abspath(cfg['output'])) or '.')
+    subprocess.run(cmd, check=True, cwd=ordner)
     print('OK:', cfg['output'])
+
+    # Sicherheitsnetz Dateigroesse (21.09.2026, gemessen per VMAF an zehn Reels):
+    # Der Intel-Encoder haelt die 8-Mbit-Grenze oben nicht ein und ignoriert in
+    # dieser Kombination auch die Qualitaetsstufe. Ruhiges Material wird trotzdem
+    # klein und sauber (besser als x264), koerniges bewegtes Material (Asphalt,
+    # Gras beim Gehen) landet aber bei bis zu 45 Mbit/s, ohne sichtbaren Gewinn.
+    # Liegt das Ergebnis ueber 8 Mbit/s, wird mit x264 (CRF 24, echte Obergrenze
+    # 20 Mbit/s mit 2 s Puffer, im Schnitt also unter den 25 Mbit/s, die Instagram
+    # per Schnittstelle nimmt) neu kodiert und die kleinere Datei behalten.
+    # Beispiel: 43 MB -> rund 21 MB bei VMAF 98,5 statt 100. Der grosse Puffer ist
+    # wichtig: mit 22M/22M fielen die schwersten Bilder auf VMAF 87, mit 20M/40M 92.
+    if cfg.get('hardware') is not False and hw_encoder():
+        ziel = os.path.join(ordner, os.path.basename(cfg['output']))
+        rate = subprocess.run(
+            ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries',
+             'stream=bit_rate', '-of', 'csv=p=0', ziel],
+            capture_output=True, text=True).stdout.strip()
+        if rate.isdigit() and int(rate) > 8_000_000:
+            probe = os.path.splitext(ziel)[0] + '_x264.mp4'
+            cpu = ['-c:v', 'libx264', '-crf', '24', '-preset', 'slow',
+                   '-maxrate', '20M', '-bufsize', '40M']
+            print('Datei hat {:.0f} Mbit/s, kodiere mit x264 neu ...'.format(int(rate) / 1e6))
+            subprocess.run(befehl(cpu, probe), check=True, cwd=ordner)
+            alt_mb = os.path.getsize(ziel) / 1048576
+            neu_mb = os.path.getsize(probe) / 1048576
+            if neu_mb < alt_mb:
+                os.replace(probe, ziel)
+                print('OK: x264 behalten, {:.1f} MB statt {:.1f} MB'.format(neu_mb, alt_mb))
+            else:
+                os.remove(probe)
+                print('OK: Hardware-Datei behalten ({:.1f} MB)'.format(alt_mb))
 
 
 if __name__ == '__main__':
