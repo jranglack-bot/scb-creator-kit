@@ -9,7 +9,8 @@ Cockpit.
 
 Optionen:
     --name    Projektname (Standard: Dateiname des ersten Clips)
-    --ziel    Wo der Projektordner entsteht (Standard: neben Clip 1)
+    --ziel    Wo der Projektordner entsteht (Standard: <Arbeitsordner>/Projekte,
+              ohne Arbeitsordner neben Clip 1 - siehe arbeitsordner.py)
     --min     Mindestlaenge einer Pause in Sekunden (Standard 0,45)
     --setzen  Schnittvorschlaege direkt in die projekt.json schreiben.
               NUR wenn der Nutzer "mach fertig" gesagt hat - sonst prueft
@@ -203,7 +204,10 @@ def main():
         return 1
 
     name = arg('--name') or os.path.splitext(os.path.basename(clips[0]))[0]
-    basis = arg('--ziel') or os.path.dirname(os.path.abspath(clips[0]))
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import arbeitsordner
+    basis = (arg('--ziel') or arbeitsordner.projekte_ordner()
+             or os.path.dirname(os.path.abspath(clips[0])))
     # ABSOLUT halten: die Unterscripts wechseln selbst ins Projektverzeichnis
     # und wuerden einen relativen Pfad ein zweites Mal aufloesen
     # (".../testlauf-projekt/./testlauf-projekt/original.mp4").
@@ -300,6 +304,12 @@ def main():
     print("=" * 58)
     print("")
     print("Cockpit: " + os.path.join(projdir, 'editor.html'))
+    print("Oeffnen: cockpit_oeffnen.py \"" + projdir + "\"")
+    if not arbeitsordner.arbeitsordner():
+        print("")
+        print("HINWEIS: Kein Arbeitsordner gesetzt - das Projekt liegt neben")
+        print("dem Clip. Einmal den Nutzer fragen und setzen:")
+        print("  arbeitsordner.py --setzen \"" + arbeitsordner.vorschlag() + "\"")
     print("")
     print("NAECHSTE SCHRITTE FUER CLAUDE:")
     if '--setzen' in sys.argv:

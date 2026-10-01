@@ -521,6 +521,17 @@ def main():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import filter_presets
     projekt['_filterlib'] = filter_presets.bibliothek()
+    # Arbeitsordner: Weg vom Arbeitsordner zum Projekt, damit das Cockpit
+    # direkt in DIESE projekt.json speichern kann (Anzeige-Feld, wird beim
+    # Speichern nicht zurueckgeschrieben)
+    import arbeitsordner
+    projekt['_arbeit'] = arbeitsordner.cockpit_info(projdir)
+    # Bauzeit: Das Cockpit laedt beim Oeffnen die gespeicherte projekt.json,
+    # wenn sie NEUER ist als dieser Stand (Nutzer hat nach dem letzten Bau
+    # weitergearbeitet). Zeit in UTC, wie das _gespeichert des Cockpits.
+    from datetime import datetime, timezone
+    projekt['_gebaut'] = datetime.now(timezone.utc).strftime(
+        '%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
     payload = json.dumps(projekt, ensure_ascii=False)
     payload = payload.replace('</', '<\\/')
@@ -599,6 +610,14 @@ def main():
                     'read -n 1 -s -r -p "Zum Schliessen eine Taste druecken"\n'
                     .format(rp))
         os.chmod(starter, 0o755)
+
+    # Projekt merken + Startseite aktualisieren (darf nie den Bau stoppen)
+    try:
+        arbeitsordner.projekt_merken(projdir)
+        arbeitsordner.vorschaubild(projdir, (vids or [''])[0])
+        arbeitsordner.startseite_bauen()
+    except Exception as e:
+        print('Hinweis: Startseite nicht aktualisiert ({})'.format(e))
 
     print('OK: Daten aktualisiert ->', os.path.join(projdir, 'projekt_data.js'))
     if existed:

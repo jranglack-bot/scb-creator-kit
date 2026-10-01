@@ -153,10 +153,12 @@ Tab" — NIEMALS erneut öffnen (das erzeugt verwirrende Doppel-Tabs). Hat
 der User ungespeicherte Änderungen, zeigt das Cockpit einen
 Übernehmen/Behalten-Banner statt sie zu überschreiben.
 
-**Öffnen je nach System** (Claude wählt das passende, nicht raten):
-- Windows: `Start-Process editor.html`
-- macOS: `open editor.html`
-- Linux: `xdg-open editor.html`
+**Öffnen — immer über das Script, auf allen Systemen:**
+`<python> scripts/cockpit_oeffnen.py <projektordner>`. Es nimmt Chrome,
+Edge, Brave, Arc, Opera oder Vivaldi, falls installiert — nur die können
+direkt in Ordner speichern. Safari und Firefox können das nicht (dort wird
+jedes Speichern ein Download); meldet das Script „Kein Chrome/Edge
+gefunden", dem Nutzer einmal empfehlen, Chrome zu installieren.
 
 **Start & Wiedergabe (server-frei, kinderleicht):** Claude öffnet
 `editor.html` EINMAL. Kein Helfer, kein Server, keine .bat
@@ -167,22 +169,50 @@ Clips (`videos`) laufen im Cockpit nacheinander (Playlist). Timeline =
 Roh-Zeitachse mit roten Schnitt-Balken, weißer Läufer, ↩/Strg+Z, KACHELN.
 Alles ohne Token. (Es gibt KEINE Vorschau-Dateien/kein cockpit_server mehr.)
 
-**Speichern — EINMAL Sammelordner wählen, danach nie wieder ein Dialog:**
-Beim allerersten Klick auf „💾 Speichern" wählt der User **einen Ordner**
-(z. B. `D:\Instagram Content\Cockpit`). Der Ordner-Zeiger landet in IndexedDB
-und gilt ab dann für **alle** Projekte — auch nach F5, auch in jedem neu
-angelegten Projekt. Jedes Projekt bekommt darin einen **eigenen Unterordner**:
+**Arbeitsordner (wie bei CapCut) — EIN Ort für alle Projekte:**
+`scripts/arbeitsordner.py` merkt ihn in `~/.scb-creator-kit/einstellungen.json`.
 
 ```
-<Sammelordner>/<projektordner>/projekt.json
+<Arbeitsordner>/
+    Projekte/<name>-projekt/   jedes neue Projekt (projekt_starten.py, Standard)
+    Fertig/                    jedes fertige Video: "<name> JJJJ-MM-TT.mp4"
+    Startseite.html            alle Projekte, zuletzt bearbeitete vorne
 ```
 
-also z. B. `Cockpit/reel-basis-projekt/projekt.json`. Dadurch überschreiben
-sich verschiedene Projekte nie, ältere bleiben vollständig erhalten und
-wiederverwendbar, und Claude muss nur an dieser einen Stelle nachsehen. Der
-Button zeigt den Zielordner an; **Rechtsklick darauf wechselt ihn**. Wird die
-Erlaubnis entzogen oder der Ordner gelöscht, meldet das Cockpit das und fragt
-beim nächsten Klick neu.
+- **Vor dem ERSTEN Projekt** `arbeitsordner.py` ausführen. Exit 2 = noch
+  keiner gesetzt → einmal per AskUserQuestion fragen (Vorschlag aus
+  `--vorschlag`, Warnung bei OneDrive/iCloud wegen großer Videos), dann
+  `--setzen "<pfad>"`. Danach nie wieder fragen.
+- `projekt_starten.py` legt neue Projekte automatisch unter `Projekte/` an
+  (`--ziel` überschreibt das für ein einzelnes Projekt, wenn der Nutzer einen
+  anderen Ort will).
+- `render_projekt.py` legt jedes fertige Video zusätzlich in `Fertig/` ab
+  (gleicher Tag = neueste Fassung ersetzt die alte).
+- `build_editor.py` merkt sich jedes Projekt (auch ältere außerhalb des
+  Arbeitsordners), macht ein Vorschaubild und baut die Startseite neu.
+- „Zeig mir meine Projekte" → `arbeitsordner.py --startseite --oeffnen`.
+
+**Speichern im Cockpit — je Projekt EINMAL gefragt, danach automatisch:**
+Beim ersten Klick auf „Speichern" in einem Projekt zeigt das Cockpit, wo
+gespeichert wird (der Projektordner) — „Hier speichern" bestätigt. Beim
+allerersten Mal öffnet der Browser seinen Ordner-Dialog: dort den
+Arbeitsordner wählen; danach reicht in jedem weiteren Projekt der
+Bestätigungsklick. Ab dann speichert **jede Änderung von selbst** (~1 s
+später) **direkt in die projekt.json des Projekts** — Claude liest genau
+diese, kein Abholen nötig. Der Knopf zeigt den Zustand („Gespeichert" mit
+Uhrzeit im Tooltip / „Speichert …" / „Speichern", wenn noch kein Ort
+feststeht). Nach einem Browser-Neustart erscheint „Weiter, wo du aufgehört
+hast" — ein Klick erlaubt das Speichern wieder und lädt den zuletzt
+gespeicherten Stand, falls er neuer ist als der von Claude gebaute
+(`_gebaut` in projekt_data.js gegen `_gespeichert` in der projekt.json).
+Rechtsklick auf den Knopf = Speicherort ändern. „Anderer Ort …" speichert
+nach `<Ordner>/<projekt>/projekt.json`; die holt Claude mit
+`cockpit_holen.py <ordner>` ab. Ohne Ordnerzugriff (Safari/Firefox):
+einzelne Datei wählen bzw. Download.
+
+**Für Claude heißt das:** Vor jeder Änderung die projekt.json im
+Projektordner FRISCH lesen (der Nutzer kann seit dem letzten Lesen im
+Cockpit weitergearbeitet haben), ändern, sofort `build_editor.py`.
 
 **Wichtig für Änderungen am Polling:** `lastApplied` ist der zuletzt von
 Claude gesehene Stand — beim Speichern NICHT auf die eigene Fassung setzen.
@@ -215,8 +245,10 @@ kann: einzelne Datei wählen (`showSaveFilePicker`), sonst Download.
 
 Claude-Änderungen erscheinen weiter live im Tab (projekt_data.js-Polling).
 Wenn Claude Schnitte/Felder ändert: nur `build_editor.py` ausführen.
-**Claude sucht die gespeicherte Fassung zuerst im Sammelordner**, dann im
-Projektordner, dann in Downloads.
+**Claude liest die gespeicherte Fassung direkt aus dem Projektordner**
+(`projekt.json`). Nur wenn der Nutzer „Anderer Ort" gewählt hat oder ein
+Altprojekt noch in einen Sammelordner speichert: `cockpit_holen.py`; als
+letzter Notfall der Downloads-Ordner.
 
 **Was der Nutzer im Cockpit kann (alles ohne Token):**
 - **Timeline:** ganzes Video, Schnitte rot, Kanten ziehen = trimmen, Mitte
@@ -320,8 +352,11 @@ schon im Cockpit arbeitet.
 <python> scripts/projekt_starten.py <clip1> [clip2 ...] [--name reel-42]
 ```
 
-Das erledigt in einem Durchgang: Ordner anlegen, Clips zusammenfügen,
-`projekt.json` schreiben, transkribieren, Pausen messen, Cockpit bauen.
+Das erledigt in einem Durchgang: Ordner anlegen (im Arbeitsordner unter
+`Projekte/`, siehe „Arbeitsordner" — ist keiner gesetzt, VORHER einmal
+fragen und setzen), Clips zusammenfügen, `projekt.json` schreiben,
+transkribieren, Pausen messen, Cockpit bauen. Geöffnet wird danach mit
+`cockpit_oeffnen.py <projektordner>`.
 Am Ende steht eine Bilanz, welcher Abschnitt wie lange gebraucht hat, und
 die Schnittvorschläge stehen da. Danach geht es bei 1b Punkt 3 weiter
 (Inhalt prüfen) — die Punkte 1 und 2 sind erledigt.

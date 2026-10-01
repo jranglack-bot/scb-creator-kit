@@ -571,6 +571,19 @@ def main():
          '[a][b][c]hstack=3', '-frames:v', '1', 'qc_final.png'])
     print('FERTIG: {} | {:.1f}s | QC: qc_final.png'.format(out_name, dur))
 
+    # Arbeitsordner: Kopie nach Fertig/ + Startseite aktualisieren
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import arbeitsordner
+        kopie = arbeitsordner.fertig_ablegen(os.path.abspath(out_name),
+                                             os.path.basename(projdir))
+        if kopie:
+            print('ABGELEGT: ' + kopie)
+        arbeitsordner.projekt_merken(projdir)
+        arbeitsordner.startseite_bauen()
+    except Exception as e:
+        print('Hinweis: Ablage in Fertig/ nicht moeglich ({})'.format(e))
+
 
 if __name__ == '__main__':
     main()

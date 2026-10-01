@@ -344,7 +344,20 @@ Token-Verbrauch) und der Ein-Klick-Render (unter Windows als Doppelklick-
 Datei, auf macOS und Linux auf Zuruf durch Claude). Das
 Cockpit öffnet Claude auf Zuruf; es spielt das Video und überspringt
 Schnitte live. Kein Server, kein Umschalten. Gespeichert wird direkt in die
-projekt.json (Datei beim ersten Speichern einmal wählen).
+projekt.json des Projekts — beim ersten Speichern eines Projekts fragt das
+Cockpit einmal, danach speichert jede Änderung von selbst.
+
+**Arbeitsordner festlegen (einmal, hier im Setup):** Wie bei CapCut liegen
+alle Videoprojekte an EINEM Ort. Erst `<python>
+<kit>/skills/video-projekt/scripts/arbeitsordner.py --vorschlag` ausführen
+(Windows: `Videos\SCB Projekte`, Mac: `Filme/SCB Projekte`), dann per
+AskUserQuestion fragen: „Wo sollen deine Videoprojekte liegen?" — Optionen:
+der Vorschlag (empfohlen), „anderer Ordner" (Nutzer nennt den Pfad). Liegt
+der Videos-Ordner in OneDrive/iCloud, darauf hinweisen: große Videos werden
+dann ständig hochgeladen — besser ein Ordner außerhalb. Dann
+`arbeitsordner.py --setzen "<pfad>"`. Es entstehen `Projekte/`, `Fertig/`
+und `Startseite.html` (Übersicht aller Projekte). Nicht neu fragen, wenn
+`arbeitsordner.py` schon einen Ordner meldet (Exit 0).
 
 **Direkt nach ffmpeg einmalig den Tempo-Check laufen lassen** (dauert
 30–60 s, misst statt zu raten):

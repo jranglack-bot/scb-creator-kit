@@ -522,6 +522,24 @@ footer { background:var(--panel); border-top:1px solid var(--line); box-shadow:n
 #phgrab::after { border-top-color:var(--acc); }
 #songwrap { background:var(--lane); border:1px solid var(--line); }
 #tlinfo { color:var(--txt2); opacity:1; }
+/* Speichern-Knopf: ruhig, solange alles gespeichert ist */
+#bSave.ruhig { background:transparent; color:var(--txt2); }
+/* Dialog beim ersten Speichern eines Projekts */
+#sdlg { position:fixed; inset:0; z-index:200; display:flex; align-items:center;
+  justify-content:center; background:rgba(0,0,0,.55); padding:16px; }
+#sdlg .box { width:min(480px,100%); background:var(--card); color:var(--txt);
+  border:1px solid var(--line2); border-radius:14px; padding:22px 22px 18px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6); }
+#sdlg h3 { font-size:16px; font-weight:600; margin-bottom:10px; }
+#sdlg p { font-size:13px; line-height:1.45; margin-bottom:8px; }
+#sdlg .leise { color:var(--txt2); font-size:12px; }
+#sdlg .pfad { font-size:12.5px; background:var(--bg); border:1px solid var(--line);
+  border-radius:8px; padding:9px 11px; margin:4px 0 12px; word-break:break-all;
+  user-select:text; font-variant-numeric:tabular-nums; }
+#sdlg .knoepfe { display:flex; gap:8px; justify-content:flex-end; margin-top:14px;
+  flex-wrap:wrap; }
+#bSave.ruhig .ic { color:var(--acc); }
+#bSave.ruhig:hover { color:var(--txt); background:var(--btn); }
 /* Loeschen / Anhoeren als Strichsymbol (Emoji im Text bleibt fuer
    Screenreader, wird aber nicht gezeichnet) */
 .del, .hear, #sfxHear { font-size:0 !important; display:inline-flex;
@@ -660,7 +678,7 @@ header > .spacer { flex:1; }
     <details class="card" id="cardVideos" open><summary>Videos (nacheinander)</summary>
       <div id="videolist"></div>
       <div class="row"><label>Weiteres anhängen</label><select id="addVideo"><option value="">— Datei wählen —</option></select></div>
-      <div class="row"><button id="bPickVideo" style="flex:1">📁 Video von woanders anhängen</button><input type="file" id="fVideo" accept="video/*" style="display:none"></div>
+      <div class="row"><button id="bPickVideo" data-ico="ordner" style="flex:1;justify-content:center">Video von woanders anhängen</button><input type="file" id="fVideo" accept="video/*" style="display:none"></div>
       <div class="row"><span style="font-size:11px;opacity:.55">Mehrere Talking-Head-Clips laufen nacheinander (Reihenfolge oben). Schnitte gelten über alle hinweg.</span></div>
     </details>
     <details class="card" id="cardAudio" open><summary>Audio hinzufügen</summary>
@@ -776,6 +794,7 @@ const ICO = {
   hilfe: '<circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.5-2.7 4"/><path d="M12 17.5h.01"/>',
   save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
   haken: '<path d="M20 6 9 17l-5-5"/>',
+  ordner: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   film: '<rect x="2.5" y="3" width="19" height="18" rx="2.5"/><path d="M7.5 3v18M16.5 3v18M2.5 9h5M2.5 15h5M16.5 9h5M16.5 15h5"/>',
   pip: '<rect x="2.5" y="4" width="19" height="16" rx="2.5"/><rect x="12" y="11" width="7" height="6" rx="1"/>',
   mikro: '<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>',
@@ -873,7 +892,8 @@ function currentProjectJSON(){
   const out = JSON.parse(JSON.stringify(P));
   delete out._dateien; delete out._audiodateien; delete out._neueAudios;
   delete out._sfxlib;              // Anzeige-Info, baut build_editor.py neu
-  delete out._dateidauern; delete out._filterlib;
+  delete out._dateidauern; delete out._filterlib; delete out._arbeit;
+  delete out._gebaut;
   // Herkunft mitschreiben: sonst weiss Claude beim Sammelordner-Speichern
   // nicht, WOHIN die Datei gehoert (Projektordner kann ueberall liegen),
   // und bei mehreren Projekten nicht, welches zuletzt bearbeitet wurde.
@@ -882,7 +902,13 @@ function currentProjectJSON(){
   out._gespeichert = new Date().toISOString();
   return JSON.stringify(out, null, 2);
 }
-function autosave(){ if (fileHandle) saveToHandle(); }   // wenn Datei gewählt
+// Jede Aenderung wird automatisch gespeichert, sobald ein Ziel feststeht
+// (Arbeitsordner/Sammelordner oder gewaehlte Datei). Ohne Ziel zeigt der
+// Knopf „Speichern" auffaellig an, dass noch nichts auf der Platte liegt.
+function autosave(){
+  if (ziel) saveToHandle();
+  speicherStatus();
+}
 
 // Musik- und Voiceover-Zustand aus P uebernehmen (UI + Audio-Elemente)
 function adoptAudioUI(){
@@ -3017,19 +3043,24 @@ songwrap.addEventListener('pointerdown', e => {
 });
 
 // ---------- Speichern -----------------------------------------------------
-// EINMAL einen Sammelordner waehlen -> ab dann speichert JEDES Projekt dort
-// von selbst, ohne Dialog, auch nach F5 und auch in neuen Projekten. Der
-// Ordner-Zeiger liegt in IndexedDB; die faellt bei lokalen Dateien NICHT
-// pro Ordner auseinander (getestet: in Projekt A geschrieben, in Projekt B
-// gelesen). Datei heisst <projektordner>.json, damit mehrere Projekte im
-// selben Sammelordner nebeneinander liegen koennen.
-// Faellt das aus: einzelne Datei waehlen, sonst Download als Notfall.
-let fileHandle = null;
-let dirHandle = null;
+// Je Projekt wird beim ERSTEN Speichern einmal gefragt, wo gespeichert wird
+// (Vorschlag: der Projektordner selbst). Danach speichert jede Aenderung von
+// selbst — auch nach F5, ohne je wieder zu fragen. Gemerkt in IndexedDB unter
+// dem Pfad des Projekts; IndexedDB faellt bei lokalen Dateien NICHT pro Ordner
+// auseinander (getestet: in Projekt A geschrieben, in Projekt B gelesen).
+// Ein freigegebener Arbeitsordner gilt fuer alle Projekte darin: beim
+// naechsten Projekt reicht dann der Bestaetigungsklick, kein Ordner-Dialog.
+// Nach einem Browser-Neustart braucht der Browser EINEN Klick zum Erlauben.
+// Notfallwege ohne Ordnerzugriff (Safari/Firefox): Datei waehlen / Download.
+let ziel = null;      // aktives Ziel: {h: Ordner, art: 'projekt'|'sammel'} oder {f: Datei}
+let wartend = null;   // gemerktes Ziel, dessen Erlaubnis erst ein Klick erneuert
+let speicherOrt = '', zuletztGespeichert = null, speichertGerade = false;
 const canFS = 'showSaveFilePicker' in window;
 const canDir = 'showDirectoryPicker' in window;
 
-const ZIEL_DB = 'scb_cockpit', ZIEL_STORE = 'ziel', ZIEL_KEY = 'sammelordner';
+const ZIEL_DB = 'scb_cockpit', ZIEL_STORE = 'ziel';
+const OBER_KEY = 'sammelordner';      // zuletzt freigegebener Ober-/Arbeitsordner
+const projektKey = () => 'projekt:' + projektPfad();
 
 function zielDB(){
   return new Promise((res, rej) => {
@@ -3043,23 +3074,23 @@ function zielDB(){
     setTimeout(() => rej(new Error('timeout')), 3000);
   });
 }
-async function zielLesen(){
+async function dbLesen(key){
   try {
     const db = await zielDB();
     const v = await new Promise((res, rej) => {
       const g = db.transaction(ZIEL_STORE, 'readonly')
-                  .objectStore(ZIEL_STORE).get(ZIEL_KEY);
+                  .objectStore(ZIEL_STORE).get(key);
       g.onsuccess = () => res(g.result); g.onerror = () => rej(g.error);
     });
     db.close(); return v || null;
   } catch (e) { return null; }
 }
-async function zielSchreiben(h){
+async function dbSchreiben(key, wert){
   try {
     const db = await zielDB();
     await new Promise((res, rej) => {
       const tx = db.transaction(ZIEL_STORE, 'readwrite');
-      tx.objectStore(ZIEL_STORE).put(h, ZIEL_KEY);
+      tx.objectStore(ZIEL_STORE).put(wert, key);
       tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error);
     });
     db.close(); return true;
@@ -3084,73 +3115,171 @@ function projektPfad(){
   return p;
 }
 
-/** Zielordner einmal waehlen (braucht einen echten Klick des Nutzers). */
-async function zielordnerWaehlen(){
-  if (!canDir) return false;
+/** Ordner DIESES Projekts innerhalb von h — h ist der Projektordner selbst
+ *  oder einer seiner Oberordner (z. B. der Arbeitsordner). Die Probe auf
+ *  editor.html stellt sicher, dass es wirklich dieses Projekt ist. */
+async function projektOrdnerIn(h){
+  if (!h) return null;
+  const teile = projektPfad().split(/[\\/]/).filter(Boolean);
+  for (let i = teile.length - 1; i >= 0; i--) {
+    if (teile[i] !== h.name) continue;
+    try {
+      let d = h;
+      for (const t of teile.slice(i + 1)) d = await d.getDirectoryHandle(t);
+      await d.getFileHandle('editor.html');
+      return d;
+    } catch (e) { /* weiter oben suchen */ }
+  }
+  return null;
+}
+async function erlaubt(handle, fragen){
   try {
-    const h = await window.showDirectoryPicker({ mode: 'readwrite' });
-    dirHandle = h;
-    await zielSchreiben(h);
-    zielAnzeigen();
-    return true;
+    let p = await handle.queryPermission({ mode: 'readwrite' });
+    if (p !== 'granted' && fragen)
+      p = await handle.requestPermission({ mode: 'readwrite' });
+    return p === 'granted';
   } catch (e) { return false; }
 }
-
-/** Gemerkten Ordner beim Start wiederherstellen (nur wenn noch erlaubt). */
+/** Gemerktes Ziel dieses Projekts beim Start wiederherstellen — und den
+ *  zuletzt gespeicherten Stand laden, falls er neuer ist als der, den Claude
+ *  zuletzt gebaut hat (sonst saehe man nach dem Wiederoeffnen alte Daten,
+ *  und das automatische Speichern wuerde die neueren ueberschreiben). */
 async function zielWiederherstellen(){
-  const h = await zielLesen();
-  if (!h) return;
+  const rec = await dbLesen(projektKey());
+  if (rec && (rec.h || rec.f)) {
+    if (await erlaubt(rec.h || rec.f)) { ziel = rec; await gespeichertenStandLaden(); }
+    else { wartend = rec; willkommenZurueck(); }
+  }
+  speicherStatus();
+}
+async function gespeicherteDatei(){
+  if (!ziel) return null;
   try {
-    let p = await h.queryPermission({ mode: 'readwrite' });
-    if (p === 'prompt') p = await h.requestPermission({ mode: 'readwrite' });
-    if (p === 'granted') { dirHandle = h; zielAnzeigen(); }
-  } catch (e) { /* Ordner weg oder Erlaubnis entzogen */ }
+    if (ziel.f) return await ziel.f.getFile();
+    if (ziel.art === 'projekt') {
+      const d = ziel.d || (ziel.d = await projektOrdnerIn(ziel.h));
+      return d ? await (await d.getFileHandle('projekt.json')).getFile() : null;
+    }
+    const u = await ziel.h.getDirectoryHandle(projektName());
+    return await (await u.getFileHandle('projekt.json')).getFile();
+  } catch (e) { return null; }
 }
-function zielAnzeigen(){
-  if (!bSave) return;
-  bSave.title = dirHandle
-    ? 'Speichert automatisch nach ' + dirHandle.name + '/' + projektDateiName()
-    : 'Beim ersten Klick einmal den Sammelordner waehlen';
-  if (dirHandle) saveLabel('Speichern (' + dirHandle.name + ')');
+async function gespeichertenStandLaden(){
+  const f = await gespeicherteDatei();
+  if (!f) return false;
+  let j;
+  try { j = JSON.parse(await f.text()); } catch (e) { return false; }
+  const gespeichert = Date.parse(j._gespeichert || '');
+  const gebaut = Date.parse(P._gebaut || '');
+  if (!gespeichert || (gebaut && gespeichert <= gebaut)) return false;
+  // Anzeige-Felder (_dateien, _filterlib …) aus dem frisch gebauten Stand
+  // behalten, alles andere aus der gespeicherten Datei
+  const neu = Object.assign({}, j);
+  Object.keys(P).forEach(k => { if (k.charAt(0) === '_' && !(k in neu)) neu[k] = P[k]; });
+  undoStack.push(JSON.stringify(P));           // Strg+Z holt den alten Stand
+  const la = lastApplied;
+  applyProjekt(neu);
+  lastApplied = la;                            // Claudes Stand bleibt Vergleich
+  dirty = false;
+  toast('Dein zuletzt gespeicherter Stand ist geladen ('
+    + new Date(gespeichert).toLocaleString('de-DE', { day: '2-digit',
+      month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ')');
+  return true;
 }
-async function saveToDir(){
-  // Je Projekt ein eigener Unterordner: <Sammelordner>/<projekt>/projekt.json
-  // So ueberschreiben sich verschiedene Projekte nie gegenseitig, und
-  // aeltere Projekte bleiben vollstaendig erhalten.
-  const unter = await dirHandle.getDirectoryHandle(projektName(), { create: true });
-  const f = await unter.getFileHandle('projekt.json', { create: true });
-  const w = await f.createWritable();
+/** Nach einem Browser-Neustart: einmal erlauben, dann weiter wie gehabt. */
+function willkommenZurueck(){
+  if (document.getElementById('sdlg')) return;
+  const d = document.createElement('div'); d.id = 'sdlg';
+  d.innerHTML = '<div class="box" role="dialog" aria-modal="true" aria-labelledby="sdlgT">'
+    + '<h3 id="sdlgT">Weiter, wo du aufgehört hast</h3>'
+    + '<p class="leise">Nach einem Neustart braucht der Browser einmal deine '
+    + 'Erlaubnis, im Projektordner zu speichern. Dann lädt das Cockpit deinen '
+    + 'letzten Stand und speichert wieder von selbst.</p>'
+    + '<div class="knoepfe"><button class="primary" data-w="ja">Weiter bearbeiten</button>'
+    + '<button data-w="nein">Später</button></div></div>';
+  document.body.appendChild(d);
+  d.querySelector('[data-w=nein]').onclick = () => d.remove();
+  d.querySelector('[data-w=ja]').onclick = async () => {
+    if (await erlaubt(wartend.h || wartend.f, true)) {
+      ziel = wartend; wartend = null; d.remove();
+      await gespeichertenStandLaden(); speicherStatus();
+    } else d.remove();
+  };
+  d.querySelector('button.primary').focus();
+}
+function zielAnzeigen(){ speicherStatus(); }
+
+async function schreibeNach(dateiHandle){
+  const w = await dateiHandle.createWritable();
   await w.write(currentProjectJSON()); await w.close();
 }
-function saveToHandle(){
+async function saveToDir(){
+  if (ziel.f) { await schreibeNach(ziel.f);
+    speicherOrt = 'in ' + (ziel.f.name || 'der gewählten Datei'); return; }
+  if (ziel.art === 'projekt') {
+    // Direkt in die projekt.json des Projekts — Claude liest genau diese
+    const d = ziel.d || (ziel.d = await projektOrdnerIn(ziel.h));
+    if (!d) throw new Error('Projektordner nicht gefunden');
+    await schreibeNach(await d.getFileHandle('projekt.json', { create: true }));
+    speicherOrt = 'im Projektordner';
+    return;
+  }
+  // Anderer Ort: <Ordner>/<projekt>/projekt.json (Claude holt sie mit
+  // cockpit_holen.py ab)
+  const unter = await ziel.h.getDirectoryHandle(projektName(), { create: true });
+  await schreibeNach(await unter.getFileHandle('projekt.json', { create: true }));
+  speicherOrt = 'in ' + ziel.h.name + '/' + projektName();
+}
+function saveToHandle(manuell){
   clearTimeout(saveToHandle._t);
+  speichertGerade = true; speicherStatus();
   saveToHandle._t = setTimeout(async () => {
     try {
-      if (dirHandle) {
-        await saveToDir();
-      } else {
-        const w = await fileHandle.createWritable();
-        await w.write(currentProjectJSON()); await w.close();
-      }
-      dirty = false;
+      await saveToDir();
+      dirty = false; zuletztGespeichert = new Date();
       // lastApplied NICHT auf P setzen! Es ist der zuletzt von Claude
       // gesehene Stand. Ueberschreibt man ihn mit der eigenen Fassung,
       // haelt das Polling Claudes (unveraenderte) Datei faelschlich fuer
       // neu und spielt sie zurueck - die eigenen Aenderungen waeren weg.
-      saveLabel('Gespeichert', 'haken'); bSave.classList.add('on');
-      setTimeout(() => { zielAnzeigen();
-        if (!dirHandle) saveLabel('Gespeichert (automatisch)');
-        bSave.classList.remove('on'); }, 1500);
-      if ((P._neueAudios || []).length)
-        toast('ℹ Neue Dateien: ' + P._neueAudios.join(', ')
+      const neu = (P._neueAudios || []).join(', ');
+      if (neu && (manuell || neu !== saveToHandle._neu)) {
+        saveToHandle._neu = neu;
+        toast('ℹ Neue Dateien: ' + neu
           + ' — in den Projektordner legen, sonst fehlen sie beim Rendern');
+      } else if (manuell) toast('Gespeichert ' + speicherOrt);
     } catch (e) {
-      // Ordner-Erlaubnis entzogen oder Datei weg -> zurueck auf Anfang
-      dirHandle = null; fileHandle = null;
-      saveLabel('Speichern'); bSave.title = '';
-      toast('⚠ Speichern fehlgeschlagen — bitte Zielordner erneut wählen');
+      // Erlaubnis verfallen -> ein Klick erneuert sie; Ordner weg -> neu fragen
+      wartend = ziel; ziel = null;
+      toast('⚠ Speichern gerade nicht möglich — oben auf „Weiter speichern" klicken');
     }
-  }, 700);
+    speichertGerade = false; speicherStatus();
+  }, manuell ? 0 : 700);
+}
+/** Der Knopf zeigt immer den echten Zustand. Auffaellig nur, wenn etwas zu
+ *  tun ist; sonst ruhig mit Haken. */
+function speicherStatus(){
+  if (typeof bSave === 'undefined') return;
+  const ruhig = an => { bSave.classList.toggle('primary', !an);
+    bSave.classList.toggle('ruhig', an); };
+  if (wartend && !ziel) {
+    saveLabel('Weiter speichern'); ruhig(false);
+    bSave.title = 'Nach dem Neustart des Browsers einmal erlauben — danach '
+      + 'speichert das Cockpit wieder von selbst';
+  } else if (!ziel) {
+    saveLabel(canDir || canFS ? 'Speichern' : 'Speichern (Download)'); ruhig(false);
+    bSave.title = canDir || canFS
+      ? 'Beim ersten Mal fragt das Cockpit, wo dieses Projekt gespeichert wird — danach speichert jede Änderung von selbst'
+      : 'Dieser Browser kann nicht direkt speichern (Safari/Firefox). In Chrome oder Edge speichert das Cockpit automatisch.';
+  } else if (speichertGerade || dirty) {
+    saveLabel('Speichert …'); ruhig(true);
+  } else {
+    saveLabel(zuletztGespeichert ? 'Gespeichert' : 'Speichert automatisch', 'haken');
+    ruhig(true);
+    bSave.title = (zuletztGespeichert ? 'Automatisch gespeichert um '
+      + zuletztGespeichert.toLocaleTimeString('de-DE', { hour: '2-digit',
+        minute: '2-digit' }) + ' ' + speicherOrt + '. ' : '')
+      + 'Rechtsklick = Speicherort ändern.';
+  }
 }
 function downloadSave(){
   const a = document.createElement('a');
@@ -3158,37 +3287,111 @@ function downloadSave(){
     {type:'application/json'}));
   a.download = 'projekt.json'; a.click(); dirty = false;
   saveLabel('In Downloads — sag Claude Bescheid', 'haken');
-  setTimeout(() => saveLabel('Speichern'), 4000);
+  setTimeout(speicherStatus, 4000);
 }
-bSave.onclick = async () => {
-  // 1. Ordner schon gemerkt -> einfach speichern, kein Dialog
-  if (dirHandle || fileHandle) { saveToHandle(); return; }
-  // 2. Erster Klick ueberhaupt: EINMAL den Sammelordner waehlen
-  if (canDir) {
-    if (await zielordnerWaehlen()) {
-      saveToHandle();
-      toast('✅ Zielordner „' + dirHandle.name + '" gemerkt — ab jetzt '
-        + 'speichert jedes Projekt dort von selbst, ohne Dialog');
-      return;
-    }
-    // abgebrochen -> Notfallweg unten
-  }
-  if (canFS) {
+
+// ---- Erstes Speichern eines Projekts: einmal fragen ------------------------
+function speicherDialog(){
+  const alt = document.getElementById('sdlg'); if (alt) alt.remove();
+  const a = P._arbeit;
+  const d = document.createElement('div'); d.id = 'sdlg';
+  d.innerHTML = '<div class="box" role="dialog" aria-modal="true" aria-labelledby="sdlgT">'
+    + '<h3 id="sdlgT">Projekt speichern</h3>'
+    + '<p>Dieses Projekt wird hier gespeichert:</p>'
+    + '<div class="pfad"></div>'
+    + (canDir ? '<p class="leise">Du wirst nur dieses eine Mal gefragt — danach '
+      + 'speichert jede Änderung von selbst.'
+      + (a && a.rel ? ' Im nächsten Fenster einmal deinen Arbeitsordner „'
+        + esc(a.name) + '" wählen, dann gilt das für alle Projekte darin.'
+        : ' Im nächsten Fenster den Projektordner „' + esc(projektName())
+        + '" wählen.') + '</p>'
+      : '<p class="leise">Dieser Browser (Safari/Firefox) kann nicht direkt in '
+      + 'Ordner speichern. In Chrome oder Edge speichert das Cockpit jede '
+      + 'Änderung automatisch.</p>')
+    + '<div class="knoepfe">'
+    + (canDir ? '<button class="primary" data-w="hier">Hier speichern</button>'
+      + '<button data-w="anders">Anderer Ort …</button>'
+      : '<button class="primary" data-w="datei">' + (canFS ? 'Datei wählen'
+        : 'Als Download speichern') + '</button>')
+    + '<button data-w="nein">Abbrechen</button></div></div>';
+  d.querySelector('.pfad').textContent = projektPfad();
+  document.body.appendChild(d);
+  ikonen(d);
+  const zu = () => d.remove();
+  d.addEventListener('click', e => { if (e.target === d) zu(); });
+  d.addEventListener('keydown', e => { if (e.key === 'Escape') zu(); });
+  d.querySelectorAll('button').forEach(b => b.onclick = async () => {
+    const w = b.dataset.w;
+    if (w === 'nein') return zu();
+    if (w === 'datei') { zu(); return speichernPerDatei(); }
+    if (await speicherortFestlegen(w === 'anders')) zu();
+  });
+  d.querySelector('button.primary').focus();
+}
+/** Legt den Speicherort fest. anders=false: Projektordner (bzw. ein
+ *  Oberordner davon); anders=true: frei gewaehlter Ordner. */
+async function speicherortFestlegen(anders){
+  const a = P._arbeit;
+  const ober = await dbLesen(OBER_KEY);
+  let h = null;
+  // Arbeitsordner schon freigegeben und das Projekt liegt darin -> kein Dialog
+  if (!anders && ober && await erlaubt(ober) && await projektOrdnerIn(ober)) h = ober;
+  if (!h) {
     try {
-      fileHandle = await window.showSaveFilePicker({
-        suggestedName: 'projekt.json',
-        types: [{ description: 'Projekt', accept: {'application/json': ['.json']} }]});
-      saveToHandle();
-      toast('✅ Ab jetzt wird direkt gespeichert — kein Downloads-Ordner mehr');
-    } catch (e) { /* abgebrochen */ }
-  } else { downloadSave(); }
+      h = await window.showDirectoryPicker({ id: 'scb-speicherort',
+        mode: 'readwrite', startIn: ober || 'videos' });
+    } catch (e) { return false; }            // abgebrochen
+  }
+  const projektD = await projektOrdnerIn(h);
+  if (!anders && !projektD) {
+    toast('⚠ In „' + h.name + '" liegt dieses Projekt nicht — bitte '
+      + (a && a.rel ? 'deinen Arbeitsordner „' + a.name + '"' : '„' + projektName() + '"')
+      + ' wählen');
+    return false;
+  }
+  ziel = { h, art: projektD ? 'projekt' : 'sammel' };
+  wartend = null;
+  await dbSchreiben(projektKey(), { h, art: ziel.art });
+  // Liegt das Projekt in diesem Ordner und ist es der Arbeitsordner (oder ein
+  // Oberordner), gilt die Freigabe fuer die naechsten Projekte gleich mit.
+  if (projektD && h !== projektD) await dbSchreiben(OBER_KEY, h);
+  saveToHandle(true);
+  toast(ziel.art === 'projekt'
+    ? '✅ Gespeichert — ab jetzt speichert jede Änderung von selbst'
+    : '✅ Gespeichert in ' + h.name + '/' + projektName()
+      + ' — sag Claude, wo das liegt');
+  return true;
+}
+async function speichernPerDatei(){
+  if (!canFS) return downloadSave();
+  try {
+    const f = await window.showSaveFilePicker({ suggestedName: 'projekt.json',
+      types: [{ description: 'Projekt', accept: {'application/json': ['.json']} }]});
+    ziel = { f }; wartend = null;
+    await dbSchreiben(projektKey(), { f });
+    saveToHandle(true);
+  } catch (e) { /* abgebrochen */ }
+}
+
+bSave.onclick = async () => {
+  // Nach Browser-Neustart: Erlaubnis mit EINEM Klick erneuern
+  if (wartend && !ziel) {
+    if (await erlaubt(wartend.h || wartend.f, true)) {
+      ziel = wartend; wartend = null;
+      // Erst den gespeicherten Stand holen, falls neuer — nichts ueberschreiben
+      if (!(await gespeichertenStandLaden())) saveToHandle(true);
+      speicherStatus(); return; }
+    wartend = null;                 // abgelehnt oder Ordner weg -> neu fragen
+  }
+  if (ziel) { saveToHandle(true); return; }
+  speicherDialog();                 // erstes Mal fuer DIESES Projekt
 };
-// Rechtsklick auf Speichern = Zielordner wechseln
-bSave.oncontextmenu = async (e) => {
-  e.preventDefault();
-  if (await zielordnerWaehlen())
-    toast('✅ Neuer Zielordner: ' + dirHandle.name);
-};
+// Rechtsklick auf Speichern = Speicherort aendern
+bSave.oncontextmenu = e => { e.preventDefault(); speicherDialog(); };
+// Ungespeichertes nicht stillschweigend verlieren
+window.addEventListener('beforeunload', e => {
+  if (dirty) { e.preventDefault(); e.returnValue = ''; }
+});
 zielWiederherstellen();
 
 // ---------- Audio hinzufuegen: Datei waehlen / Voiceover aufnehmen ---------
