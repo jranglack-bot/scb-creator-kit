@@ -249,10 +249,14 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
   background:linear-gradient(180deg,#1f232b 0%,#191c22 100%);
   box-shadow:0 1px 0 rgba(255,255,255,.05) inset,
     0 -8px 24px rgba(0,0,0,.35); }
-#ruler { position:relative; height:16px; font-size:10px; opacity:.55;
-  font-variant-numeric:tabular-nums; }
-#ruler span { position:absolute; transform:translateX(-50%);
+/* Zeitskala = Klickflaeche fuer den Laeufer: bewusst hoch (32 px), damit
+   man sie sieht und trifft */
+#ruler { position:relative; height:32px; font-size:11px; opacity:.55;
+  font-variant-numeric:tabular-nums; margin-bottom:4px; }
+#ruler span { position:absolute; top:50%; transform:translate(-50%,-50%);
   white-space:nowrap; }
+#ruler span::before { content:''; position:absolute; left:50%; top:-9px;
+  width:1px; height:5px; background:currentColor; opacity:.5; }
 /* Zeitleiste zoomen: #tl und #ruler werden breiter als der Rahmen, der
    Rahmen scrollt. Alle Positionen bleiben Prozentwerte — deshalb stimmt
    beim Zoomen alles von selbst: Schnitte, Effekte, Laeufer, Wellenformen.
@@ -325,7 +329,7 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
 /* Greifbereich des Laeufers nur oben auf der Zeitskala — reichte er ueber
    alle Spuren, verdeckte er die Kante, an die der Laeufer nach dem Trimmen
    springt, und man griff beim Nachziehen den Laeufer statt der Kante. */
-#phgrab { position:absolute; top:4px; height:28px; width:18px;
+#phgrab { position:absolute; top:4px; height:42px; width:18px;
   transform:translateX(-50%); cursor:grab; z-index:5; }
 #phgrab:active { cursor:grabbing; }
 #phgrab::after { content:''; position:absolute; top:0; left:50%;
@@ -341,7 +345,7 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
   scrollbar-width:none; overscroll-behavior-y:contain; }
 #tlv::-webkit-scrollbar { display:none; }
 #trackhead { width:158px; flex:none; display:flex; flex-direction:column; }
-#thkopf { height:30px; flex:none; display:flex; align-items:flex-end;
+#thkopf { height:50px; flex:none; display:flex; align-items:flex-end;
   padding:0 0 3px 4px; font-size:10px; opacity:.5; gap:6px; }
 #thkopf button { padding:0 5px; font-size:10px; background:none; opacity:.8; }
 #thmehr { display:none; margin-top:4px; padding:2px 8px; font-size:10px;
@@ -516,7 +520,11 @@ footer { background:var(--panel); border-top:1px solid var(--line); box-shadow:n
 #thkopf button { background:none; border:0; color:var(--txt2); }
 #thmehr { background:var(--acc-weich); color:var(--acc);
   border-color:color-mix(in srgb, var(--acc) 40%, transparent); }
-#ruler { color:var(--txt2); opacity:1; }
+#ruler { color:var(--txt2); opacity:1; cursor:pointer; border-radius:7px;
+  background:var(--lane); border:1px solid var(--line);
+  transition:background .12s, border-color .12s; }
+#ruler:hover { background:var(--btn); border-color:var(--line2); color:var(--txt); }
+#ruler span { pointer-events:none; }
 #playhead { background:var(--acc); }
 #phlabel { background:var(--acc); color:var(--acc-auf); }
 #phgrab::after { border-top-color:var(--acc); }
@@ -587,11 +595,20 @@ header > .spacer { flex:1; }
 #songwin { background:color-mix(in srgb, #be8cff 16%, transparent);
   border-color:color-mix(in srgb, #be8cff 60%, transparent); }
 #tl .lanelbl { color:var(--txt2) !important; opacity:.6; }
-/* Instagram-Zonen: feine Markierung statt grober Schraffur */
-.zone { background:rgba(255,80,80,.07); border:1px dashed rgba(255,110,110,.55); }
-.zone span { color:#ffb3b3; background:rgba(10,10,12,.72); font-weight:600;
-  font-size:10.5px; letter-spacing:.3px; border:1px solid rgba(255,110,110,.35);
-  backdrop-filter:blur(6px); }
+/* Instagram-Zonen: muessen auf HELLEM wie dunklem Bild klar erkennbar sein.
+   Rote Fuellung + feine Schraffur + kraeftige gestrichelte Kante mit dunklem
+   Saum (auf Weiss traegt das Rot, auf Schwarz der Saum nicht, aber das Rot). */
+.zone { background:
+    repeating-linear-gradient(45deg, rgba(255,40,40,.20) 0 5px, transparent 5px 12px),
+    rgba(255,40,40,.12);
+  border:2px dashed rgba(255,45,45,.95);
+  box-shadow:0 0 0 1px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.35); }
+.zone span { color:#fff; background:rgba(215,30,30,.92); font-weight:700;
+  font-size:11px; letter-spacing:.3px; border:1px solid rgba(0,0,0,.25);
+  box-shadow:0 2px 8px rgba(0,0,0,.35); }
+/* rechte Zone ist schmal: Beschriftung senkrecht, sonst ragt sie aus dem Bild */
+#z-right span { writing-mode:vertical-rl; transform:translate(-50%,-50%) rotate(180deg);
+  padding:8px 2px; }
 </style></head><body>
 <header>
   <div class="brand"><span class="logo" data-ico="logo"></span><span class="bt"><b>Video-Cockpit</b><small>SCB Creator Kit</small></span></div>
@@ -607,6 +624,7 @@ header > .spacer { flex:1; }
   <button id="bPrev" class="chip on" data-ico="sprung" title="Beim Abspielen die geschnittenen Stellen überspringen (so wird das Reel). Aus = Rohmaterial mit allem."><span class="lbl">Schnitte überspringen</span></button>
   <button id="bGuides" class="chip" data-ico="zonen" title="Zeigt, wo Instagram Kopfzeile, Knöpfe und Bildunterschrift über das Video legt"><span class="lbl">Instagram-Zonen</span></button>
   <button id="bHilfe" class="nurico" data-ico="hilfe" title="So geht's:
+• Oben in die Zeitskala klicken = Läufer hinsetzen, ziehen = spulen
 • Rote Balken = wird herausgeschnitten
 • Kanten ziehen = trimmen · Mitte ziehen = verschieben
 • Freie Fläche aufziehen = neuer Schnitt / Lautstärke / Zoom (Feld oben, Tasten 1–3)
@@ -744,7 +762,7 @@ header > .spacer { flex:1; }
   <div id="tlinfo">
     <span id="tlzoomui" data-ico="lupe" title="Zeitleiste vergrößern — zum Läufer hin. Auch: Mausrad über der Zeitleiste">
       <button id="tzOut">−</button><span id="tlZoomLbl" title="Klick = ganze Zeitleiste zeigen">100%</span><button id="tzIn">+</button></span>
-    <span>Klick = markieren · Aufziehen = Schnitt / Lautstärke / Zoom (Tasten 1–3) · I/O = Schnitt setzen · Entf = löschen · Mausrad = zoomen</span><span id="tDur">0:00.0</span></div>
+    <span>Zeitskala oben = Läufer · Klick = markieren · Aufziehen = Schnitt / Lautstärke / Zoom (Tasten 1–3) · I/O = Schnitt setzen · Entf = löschen · Mausrad = zoomen</span><span id="tDur">0:00.0</span></div>
 </footer>
 <div id="toast"></div>
 
@@ -1666,7 +1684,7 @@ function renderTL(){
       { ico: k === 0 ? 'welle' : '', unter: ebenen.length > 1,
         zeiten: () => evs.map(e => e.time),
         anzahl: k === 0 ? (SFX.length || '') : evs.length,
-        hint: k === 0 && !ZU.has('sfx') ? 'klicken = Effekt setzen' : '' });
+        hint: k === 0 && !ZU.has('sfx') ? 'Doppelklick = Effekt' : '' });
     spurReihen[spurReihen.length - 1].erste = (k === 0);
     l._evs = evs; return l;
   });
@@ -2258,10 +2276,14 @@ tl.addEventListener('pointerdown', e => {
   const t0 = schnapp ? rasten((e.clientX - r.left) / r.width * dur, e)
     : (e.clientX - r.left) / r.width * dur;
   let moved = false, tmp = null, cur = null;
+  const x0 = e.clientX;
   const move = ev => {
     let t1 = Math.min(dur, Math.max(0, (ev.clientX - r.left) / r.width * dur));
     if (schnapp) t1 = rasten(t1, ev);
-    if (!moved && Math.abs(t1 - t0) < 0.15) return;
+    // Erst ab 5 Bildpunkten gilt es als Aufziehen. Frueher waren es 0,15 s —
+    // bei einem 7-Minuten-Video weniger als ein Bildpunkt: jedes Zittern
+    // beim Klicken legte einen Schnitt an, statt den Laeufer zu setzen.
+    if (!moved && Math.abs(ev.clientX - x0) < 5) return;
     moved = true;
     if (!tmp) { tmp = document.createElement('div');
       tmp.className = (track === 'sfx' ? 'sfx' : track === 'text' ? 'txt'
@@ -2290,11 +2312,18 @@ tl.addEventListener('pointerdown', e => {
     tip.style.display = 'none';
     // 🔊-Spur: Klick setzt den gewaehlten Effekt, Aufziehen gibt ihm gleich
     // die Laenge. Kein Schnitt/Zoom/Lautstaerke-Werkzeug auf dieser Spur.
+    // 🔊-Spur: Klick = Laeufer (wie ueberall), Doppelklick = gewaehlten
+    // Effekt an diese Stelle, Aufziehen = Effekt mit dieser Laenge.
     if (track === 'sfx') {
       if (tmp) tmp.remove();
-      if (!sfxWahl) { seekToRaw(t0);
-        toast('Erst oben in „Soundeffekte" einen Effekt auswählen'); return; }
       const gezogen = moved && cur && cur[1] - cur[0] >= 0.15;
+      const jetzt = Date.now(), vor = lane._klick || {};
+      const doppelt = !moved && jetzt - (vor.t || 0) < 400
+        && Math.abs(e.clientX - (vor.x || -99)) < 8;
+      lane._klick = doppelt ? {} : { t: jetzt, x: e.clientX };
+      if (!gezogen && !doppelt) { seekToRaw(t0); return; }
+      if (!sfxWahl) { seekToRaw(t0);
+        toast('Erst rechts unter „Ton → Soundeffekte" einen Effekt auswählen'); return; }
       sfxEinfuegen(gezogen ? cur[0] : t0, gezogen ? cur[1] - cur[0] : 0);
       return;
     }
@@ -2327,7 +2356,7 @@ tl.addEventListener('pointerdown', e => {
         P.volumes.sort((a,b) => a.start - b.start);
       }
       touch();
-    } else if (!moved) { seekToRaw(t0); }
+    } else { seekToRaw(t0); }        // Klick (oder zu kurz gezogen) = Laeufer
     renderTL();
   };
   window.addEventListener('pointermove', move);
@@ -2351,6 +2380,30 @@ function updPhLabel(){
       tlwrap.scrollLeft = x - sicht / 2;
   }
 }
+// Laeufer greifen ODER oben in die Zeitskala klicken: Klick setzt den
+// Laeufer, gedrueckt halten und ziehen spult.
+function spulenStart(e){
+  e.preventDefault();
+  const wasPlaying = playing;
+  pauseAll();
+  const move = ev => {
+    const r = tl.getBoundingClientRect();
+    seekToRaw(Math.max(0, Math.min(dur, (ev.clientX - r.left) / r.width * dur)));
+    updPhLabel();
+  };
+  move(e);
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    if (wasPlaying) playAll();
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+}
+document.getElementById('ruler').addEventListener('pointerdown', spulenStart);
+tlwrap.addEventListener('pointerdown', e => {
+  // auch der schmale Streifen ueber der Skala (dort sitzt die Zeitmarke)
+  if (e.target === tlwrap && e.offsetY < 50) spulenStart(e); });
 document.getElementById('phgrab').addEventListener('pointerdown', e => {
   e.preventDefault();
   const wasPlaying = playing;

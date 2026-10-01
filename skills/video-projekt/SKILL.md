@@ -251,8 +251,10 @@ Altprojekt noch in einen Sammelordner speichert: `cockpit_holen.py`; als
 letzter Notfall der Downloads-Ordner.
 
 **Was der Nutzer im Cockpit kann (alles ohne Token):**
-- **Timeline:** ganzes Video, Schnitte rot, Kanten ziehen = trimmen, Mitte
-  ziehen = verschieben, freie Fläche aufziehen = neuer Schnitt, Doppelklick
+- **Timeline:** ganzes Video, Schnitte rot. Klick in die Zeitskala oben oder
+  in eine freie Spurfläche = Läufer dorthin (Ziehen in der Skala = spulen).
+  Kanten ziehen = trimmen, Mitte ziehen = verschieben, freie Fläche aufziehen
+  (ab 5 Bildpunkten) = neuer Schnitt, Doppelklick
   = an/aus. Feld „Aufziehen =" oben: Schnitt / Lautstärke / Zoom (Tasten
   1–3). Kanten rasten an Wortanfang/-ende ein (Alt/⌥ = frei ziehen).
   Klick auf ein Element = markieren (rechts springt die passende Karte auf,
@@ -277,7 +279,7 @@ letzter Notfall der Downloads-Ordner.
 - **Texte-Kachel:** freie Overlays (Hook/Titel) auf der 📝-Spur, Position
   per Ziehen, Stil + Einflug-Animation je Text (siehe 2b-Texte).
 - **Soundeffekte-Kachel:** eigene Datei wählen ODER Library verbinden, dann
-  auf die 🔊-Spur klicken = gesetzt, Marker ziehen = verschieben, linke Kante
+  Doppelklick auf die 🔊-Spur = gesetzt, Marker ziehen = verschieben, linke Kante
   = Stille am Anfang wegschneiden, rechte Kante = Länge, Regler =
   Lautstärke. Vorlauf, Länge und Pegel gleicht das Cockpit selbst aus; die
   Vorschau spielt die Effekte mit (siehe 2b-Sfx).
@@ -525,8 +527,9 @@ build_editor.py misst dafür jede verwendete Datei (auch Pfade außerhalb der
 Library, Ergebnis in `_sfxlib.dauer`), das Cockpit zeigt und spielt die
 volle Länge. `len` nur setzen, wenn er bewusst KÜRZER sein soll.
 
-Bedienung: Kategorie + Effekt in der Kachel wählen, dann **auf die
-🔊-Spur klicken** = Effekt an dieser Stelle; **aufziehen** = Effekt mit
+Bedienung: Kategorie + Effekt in der Kachel wählen, dann **Doppelklick
+auf die 🔊-Spur** = Effekt an dieser Stelle (ein einfacher Klick setzt dort
+wie überall nur den Läufer); **aufziehen** = Effekt mit
 dieser Länge; **Marker ziehen** = verschieben; **rechte Kante** = Länge.
 Je Event ein Lautstärke-Regler (0–100 %). Die Vorschau spielt die Effekte
 mit — Platzierung ist ohne Render beurteilbar. „Tonspur anzeigen" zeigt auf
@@ -676,12 +679,39 @@ Schnittlängen abziehen), sonst sitzen die Texte falsch.
 
 ### 2c. Claude arbeitet im Projekt mit (Roundtrip)
 
-Sagt der User z. B. „setz noch einen Schnitt bei 20–22" oder „ändere die
-Schriftfarbe": ERST prüfen, ob er im Cockpit ungespeicherte Änderungen hat
-(„Hast du im Cockpit gespeichert? Sonst geht deine Maus-Arbeit verloren") —
-ggf. neueste projekt.json aus Downloads einspielen. Dann projekt.json
-ändern, `build_editor.py` neu ausführen, User drückt F5. Kosten: eine
-JSON-Änderung.
+**Zurufe wie „Whoosh beim Wort Brieftaube", „mach 1:10–1:20 schwarz-weiß",
+„schneid das Äh raus", „lösch Effekt 3": IMMER `scripts/cockpit_befehl.py`
+— NICHT die projekt.json lesen (bei langen Videos 40 KB Wörter = teuer).**
+Das Script sucht Wörter selbst, rechnet Zeiten um, setzt den Eintrag genau
+so, wie das Cockpit ihn setzen würde (Effekt-Lautstärke angeglichen,
+Vorlauf weg), baut das Cockpit neu und meldet EINE Zeile. Der offene Tab
+zeigt es nach ~3 s — kein F5, nicht neu öffnen.
+
+```
+<python> scripts/cockpit_befehl.py <projekt> --liste            # Überblick mit Nummern
+<python> scripts/cockpit_befehl.py <projekt> --suche Brieftaube  # wo kommt das Wort vor
+<python> scripts/cockpit_befehl.py <projekt> --sfx-liste [whoosh]
+<python> scripts/cockpit_befehl.py <projekt> --effekt whoosh --wort Brieftaube [--nr 2] [--laut 60] [--vor 0.1]
+<python> scripts/cockpit_befehl.py <projekt> --effekt pop --bei 0:42 --fertig
+<python> scripts/cockpit_befehl.py <projekt> --filter sw --von 1:10 --bis 1:20 [--staerke 70]
+<python> scripts/cockpit_befehl.py <projekt> --text "Hook" --von 0 --bis 3 --fertig
+<python> scripts/cockpit_befehl.py <projekt> --zoom 1.2 --wort Turm --dauer 2
+<python> scripts/cockpit_befehl.py <projekt> --cut --wort äh --alle
+<python> scripts/cockpit_befehl.py <projekt> --loeschen effekt 3
+```
+
+**Welche Zeit meint der Nutzer?** Das Cockpit zeigt Rohzeit (ungeschnitten)
+— schaut er dabei ins Cockpit, ist das Standard. Meint er das fertige Reel
+(„in Sekunde 12 vom Video"), `--fertig` anhängen. Im Zweifel einmal kurz
+fragen. Am genauesten sind Wörter (`--wort`) und Nummern (Cut 3, Effekt 2 —
+dieselben wie im Cockpit). Wörter in rausgeschnittenen Stellen überspringt
+`--wort` von selbst; `--suche` zeigt alle Fundstellen.
+
+Andere Änderungen (Schriftfarbe, Untertitel-Stil …): projekt.json FRISCH
+lesen — der Nutzer kann im Cockpit weitergearbeitet haben, es speichert
+automatisch —, nur das betroffene Feld ändern, `build_editor.py`. Hat das
+Projekt im Cockpit noch keinen Speicherort, stehen seine Klicks nur im
+Browser: dann zuerst „einmal auf Speichern klicken" erbitten.
 
 Hintergrund-Wissen (macht render_projekt.py automatisch — nur für
 Sonderfälle): Untertitel-Stil-Mapping an `animated_captions.py`:

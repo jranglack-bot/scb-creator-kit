@@ -132,7 +132,17 @@ def build_waveforms(projekt, projdir, sfx_wellen=None):
             wf[name] = waveform_peaks(vpath)
             changed = True
         except Exception as e:
-            print('WARNUNG: Keine Waveform fuer', name, '-', e)
+            # Dateien ohne Ton (Freisteller, Masken, Grafik-Ebenen) still
+            # merken statt jedes Mal neu zu versuchen und zu warnen
+            ton = subprocess.run(
+                ['ffprobe', '-v', 'error', '-select_streams', 'a',
+                 '-show_entries', 'stream=index', '-of', 'csv=p=0', vpath],
+                capture_output=True, text=True).stdout.strip()
+            if not ton:
+                wf[name] = {'d': 0, 'p': []}
+                changed = True
+            else:
+                print('WARNUNG: Keine Waveform fuer', name, '-', e)
     for pfad, rec in (sfx_wellen or {}).items():
         if wf.get(pfad) != rec:
             wf[pfad] = rec
@@ -380,7 +390,11 @@ def build_sfxlib(projekt, projdir):
             return None
         for name in namen:
             p = os.path.join(ordner, name)
-            if os.path.isfile(p) and name.lower().endswith(SFX_EXT):
+            klein = name.lower()
+            # Render-Zwischen- und Enddateien sind keine Effekte
+            if klein.startswith('r_') or klein.endswith(('_final.mp4', 'final.mp4')):
+                continue
+            if os.path.isfile(p) and klein.endswith(SFX_EXT):
                 e = eintrag(p)
                 if e:
                     dateien.append(e)
@@ -416,6 +430,18 @@ def build_sfxlib(projekt, projdir):
                 if any(x['name'] == k['name'] for x in kategorien):
                     k['name'] += ' (' + os.path.basename(basis) + ')'
                 kategorien.append(k)
+
+    # 2b. Die Sounds, die das Kit selbst mitbringt — IMMER anbieten. Frueher
+    #     nur ueber einen geratenen Pfad (<repo>/sounds), den es nie gab:
+    #     ohne eigene Library war die Effekt-Auswahl dann komplett leer.
+    kit_sfx = os.path.normpath(os.path.join(HIER, '..', '..', 'pro-look-editing',
+                                            'scripts', 'sfx'))
+    if os.path.isdir(kit_sfx) and not any(
+            os.path.normcase(os.path.abspath(o)) == os.path.normcase(kit_sfx)
+            for o in ordner):
+        k = sammeln(kit_sfx, 'Kit-Sounds')
+        if k:
+            kategorien.append(k)
 
     # 3. Effekte, die schon im Projekt STEHEN, immer vermessen — auch wenn
     #    sie in keiner Bibliothek liegen (Kit-Sounds, relative Pfade, Dateien
