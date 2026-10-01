@@ -105,6 +105,23 @@ def video_encoder(cfg, zwischenstufe=False):
             'veryfast' if zwischenstufe else str(cfg.get('preset', 'medium'))]
 
 
+def video_fps(path):
+    """Bildrate der Eingabe (fuer den Bildzaehler im Zoom). Rueckfall 30."""
+    out = subprocess.run(
+        ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries',
+         'stream=avg_frame_rate,r_frame_rate', '-of', 'json', path],
+        capture_output=True, text=True)
+    try:
+        st = json.loads(out.stdout)['streams'][0]
+        for key in ('avg_frame_rate', 'r_frame_rate'):
+            a, b = st[key].split('/')
+            if float(b) > 0 and float(a) > 0:
+                return round(float(a) / float(b), 4)
+    except Exception:
+        pass
+    return 30
+
+
 def ffprobe_duration(path):
     out = subprocess.run(
         ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', path],
@@ -262,9 +279,33 @@ def main():
         # und KEIN Segment-Split (verschiebt die Zeitachse).
         # EIN Abschnitt je Zoom: reinfahren (ramp_in) -> halten -> rausfahren
         # (ramp_out). ramp 0 = sofortiger, harter Zoom.
-        z_expr, x_expr, y_expr = '1', '0.5', '0.5'
-        for z in reversed(zooms):
+        #
+        # SUBPIXELGENAU (30.09.2026): frueher scale (auf gerade Pixel
+        # gerundet) + crop (ganze Pixel). Bei langsamen Fahrten sprang das Bild
+        # dadurch unregelmaessig um bis zu 1,9 px je Bild - sichtbares Zittern
+        # (gemessen per Phasenkorrelation: im Mittel 0,4-0,65 px Ruck je Bild).
+        # Jetzt je Zoom EIN perspective-Filter, der den Quellausschnitt mit
+        # Kommazahlen und kubischer Interpolation aufs Ausgabebild legt: im
+        # Mittel 0,1-0,2 px Ruck, gleiche Schaerfe waehrend des Zooms.
+        # enable= haelt den Filter ausserhalb des Abschnitts aus, dort laeuft
+        # das Bild unangetastet durch (bitgleich; ein dauerhaft aktiver
+        # perspective-Filter wuerde auch ungezoomte Bilder ~20 % weicher machen).
+        # perspective kennt kein t, nur den Bildzaehler 'in' (beginnt bei 1,
+        # zaehlt auch bei ausgeschaltetem Filter weiter) -> t = (in-1)/fps.
+        #
+        # Geometrie unveraendert und IDENTISCH zur Cockpit-Vorschau (CSS
+        # transform-origin): x/y = Bildpunkt, der in die MITTE kommt, am Rand
+        # begrenzt. Frueher im skalierten Bild: crop_x = clip(W*z*x - W/2, 0,
+        # W*(z-1)); durch z geteilt ergibt das die linke Kante im Quellbild:
+        # clip(W*x - W/(2z), 0, W - W/z). NICHT auf "Punkt ins Zentrum" ohne
+        # Begrenzung umbauen, das weicht von der Vorschau ab.
+        fps = video_fps(cfg['input'])
+        tt = '((in-1)/{})'.format(fps)
+        teile = []
+        for i, z in enumerate(zooms):
             s, e = float(z['start']), float(z['end'])
+            if i + 1 < len(zooms):          # Ueberlappung: der fruehere gilt
+                e = min(e, float(zooms[i + 1]['start']))
             if e - s < 0.1:
                 continue
             zv = float(z.get('zoom', 1.15))
@@ -273,29 +314,22 @@ def main():
             ro = max(0.03, float(z.get('ramp_out', 0.6) or 0.03))
             ri = min(ri, (e - s) / 2)
             ro = min(ro, (e - s) / 2)
-            prog = 'max(0,min(1,min((t-{s})/{ri},({e}-t)/{ro})))'.format(
-                s=s, e=e, ri=ri, ro=ro)
-            this_z = '(1+({zv}-1)*{p})'.format(zv=zv, p=prog)
-            cond = 'between(t,{s},{e})'.format(s=s, e=e)
-            z_expr = 'if({c},{a},{b})'.format(c=cond, a=this_z, b=z_expr)
-            x_expr = 'if({c},{v},{b})'.format(c=cond, v=tx, b=x_expr)
-            y_expr = 'if({c},{v},{b})'.format(c=cond, v=ty, b=y_expr)
-        # scale wertet pro Frame aus (eval=frame), crop schneidet daraus das
-        # Zielfenster heraus. Die Formel (iw-W)*x ist mathematisch IDENTISCH
-        # zur Cockpit-Vorschau (CSS transform-origin) — nachgerechnet:
-        # beide zeigen bei y=0.26 und 2x-Zoom den Bereich 0.130-0.630.
-        # NICHT auf "Punkt ins Zentrum" umbauen, das weicht ab!
-        # ACHTUNG: crop kennt iw/ih nur vom ERSTEN Frame (da ist der Zoom noch
-        # 1.0) -> mit (iw-W)*x landet der Ausschnitt immer in der Ecke.
-        # Deshalb die Position direkt aus dem Zoomfaktor rechnen.
-        # Bedeutung von x/y: der Bildpunkt, der in die MITTE kommt.
-        fc.append("{v}scale=w='trunc(iw*({z})/2)*2':h='trunc(ih*({z})/2)*2'"
-                  ":eval=frame,crop={w}:{h}"
-                  ":'clip({w}*({z})*({x})-{w}/2,0,{w}*(({z})-1))'"
-                  ":'clip({h}*({z})*({y})-{h}/2,0,{h}*(({z})-1))'"
-                  ',setsar=1[zvc]'
-                  .format(v=vlabel, z=z_expr, x=x_expr, y=y_expr, w=W, h=H))
-        vlabel = '[zvc]'
+            prog = 'max(0,min(1,min(({t}-{s})/{ri},({e}-{t})/{ro})))'.format(
+                t=tt, s=s, e=e, ri=ri, ro=ro)
+            zz = '(1+({zv}-1)*{p})'.format(zv=zv, p=prog)
+            li = 'clip(W*{x}-W/(2*{z}),0,W-W/{z})'.format(x=tx, z=zz)
+            ob = 'clip(H*{y}-H/(2*{z}),0,H-H/{z})'.format(y=ty, z=zz)
+            re_ = '{l}+W/{z}'.format(l=li, z=zz)
+            un = '{o}+H/{z}'.format(o=ob, z=zz)
+            teile.append(
+                "perspective=x0='{l}':y0='{o}':x1='{r}':y1='{o}'"
+                ":x2='{l}':y2='{u}':x3='{r}':y3='{u}'"
+                ":interpolation=cubic:sense=source:eval=frame"
+                ":enable='between(t,{s},{e})'"
+                .format(l=li, o=ob, r=re_, u=un, s=s, e=e))
+        if teile:
+            fc.append('{v}{k},setsar=1[zvc]'.format(v=vlabel, k=','.join(teile)))
+            vlabel = '[zvc]'
 
     # Finale Dauer (Uebergaenge verkuerzen die Timeline) — frueh berechnen
     _tr = cfg.get('transition') or {}
@@ -390,6 +424,10 @@ def main():
 
     # --- Look: Grade + Grain ----------------------------------------------
     post = []
+    # Farbfilter-Abschnitte aus dem Cockpit (fertige ffmpeg-Kette, von
+    # render_projekt.py aus filter_presets.py gebaut, zeitgesteuert)
+    if cfg.get('farbfilter'):
+        post.append(cfg['farbfilter'])
     g = cfg.get('grade') or {}
     if g.get('enabled'):
         post.append('eq=contrast={}:saturation={}'.format(

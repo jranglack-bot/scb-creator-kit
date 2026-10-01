@@ -89,7 +89,9 @@ zusammengefügt; Altbestand `video` = ein Clip), `duration`, `cuts`
 (start/end/reason/active, `track` `both`/`music`/`voice`), `words`
 (Transkript), `captions` (Stil inkl. box/box_style/group/highlight_on/bold),
 `gains` (`{main}` = Video-Lautstärke), `volumes` (Lautstärke-Abschnitte),
-`music`, `voiceover`, `zooms`, `texts`, `sfx_library` (optionaler Pfad zur
+`music`, `voiceover`, `zooms`, `texts`, `filter` (Farbfilter-Abschnitte,
+siehe 2b-Filter), `spuren_zu` (im Cockpit zugeklappte Spuren, z. B.
+`["sfx","music"]`), `sfx_library` (optionaler Pfad zur
 Soundeffekt-Library), `render` (crf/preset/output),
 `freistellung` (`{von, bis}` in Output-Zeit — render_projekt.py stellt die
 Person selbst frei (gecacht, `freisteller.mkv/.webm`) und legt sie als
@@ -219,9 +221,15 @@ Projektordner, dann in Downloads.
 **Was der Nutzer im Cockpit kann (alles ohne Token):**
 - **Timeline:** ganzes Video, Schnitte rot, Kanten ziehen = trimmen, Mitte
   ziehen = verschieben, freie Fläche aufziehen = neuer Schnitt, Doppelklick
-  = an/aus. Werkzeug-Button: ✂ Schnitt / 🔊 Lautstärke-Abschnitt / 🔍 Zoom.
-  Spuren: Video (blau), ♪ Musik (lila), 🎙 Voiceover (rosa), 📝 Texte (gelb),
-  🔊 Effekte (grün).
+  = an/aus. Feld „Aufziehen =" oben: Schnitt / Lautstärke / Zoom (Tasten
+  1–3). Kanten rasten an Wortanfang/-ende ein (Alt/⌥ = frei ziehen).
+  Klick auf ein Element = markieren (rechts springt die passende Karte auf,
+  Entf löscht). Tasten: ← → ein Bild, Umschalt+← → eine Sekunde, I/O =
+  Schnitt-Anfang/-Ende an der Läuferstelle, Strg+Z/Strg+Y (Mac ⌘Z/⌘⇧Z).
+  Seitenleiste in Reitern: Schnitt · Text · Ton · Bild (Karten aus
+  `cockpit_custom.js` landen unter „Bild").
+  Spuren: Video (blau), Musik (lila), Voiceover (rosa), Texte (gelb),
+  Filter (pink), Effekte (grün).
 - **Timeline-Zoom** (🔍 −/+ links unter der Zeitleiste, oder Mausrad über
   ihr): zoomt zum Läufer bzw. zur Stelle unter der Maus. Beim Abspielen
   fährt die Ansicht mit. Klick auf die Prozentzahl = wieder ganze Zeitleiste.
@@ -406,7 +414,15 @@ wenn das Script mal nicht reicht.
 
 `videos` = Liste von Clips, die NACHEINANDER laufen (Talking-Head 1, 2, …).
 render_projekt/vorschau fügen sie zusammen (ffmpeg concat, alle auf
-1080×1920 normalisiert) → EIN Quellvideo. Darauf wirken die `cuts` (nur
+1080×1920 normalisiert) → EIN Quellvideo. Verlustfrei aneinandergehängt
+wird nur, wenn alle Clips in ALLEN Stream-Eigenschaften gleich sind (auch
+Farbkennung); sonst wird neu kodiert und die Farbkennung vereinheitlicht —
+sonst ging am Clipwechsel Bild verloren. Im Cockpit hängt der Nutzer Clips
+über „Weiteres anhängen" (Dateien im Projektordner) oder „📁 Video von
+woanders" an. Steht in `videos` ein Name, den es im Projektordner nicht
+gibt, hat der Nutzer ihn von woanders angehängt: nach dem Ort fragen (oder
+suchen), Datei in den Projektordner kopieren, build_editor laufen lassen —
+erst dann rendern. Darauf wirken die `cuts` (nur
 aktive; `track` `both` = Video). **Schnitte sind QUELLzeit** (Zeit im
 zusammengefügten Video, genau wie auf der Cockpit-Timeline gezogen) — DIREKT
 verwenden, KEINE Umrechnung. `music`/`voice`-Schnitte betreffen nur die
@@ -468,6 +484,11 @@ geschoben hat, stimmen die Untertitel-Wortzeiten nicht mehr: der Untertitel
 läuft dem Ton voraus und steht stellenweise doppelt im Bild. Danach immer
 `reel-aufzaehlung/scripts/stimme_synchronisieren.py <projekt.json>` laufen
 lassen. Das ganze Verfahren steht im Skill `reel-aufzaehlung`.
+
+**Länge:** ohne `len` läuft der Effekt so lang, wie die Datei ist —
+build_editor.py misst dafür jede verwendete Datei (auch Pfade außerhalb der
+Library, Ergebnis in `_sfxlib.dauer`), das Cockpit zeigt und spielt die
+volle Länge. `len` nur setzen, wenn er bewusst KÜRZER sein soll.
 
 Bedienung: Kategorie + Effekt in der Kachel wählen, dann **auf die
 🔊-Spur klicken** = Effekt an dieser Stelle; **aufziehen** = Effekt mit
@@ -554,7 +575,7 @@ als ein einziger sfx-Eintrag eingemischt wird.
 reinziehen, per zoompan subpixel-flüssig) oder `fest` (harter Punch-In).
 `ramp` = Sekunden bis voller Zoom (Geschwindigkeit; ohne Angabe = ganze
 Abschnittslänge, danach hält der Zoom). „Zoom langsamer/schneller" vom
-User = nur `ramp` ändern. Cockpit: Werkzeug 🔍, Abschnitt auf einer
+User = nur `ramp` ändern. Cockpit: „Aufziehen = Zoom", Abschnitt auf einer
 Videospur aufziehen, ⌖-Punkt im Video auf das Ziel ziehen — Live-Vorschau
 zoomt Video + PiP (Untertitel/Texte bleiben ungezoomt, exakt wie der
 Render). render_projekt.py reicht sie (Zeiten verschoben) als
@@ -562,6 +583,39 @@ prolook-`zooms` durch. **„Zoom auf mein Gesicht" per Zuruf:** 1 Frame an
 der Stelle ziehen (`ffmpeg -ss <t> -frames:v 1`), ansehen, Gesichtszentrum
 als x/y schätzen (Anteile!), zooms-Eintrag in projekt.json setzen,
 build_editor — der User sieht den ⌖ im Cockpit und kann nachjustieren.
+
+### 2b-Filter. Farbfilter-Abschnitte (Cockpit-Spur „🎨 Filter")
+
+`P.filter` = `[{start, end, preset, staerke}]` — Timeline-Zeiten wie
+Texte (Rohzeit, render_projekt.py verschiebt sie um die Schnitte),
+`staerke` 0.1–1. `preset`: `sw`, `noir`, `sepia`, `retro`, `warm`, `kalt`,
+`kraeftig`, `matt`, `heller`, `dunkler`. Die Rezepte stehen an EINER
+Stelle: `scripts/filter_presets.py` — build_editor.py gibt dem Cockpit
+dieselben Schritte mit (`_filterlib`), mit denen der Render rechnet. Die
+Vorschau nutzt nur CSS-Filter (saturate/contrast/brightness/sepia) plus
+eine Farbschicht „Multiplizieren" für warm/kalt — das kann auch Safari
+(SVG-Filter zeigt Safari auf laufendem Video NICHT an, deshalb keine).
+Vorschau und fertiges Video stimmen überein (gemessen 01.10.2026: Browser
+gegen ffmpeg höchstens 3/255 Abweichung). Neue Rezepte nur aus diesen
+Schritten bauen. Überlappen zwei Abschnitte, gewinnt der später
+beginnende — im Cockpit wie im Render. Per Zuruf („mach 3–6 s schwarz-weiß")
+einfach einen Eintrag setzen und build_editor laufen lassen. Ein neues
+Rezept = nur `PRESETS` in filter_presets.py ergänzen, sonst nichts.
+
+### 2b-Spuren. Spurenleiste, Ebenen und Nummern im Cockpit
+
+Links neben der Zeitleiste stehen die Spuren wie Ordner: ▾/▸ klappt auf
+und zu (gespeichert als `spuren_zu`, das kann Claude auch selbst setzen),
+Klick auf den Namen springt zur Spur, ‹ › springt zum vorigen/nächsten
+Element dieser Spur. Mausrad über der Leiste (oder Umschalt + Mausrad über
+den Spuren) = Spuren hoch/runter; Mausrad über den Spuren = Zoom wie bisher.
+Effekte, die sich zeitlich überschneiden, legt das Cockpit selbst auf
+eigene Ebenen („↳ Ebene 2" …) — in den Daten ändert sich dadurch nichts.
+Alles ist nummeriert, in der Spur und rechts in der Liste gleich:
+**Cut 1, 2, 3 …**, Effekte, Texte, Filter und Zooms je ab 1, in
+Zeitreihenfolge. Spricht der Nutzer von „Cut 3" oder „Effekt 2", ist das
+der dritte Schnitt bzw. zweite Effekt nach Startzeit (alle Schnitte
+mitgezählt, auch inaktive).
 
 ### 2b-Texte. Freie Text-Overlays (Hook & Titel, B-Roll)
 

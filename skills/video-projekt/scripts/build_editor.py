@@ -94,9 +94,15 @@ def build_waveforms(projekt, projdir, sfx_wellen=None):
     weil das Cockpit sie ueber denselben Weg nachlaedt — und NICHT in
     projekt_data.js, das alle 2,5 s neu geholt wird.
     """
+    # ALLE Clips (Feld "videos") plus anhaengbare Kandidaten — frueher nur das
+    # alte Einzelfeld "video", deshalb fehlte die Tonspur, sobald ein Projekt
+    # mit der Clip-Liste arbeitete. Gecacht wird je Datei, das kostet nur
+    # beim ersten Mal.
     videos = []
-    if projekt.get('video'):
-        videos.append(projekt['video'])
+    for v in ([projekt.get('video')] + list(projekt.get('videos') or [])
+              + list(projekt.get('_dateien') or [])):
+        if v and v not in videos:
+            videos.append(v)
     src = (projekt.get('pip') or {}).get('source')
     if src and src not in videos:
         videos.append(src)
@@ -411,6 +417,32 @@ def build_sfxlib(projekt, projdir):
                     k['name'] += ' (' + os.path.basename(basis) + ')'
                 kategorien.append(k)
 
+    # 3. Effekte, die schon im Projekt STEHEN, immer vermessen — auch wenn
+    #    sie in keiner Bibliothek liegen (Kit-Sounds, relative Pfade, Dateien
+    #    ueber SFX_MAX_DAUER). Sonst kennt das Cockpit ihre Laenge nicht,
+    #    zeichnet sie pauschal 0,6 s breit und bricht die Vorschau genau dort
+    #    ab — so waren laengere Effekte "nur eine Sekunde drin".
+    #    Schluessel ist der Dateiname GENAU so, wie er im Event steht.
+    dauer = {}
+    for ev in ((projekt.get('effekte') or {}).get('sfx') or []):
+        roh = str(ev.get('file') or '')
+        if not roh or roh in dauer:
+            continue
+        pfad = roh if os.path.isabs(roh) else os.path.join(projdir, roh)
+        info = eintrag(pfad)
+        if info:
+            d, welle = info['d'], wellen.get(info['f'])
+        else:
+            try:
+                m = sound_messen(pfad)     # zu lang fuer die Bibliothek
+            except Exception:
+                continue
+            d, welle = m['d'], {'d': m['d'], 'p': m.get('p') or []}
+        if d > 0:
+            dauer[roh] = d
+            if welle:
+                wellen[roh] = welle
+
     if neu:
         try:
             os.makedirs(KIT_HOME, exist_ok=True)
@@ -426,7 +458,7 @@ def build_sfxlib(projekt, projdir):
     elif ordner:
         print('Hinweis: In', ordner[0], 'keine Audiodateien gefunden.')
     return ({'ordner': [o.replace('\\', '/') for o in ordner],
-             'kategorien': kategorien}, wellen)
+             'kategorien': kategorien, 'dauer': dauer}, wellen)
 
 
 def main():
@@ -437,9 +469,20 @@ def main():
     projekt['rev'] = int(time.time())
     # Videodateien im Projektordner -> Dropdown "anderes kleines Video"
     # (nur Anzeige-Info; das Cockpit speichert _dateien nicht zurueck)
+    # Render-Zwischenstaende und fertige Ausgaben gehoeren nicht in die
+    # Auswahl "weiteres Video anhaengen" — sonst haengt man aus Versehen das
+    # eigene Ergebnis hinten an.
+    ausgabe = str((projekt.get('render') or {}).get('output') or '').lower()
+
+    def ist_renderdatei(f):
+        n = f.lower()
+        return (n.startswith('r_') or n.endswith('_final.mp4') or n == ausgabe
+                or n in ('final.mp4', '01_schnitt.mp4'))
+
     projekt['_dateien'] = sorted(
         f for f in os.listdir(projdir)
-        if f.lower().endswith(('.mp4', '.mov', '.mkv', '.m4v')))
+        if f.lower().endswith(('.mp4', '.mov', '.mkv', '.m4v'))
+        and not ist_renderdatei(f))
     projekt['_audiodateien'] = sorted(
         f for f in os.listdir(projdir)
         if f.lower().endswith(('.mp3', '.wav', '.m4a', '.aac', '.ogg',
@@ -449,17 +492,24 @@ def main():
     # wuesste sonst nicht, wo Clip 1 endet und Clip 2 beginnt.
     vids = projekt.get('videos') or ([projekt['video']]
                                      if projekt.get('video') else [])
-    dauern = []
-    for v in vids:
-        p = os.path.join(projdir, v)
+
+    def ffdauer(name):
         try:
             out = subprocess.run(
                 ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-                 '-of', 'csv=p=0', p], capture_output=True, text=True,
-                check=True).stdout.strip()
-            dauern.append(round(float(out), 3))
+                 '-of', 'csv=p=0', os.path.join(projdir, name)],
+                capture_output=True, text=True, check=True).stdout.strip()
+            return round(float(out), 3)
         except Exception:
-            dauern.append(0)
+            return 0
+
+    # Laengen ALLER Kandidaten, nicht nur der aktuellen Clips: haengt der
+    # Nutzer im Cockpit ein weiteres Video an, steht dessen Laenge sofort
+    # bereit. Ohne das blieb der neue Clip 0 s lang und tauchte in der
+    # Zeitleiste nie auf.
+    alle = list(dict.fromkeys(list(vids) + projekt['_dateien']))
+    projekt['_dateidauern'] = {n: ffdauer(n) for n in alle}
+    dauern = [projekt['_dateidauern'].get(v, 0) for v in vids]
     projekt['_clipdauern'] = dauern
     if dauern and all(d > 0 for d in dauern):
         projekt['duration'] = round(sum(dauern), 2)
@@ -467,6 +517,10 @@ def main():
     # Soundeffekt-Library fuer die 🔊-Spur (Anzeige-Info wie _dateien; das
     # Cockpit speichert sie nicht zurueck)
     projekt['_sfxlib'], sfx_wellen = build_sfxlib(projekt, projdir)
+    # Farbfilter fuer die 🎨-Spur: dieselben Matrizen, die der Render nimmt
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import filter_presets
+    projekt['_filterlib'] = filter_presets.bibliothek()
 
     payload = json.dumps(projekt, ensure_ascii=False)
     payload = payload.replace('</', '<\\/')

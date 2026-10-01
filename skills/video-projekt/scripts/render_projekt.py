@@ -128,6 +128,20 @@ def untertitel_y_regionen(ass_pfad, regionen, playresx=1080, playresy=1920):
         f.write('\n'.join(raus))
 
 
+def clip_kennung(path):
+    """Alles, was beim verlustfreien Aneinanderhaengen gleich sein muss."""
+    felder = ('codec_name,profile,width,height,pix_fmt,sample_aspect_ratio,'
+              'r_frame_rate,time_base,color_range,color_space,color_transfer,'
+              'color_primaries,sample_rate,channels,channel_layout')
+    try:
+        return subprocess.run(
+            ['ffprobe', '-v', 'error', '-show_entries', 'stream=' + felder,
+             '-of', 'compact', path],
+            capture_output=True, text=True).stdout.strip() or path
+    except Exception:
+        return path          # im Zweifel: nicht gleich -> sicherer Weg
+
+
 def has_video(path):
     out = subprocess.run(
         ['ffprobe', '-v', 'error', '-select_streams', 'v', '-show_entries',
@@ -323,20 +337,32 @@ def main():
     if len(videos) > 1:
         # SCHNELLWEG: Haben alle Clips dieselben Parameter, koennen sie ohne
         # Neuberechnung aneinandergehaengt werden (Sekunden statt Minuten).
+        # Nur wenn ALLE Stream-Eigenschaften gleich sind — auch die Farb-
+        # Kennungen. Sonst baut ffmpeg beim Schneiden am Clipwechsel die
+        # Filterkette neu auf, die Bildzaehlung beginnt wieder bei null und
+        # der zweite Clip ueberschreibt den ersten (gemessen 01.10.2026:
+        # 8 s + 6 s ergaben 6 s Bild bei 12 s Ton).
+        gleich = len(set(clip_kennung(v) for v in videos)) == 1
         with open('r_concat.txt', 'w', encoding='utf-8') as f:
             for v in videos:
                 f.write("file '{}'\n".format(v))
         schnell = subprocess.run(
             ['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0',
              '-i', 'r_concat.txt', '-c', 'copy', 'r_source.mp4'],
-            capture_output=True)
-        if schnell.returncode != 0 or not os.path.exists('r_source.mp4'):
+            capture_output=True) if gleich else None
+        if (not gleich or schnell.returncode != 0
+                or not os.path.exists('r_source.mp4')):
             parts = []
             for i, v in enumerate(videos):
                 p = 'r_clip{}.mp4'.format(i)
                 run(['ffmpeg', '-y', '-v', 'error', '-i', v, '-vf',
                      'scale=1080:1920:force_original_aspect_ratio=decrease,'
-                     'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1', '-r', '30']
+                     'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1,'
+                     # einheitliche Farbkennung, sonst stolpert das
+                     # Schneiden wieder am Clipwechsel (siehe oben)
+                     'scale=out_color_matrix=bt709:out_range=tv,'
+                     'setparams=range=tv:colorspace=bt709:'
+                     'color_primaries=bt709:color_trc=bt709', '-r', '30']
                     + video_encoder({}, zwischenstufe=True)
                     + ['-c:a', 'aac', '-b:a', '192k', '-ar', '48000', p])
                 parts.append(p)
@@ -390,6 +416,10 @@ def main():
     for k in ('crf', 'preset'):
         if render.get(k):
             cfg[k] = render[k]
+    # "hardware": false (CPU erzwingen, steht so in SKILL.md) kam frueher nie
+    # an, weil render.get() den Wert False wie "nicht gesetzt" behandelt hat.
+    if 'hardware' in render:
+        cfg['hardware'] = bool(render['hardware'])
     if abs(g_main - 1.0) > 0.001:
         cfg['audio_gain'] = g_main
 
@@ -467,6 +497,15 @@ def main():
             zooms.append(dict(z, start=round(s, 2), end=round(e, 2)))
     if zooms:
         cfg['zooms'] = zooms
+
+    # --- Farbfilter (🎨-Spur im Cockpit) -----------------------------------
+    # Zeiten wie Texte in Timelinezeit; Matrizen aus filter_presets.py —
+    # dieselben Zahlen, mit denen das Cockpit die Vorschau zeigt.
+    import filter_presets
+    farb = filter_presets.abschnitte(pj.get('filter'),
+                                     lambda t: shift(t, master_lane))
+    if farb:
+        cfg['farbfilter'] = filter_presets.ffmpeg_filter(farb)
 
     # --- Musik: Startpunkt + Musik-Schnitte + Abschnitte -------------------
     mus = pj.get('music') or {}

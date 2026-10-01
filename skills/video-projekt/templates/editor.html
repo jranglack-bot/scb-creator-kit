@@ -15,7 +15,7 @@ header h1 { font-size:16px; font-weight:700; white-space:nowrap;
   letter-spacing:.2px;
   background:linear-gradient(180deg,#fff 30%,#c9ccd6 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent; }
-header .hint { font-size:11.5px; opacity:.5; flex:1; line-height:1.4; }
+header .spacer { flex:1; min-width:4px; }
 button { background:linear-gradient(180deg,#343947 0%,#282c37 100%);
   color:#e9eaf0; border:1px solid rgba(255,255,255,.07); border-radius:9px;
   padding:8px 14px; font-size:13px; cursor:pointer; white-space:nowrap;
@@ -32,6 +32,16 @@ button.primary:hover { background:linear-gradient(180deg,#FFE976 0%,#FFD400 100%
 button.on { border-color:#FFD400;
   box-shadow:0 0 0 1px #FFD400, 0 0 14px rgba(255,212,0,.28); }
 #bPlay { font-size:16px; width:46px; }
+/* Segment-Schalter: EIN Feld, drei Zustaende, der aktive ist hervorgehoben */
+.seg { display:flex; align-items:center; gap:2px; padding:3px;
+  border-radius:11px; background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.07); }
+.seg .seglbl { font-size:11px; opacity:.5; padding:0 6px 0 7px; white-space:nowrap; }
+.seg button { background:none; border:1px solid transparent; box-shadow:none;
+  padding:6px 11px; border-radius:8px; opacity:.7; }
+.seg button:hover { background:rgba(255,255,255,.06); opacity:1; }
+.seg button.on { opacity:1; background:linear-gradient(180deg,#3f4557 0%,#313644 100%);
+  border-color:rgba(255,212,0,.55); box-shadow:0 0 10px rgba(255,212,0,.15); }
 #tc { font-variant-numeric:tabular-nums; font-size:13px; opacity:.8;
   min-width:110px; text-align:center; }
 #banner { display:none; background:#3a2f10; border-bottom:1px solid #FFD400;
@@ -262,13 +272,15 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
 #tlzoomui button { padding:1px 8px; font-size:12px; line-height:1.2; }
 #tlZoomLbl { min-width:40px; text-align:center; cursor:pointer;
   font-variant-numeric:tabular-nums; }
-#tl { position:relative; height:72px; display:flex; flex-direction:column;
+#tl { position:relative; display:flex; flex-direction:column;
   gap:4px; cursor:pointer; }
-#tl .lane { position:relative; flex:1; border-radius:9px;
+#tl .lane { position:relative; flex:none; height:46px; border-radius:9px;
   background:linear-gradient(180deg,#242832 0%,#1e222b 100%);
   box-shadow:0 1px 0 rgba(255,255,255,.05) inset,
     0 2px 8px rgba(0,0,0,.28); }
-#tl > .cut { z-index:2; }
+/* Cuts liegen UEBER Zoom-Abschnitten: sonst verdeckt ein Zoom die
+   Schnittkanten, und man bekommt sie nicht mehr zu fassen */
+#tl > .cut, #tl .lane > .cut { z-index:3; }
 #tl .clipmark { position:absolute; top:0; bottom:0; pointer-events:none;
   border-left:2px solid rgba(255,255,255,.35); font-size:10px; z-index:1;
   color:rgba(255,255,255,.55); padding:2px 0 0 5px; overflow:hidden;
@@ -310,12 +322,72 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
   background:#FFD400; color:#16181d; font-size:11px; font-weight:700;
   padding:2px 7px; border-radius:6px; pointer-events:none; z-index:4;
   font-variant-numeric:tabular-nums; white-space:nowrap; }
-#phgrab { position:absolute; top:4px; bottom:0; width:18px;
+/* Greifbereich des Laeufers nur oben auf der Zeitskala — reichte er ueber
+   alle Spuren, verdeckte er die Kante, an die der Laeufer nach dem Trimmen
+   springt, und man griff beim Nachziehen den Laeufer statt der Kante. */
+#phgrab { position:absolute; top:4px; height:28px; width:18px;
   transform:translateX(-50%); cursor:grab; z-index:5; }
 #phgrab:active { cursor:grabbing; }
 #phgrab::after { content:''; position:absolute; top:0; left:50%;
   transform:translateX(-50%); border:8px solid transparent;
   border-top:10px solid #FFD400; }
+/* Spuren wie Ordner: links die Namen (auf-/zuklappen, springen), rechts die
+   Spuren. Beide scrollen gemeinsam senkrecht, sobald es mehr Spuren gibt,
+   als Platz ist. Waagrecht (Zoom) scrollt nur #tlwrap. */
+:root { --tlmax: clamp(110px, 26vh, 236px); }
+#tlrow { display:flex; gap:8px; align-items:flex-start; }
+#tlwrap { flex:1; min-width:0; }
+#tlv { overflow-y:auto; overflow-x:hidden; max-height:var(--tlmax);
+  scrollbar-width:none; overscroll-behavior-y:contain; }
+#tlv::-webkit-scrollbar { display:none; }
+#trackhead { width:158px; flex:none; display:flex; flex-direction:column; }
+#thkopf { height:30px; flex:none; display:flex; align-items:flex-end;
+  padding:0 0 3px 4px; font-size:10px; opacity:.5; gap:6px; }
+#thkopf button { padding:0 5px; font-size:10px; background:none; opacity:.8; }
+#thmehr { display:none; margin-top:4px; padding:2px 8px; font-size:10px;
+  border-radius:7px; background:rgba(255,212,0,.12); color:#FFD400;
+  border:1px solid rgba(255,212,0,.35); box-shadow:none; }
+#thlist { display:flex; flex-direction:column; gap:4px; overflow-y:auto;
+  overflow-x:hidden; max-height:var(--tlmax); scrollbar-width:thin;
+  overscroll-behavior-y:contain; }
+.throw { flex:none; display:flex; align-items:center; gap:3px; padding:0 4px 0 2px;
+  font-size:11px; border-radius:7px; background:#1f232b; cursor:pointer;
+  overflow:hidden; white-space:nowrap; box-sizing:border-box;
+  border:1px solid rgba(255,255,255,.04); }
+.throw:hover { background:#272c36; }
+.throw .tog { width:14px; text-align:center; opacity:.7; flex:none; }
+.throw .nm { flex:1; overflow:hidden; text-overflow:ellipsis; }
+.throw .cnt { opacity:.5; font-size:10px; font-variant-numeric:tabular-nums; }
+.throw .j { padding:0 4px; font-size:11px; background:none; opacity:.55; line-height:1; }
+.throw .j:hover { opacity:1; background:#313642; }
+.throw.unter .nm { padding-left:10px; opacity:.75; }
+.throw.zu { font-size:10px; }
+.throw.zu .j { display:none; }
+.throw.blink, #tl .lane.blink { box-shadow:0 0 0 1px #FFD400 inset; }
+#tl .lane.zu { height:16px; }
+#tl .lane.zu canvas.wave, #tl .lane.zu .lanelbl, #tl .lane.zu .h,
+#tl .lane.zu .slbl, #tl .lane.zu .tlbl, #tl .lane.zu .vlbl,
+#tl .lane.zu .flbl, #tl .lane.zu .clipmark, #tl .lane.zu .nr { display:none !important; }
+/* Nummern: Cut 1, 2, 3 … / Effekt 1, 2 … — gleich in Spur und Liste */
+#tl .nr { position:absolute; left:3px; top:2px; font-size:9px; font-weight:800;
+  line-height:12px; color:#fff; background:rgba(0,0,0,.5); border-radius:4px;
+  padding:0 3px; pointer-events:none; z-index:3; }
+.lnr { display:inline-block; min-width:18px; text-align:center; font-size:10px;
+  font-weight:800; color:#16181d; border-radius:5px; padding:0 4px;
+  background:#c9ccd6; flex:none; }
+/* Farbschicht fuer warm/kalt: multipliziert je Kanal — dieselbe Rechnung
+   wie der „tint"-Schritt im Render. Liegt IN #zoomwrap, damit der
+   CSS-Filter von #zoomwrap erst danach wirkt (Reihenfolge wie im Render). */
+#fxtint { position:absolute; inset:0; pointer-events:none; display:none;
+  mix-blend-mode:multiply; z-index:6; }
+#tl .flt { position:absolute; top:0; bottom:0; cursor:grab; z-index:2;
+  background:rgba(255,122,217,.22); border:1px solid rgba(255,122,217,.8);
+  border-radius:4px; }
+#tl .flt.creating { background:rgba(255,122,217,.35); border-style:dashed; }
+#tl .flt .flbl { position:absolute; left:4px; bottom:2px; font-size:10px;
+  color:#ffc4ef; pointer-events:none; white-space:nowrap; overflow:hidden;
+  right:4px; }
+#tl .flt .h::before { background:#ff7ad9; }
 #tlinfo { display:flex; justify-content:space-between; font-size:11px;
   opacity:.55; margin-top:6px; }
 #songwrap { position:relative; height:30px; margin-top:8px; background:#1a1d23;
@@ -333,18 +405,199 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
 .cue input { flex:1; min-width:0; background:#313642; border:0; border-radius:6px;
   color:#e8e8ee; padding:4px 8px; font-size:12px; user-select:text; }
 .cue input:focus { outline:2px solid #FFD400; }
+/* ======================================================================
+   LOOK — ruhige, edle Oberflaeche. Alle Farben kommen aus den Variablen
+   unten; die Grundregeln oben bleiben fuer Aufbau und Abstaende zustaendig.
+   Spurfarben (Schnitt rot, Text gelb …) bleiben bewusst bunt: sie tragen
+   Bedeutung. Alles andere ist zurueckgenommen.
+   ====================================================================== */
+:root {
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text',
+    'Segoe UI', 'Inter', system-ui, sans-serif;
+  --bg:#0b0b0d; --panel:#111113; --card:#17171a; --lane:#1a1a1e;
+  --stage:#060607; --btn:#1d1d21; --btnh:#26262b;
+  --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.15);
+  --txt:#ecebe6; --txt2:#8f8d87;
+  --acc:#d4af6a; --acc-auf:#1a150b; --acc-weich:rgba(212,175,106,.12);
+  --r:8px; --r2:12px;
+}
+body { font-family:var(--font); background:var(--bg); color:var(--txt);
+  letter-spacing:0; }
+.ic { width:16px; height:16px; flex:none; fill:none; stroke:currentColor;
+  stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; }
+/* Kopfzeile */
+header { background:var(--panel); border-bottom:1px solid var(--line);
+  box-shadow:none; padding:10px 16px; gap:10px; }
+.brand { display:flex; align-items:center; gap:10px; margin-right:6px; }
+.brand .logo { color:var(--acc); display:flex; }
+.brand .logo .ic { width:26px; height:26px; stroke-width:1.5; }
+.brand .bt { display:flex; flex-direction:column; line-height:1.15; }
+.brand b { font-size:14px; font-weight:600; letter-spacing:.2px; white-space:nowrap; }
+.brand small { font-size:10px; color:var(--txt2); letter-spacing:1.4px;
+  text-transform:uppercase; white-space:nowrap; }
+button { display:inline-flex; align-items:center; gap:7px; font-family:var(--font);
+  background:var(--btn); color:var(--txt); border:1px solid var(--line);
+  border-radius:var(--r); box-shadow:none; padding:7px 12px; font-weight:500;
+  font-size:12.5px; }
+button:hover { background:var(--btnh); border-color:var(--line2); }
+button:active { box-shadow:none; }
+button.on { background:var(--btnh); border-color:var(--line2); box-shadow:none; }
+button.primary { background:var(--acc); color:var(--acc-auf); border-color:transparent;
+  box-shadow:none; font-weight:600; }
+button.primary:hover { background:var(--acc); filter:brightness(1.08); }
+button.primary.on { box-shadow:none; }
+button.nurico { padding:7px 9px; }
+#bPlay { width:36px; height:36px; padding:0; border-radius:50%;
+  justify-content:center; background:var(--txt); color:#0b0b0d; border:0; }
+#bPlay:hover { background:var(--txt); filter:brightness(.92); }
+#bPlay .ic { width:15px; height:15px; }
+#tc { color:var(--txt2); font-size:12.5px; min-width:104px; opacity:1; }
+.chip { background:transparent; color:var(--txt2); }
+.chip:hover { color:var(--txt); }
+.chip.on { color:var(--txt); background:var(--acc-weich);
+  border-color:color-mix(in srgb, var(--acc) 45%, transparent); }
+.chip.on .ic { color:var(--acc); }
+.seg { background:rgba(0,0,0,.22); border:1px solid var(--line);
+  border-radius:calc(var(--r) + 3px); }
+.seg .seglbl { color:var(--txt2); opacity:1; }
+.seg button { background:none; border-color:transparent; color:var(--txt2);
+  opacity:1; padding:6px 10px; }
+.seg button:hover { background:var(--btn); color:var(--txt); }
+.seg button.on { background:var(--btnh); color:var(--txt);
+  border-color:var(--line2); box-shadow:none; }
+.seg button.on .ic { color:var(--acc); }
+#banner { background:var(--acc-weich); border-bottom:1px solid var(--acc); }
+#toast { background:var(--card); color:var(--txt); border:1px solid var(--line2);
+  box-shadow:0 12px 40px rgba(0,0,0,.55); font-weight:500; }
+#toast { background:#202024; }
+/* Buehne */
+#stagewrap { background:var(--stage); }
+#stage { box-shadow:0 30px 80px rgba(0,0,0,.6); }
+#zoomui { background:var(--panel); border:1px solid var(--line); }
+#zoomui button { padding:3px 9px; }
+#bigplay { color:#fff; opacity:.9; }
+/* Seitenleiste */
+aside { background:var(--panel); border-left:1px solid var(--line); box-shadow:none;
+  width:316px; padding:14px 14px 70px; }
+details.card { background:var(--card); border:1px solid var(--line);
+  border-radius:var(--r2); box-shadow:none; padding:0 14px 6px; margin-bottom:10px; }
+details.card:hover { border-color:var(--line2); }
+details.card[open] { box-shadow:none; }
+details.card > summary { color:var(--txt2); opacity:1; font-size:10.5px;
+  letter-spacing:1.3px; padding:12px 0; }
+details.card > summary:hover { color:var(--txt); }
+details.card[open] > summary { border-bottom:1px solid var(--line); margin-bottom:11px; }
+.row label { color:var(--txt2); opacity:1; }
+select { background:var(--btn); border:1px solid var(--line); color:var(--txt);
+  border-radius:calc(var(--r) - 2px); font-family:var(--font); }
+select option, select optgroup { background:#1d1d21; color:var(--txt); }
+input[type=range] { background:var(--line2); height:3px; box-shadow:none; }
+input[type=range]::-webkit-slider-thumb { background:var(--txt);
+  box-shadow:0 0 0 3px var(--card); width:13px; height:13px; }
+input[type=range]::-webkit-slider-thumb:hover { background:var(--acc); }
+input[type=checkbox] { accent-color:var(--acc); }
+#cutlist .c, #vollist .c, #textlist .c, #zoomlist .c, #sfxlist .c, #filtlist .c {
+  background:var(--lane); border-color:var(--line); box-shadow:none; }
+.nb { background:var(--btn); }
+.cue input { background:var(--btn); color:var(--txt); }
+.cue input:focus { outline-color:var(--acc); }
+/* Zeitleiste */
+footer { background:var(--panel); border-top:1px solid var(--line); box-shadow:none; }
+#tl .lane { background:var(--lane); border:1px solid var(--line);
+  border-radius:var(--r); box-shadow:none; }
+.throw { background:var(--lane); border-color:var(--line); border-radius:var(--r); }
+.throw:hover { background:var(--btn); }
+.throw .nm { display:flex; align-items:center; gap:7px; color:var(--txt); }
+.throw .nm i { display:flex; font-style:normal; }
+.throw .nm i .ic { width:14px; height:14px; }
+.throw .nm i.leer { color:var(--txt2); padding:0 2px 0 3px; }
+.throw .cnt, .throw .tog { color:var(--txt2); opacity:1; }
+#thkopf { color:var(--txt2); opacity:1; }
+#thkopf button { background:none; border:0; color:var(--txt2); }
+#thmehr { background:var(--acc-weich); color:var(--acc);
+  border-color:color-mix(in srgb, var(--acc) 40%, transparent); }
+#ruler { color:var(--txt2); opacity:1; }
+#playhead { background:var(--acc); }
+#phlabel { background:var(--acc); color:var(--acc-auf); }
+#phgrab::after { border-top-color:var(--acc); }
+#songwrap { background:var(--lane); border:1px solid var(--line); }
+#tlinfo { color:var(--txt2); opacity:1; }
+/* Loeschen / Anhoeren als Strichsymbol (Emoji im Text bleibt fuer
+   Screenreader, wird aber nicht gezeichnet) */
+.del, .hear, #sfxHear { font-size:0 !important; display:inline-flex;
+  align-items:center; justify-content:center; min-width:26px; min-height:24px; }
+.del::before, .hear::before, #sfxHear::before { content:''; width:14px; height:14px;
+  background:currentColor; -webkit-mask:var(--m) center/contain no-repeat;
+  mask:var(--m) center/contain no-repeat; }
+.del { --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6'/%3E%3C/svg%3E"); color:var(--txt2); opacity:1; }
+.del:hover { color:#ff8a8a; background:none; }
+.hear, #sfxHear { --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4.5v15l12.5-7.5z' fill='black'/%3E%3C/svg%3E"); }
+#cutlist .t, #vollist .t, #zoomlist .t, #textlist .t, #filtlist .t, #sfxlist .t {
+  white-space:nowrap; }
+#cutlist .reason { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* Reiter oben in der Seitenleiste */
+#reiter { position:sticky; top:-14px; z-index:5; display:flex; gap:2px;
+  margin:-14px -14px 12px; padding:10px 12px; background:var(--panel);
+  border-bottom:1px solid var(--line); }
+#reiter button { flex:1; justify-content:center; gap:6px; padding:7px 4px;
+  background:none; border:1px solid transparent; color:var(--txt2); font-size:12px; }
+#reiter button:hover { color:var(--txt); background:var(--btn); }
+#reiter button.on { color:var(--txt); background:var(--btnh); border-color:var(--line2); }
+#reiter button.on .ic { color:var(--acc); }
+#reiter .ic { width:14px; height:14px; }
+aside[data-tab="schnitt"] details.card[data-tab]:not([data-tab="schnitt"]),
+aside[data-tab="text"] details.card[data-tab]:not([data-tab="text"]),
+aside[data-tab="ton"] details.card[data-tab]:not([data-tab="ton"]),
+aside[data-tab="bild"] details.card[data-tab]:not([data-tab="bild"]) {
+  display:none !important; }
+/* Markiertes Element: in der Spur und rechts in der Liste */
+#tl .sel { outline:2px solid var(--acc); outline-offset:1px; z-index:4; }
+aside .c.sel { border-color:var(--acc) !important;
+  box-shadow:0 0 0 1px var(--acc) inset !important; }
+/* Schnitt-Anfang (Taste I) */
+#inmark { position:absolute; top:0; bottom:0; width:0; z-index:4;
+  border-left:2px dashed var(--acc); pointer-events:none; }
+#tlzoomui .ic { width:13px; height:13px; }
+/* Kopfzeile bei schmaleren Fenstern: erst Zusatztexte weg, dann werden die
+   Schalter zu reinen Symbolen (Name steht im Tooltip) */
+header > * { flex:none; }
+header > .spacer { flex:1; }
+@media (max-width:1480px) { .seg .seglbl, .brand small { display:none; } }
+@media (max-width:1400px) { .chip .lbl { display:none; } .chip { padding:7px 9px; } }
+@media (max-width:1180px) { .seg button .lbl { display:none; } .brand .bt { display:none; } }
+#tlzoomui button { padding:1px 8px; }
+#songwin { background:color-mix(in srgb, #be8cff 16%, transparent);
+  border-color:color-mix(in srgb, #be8cff 60%, transparent); }
+#tl .lanelbl { color:var(--txt2) !important; opacity:.6; }
+/* Instagram-Zonen: feine Markierung statt grober Schraffur */
+.zone { background:rgba(255,80,80,.07); border:1px dashed rgba(255,110,110,.55); }
+.zone span { color:#ffb3b3; background:rgba(10,10,12,.72); font-weight:600;
+  font-size:10.5px; letter-spacing:.3px; border:1px solid rgba(255,110,110,.35);
+  backdrop-filter:blur(6px); }
 </style></head><body>
 <header>
-  <h1>🎬 SCB Video-Cockpit</h1>
-  <button id="bPlay" title="Leertaste">▶</button>
+  <div class="brand"><span class="logo" data-ico="logo"></span><span class="bt"><b>Video-Cockpit</b><small>SCB Creator Kit</small></span></div>
+  <button id="bPlay" title="Abspielen / Pause (Leertaste)"></button>
   <span id="tc">0:00.0 / 0:00.0</span>
-  <span class="hint">Rote Balken = wird herausgeschnitten. Kanten ziehen = trimmen · Mitte ziehen = verschieben · freie Fläche aufziehen = neuer Schnitt. Änderungen von Claude erscheinen hier automatisch.</span>
-  <button id="bUndo" title="Letzte Aktion rückgängig (Strg+Z)">↩</button>
-  <button id="bTool" title="Werkzeug umschalten: Aufziehen in der Timeline erzeugt Schnitte (✂) oder Lautstärke-Abschnitte (🔊)">✂ Schneiden</button>
-  <button id="bCutHere" title="Setzt einen neuen 1-Sekunden-Schnitt an der aktuellen Stelle">✂ Schnitt hier</button>
-  <button id="bPrev" class="on" title="Beim Abspielen die geschnittenen Stellen überspringen (so wird das Reel). Aus = Rohmaterial mit allem.">✂ Schnitte überspringen</button>
-  <button id="bGuides">Instagram-Zonen</button>
-  <button id="bSave" class="primary">💾 Speichern für Claude</button>
+  <span class="spacer"></span>
+  <button id="bUndo" class="nurico" data-ico="undo" title="Letzte Aktion rückgängig (Strg+Z)"></button>
+  <div id="toolseg" class="seg" title="Was entsteht, wenn du in der Zeitleiste auf einer Spur eine Fläche aufziehst">
+    <span class="seglbl">Aufziehen =</span>
+    <button data-t="cut" data-ico="schere" class="on" title="Aufziehen = Schnitt (Taste 1)"><span class="lbl">Schnitt</span></button><button data-t="vol" data-ico="laut" title="Aufziehen = Lautstärke-Abschnitt (Taste 2)"><span class="lbl">Lautstärke</span></button><button data-t="zoom" data-ico="lupe" title="Aufziehen = Zoom-Abschnitt auf der Videospur (Taste 3)"><span class="lbl">Zoom</span></button>
+  </div>
+  <span class="spacer"></span>
+  <button id="bPrev" class="chip on" data-ico="sprung" title="Beim Abspielen die geschnittenen Stellen überspringen (so wird das Reel). Aus = Rohmaterial mit allem."><span class="lbl">Schnitte überspringen</span></button>
+  <button id="bGuides" class="chip" data-ico="zonen" title="Zeigt, wo Instagram Kopfzeile, Knöpfe und Bildunterschrift über das Video legt"><span class="lbl">Instagram-Zonen</span></button>
+  <button id="bHilfe" class="nurico" data-ico="hilfe" title="So geht's:
+• Rote Balken = wird herausgeschnitten
+• Kanten ziehen = trimmen · Mitte ziehen = verschieben
+• Freie Fläche aufziehen = neuer Schnitt / Lautstärke / Zoom (Feld oben, Tasten 1–3)
+• Klick auf ein Element = markieren (Entf löscht) · Kanten rasten an Wortgrenzen ein (Alt/⌥ gedrückt = frei)
+• Leertaste = Abspielen · ← → ein Bild · Umschalt + ← → eine Sekunde
+• I / O = Schnitt-Anfang / -Ende an der Läuferstelle · Strg+Z / Strg+Y (Mac: ⌘Z / ⌘⇧Z) = rückgängig / wiederholen
+• Mausrad über der Zeitleiste = zoomen · Umschalt + Mausrad = Spuren
+• Änderungen von Claude erscheinen hier automatisch"></button>
+  <button id="bSave" class="primary">Speichern für Claude</button>
 </header>
 <div id="banner"><span>🔄 Claude hat das Projekt geändert, aber du hast ungespeicherte Änderungen.</span>
   <button id="bTake">Claudes Stand übernehmen</button>
@@ -355,6 +608,7 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
       <video id="v"></video>
       <div id="pipbox"><video id="pv" muted></video>
         <span class="lbl" id="piplbl"></span><span class="rs"></span></div>
+      <div id="fxtint"></div>
     </div>
     <div id="bigplay">▶</div>
     <div class="zone" id="z-top"><span>Reels-Kopfzeile</span></div>
@@ -393,9 +647,20 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
       <div class="row"><span style="font-size:11px;opacity:.55">Im Video ziehen = Position · auf der 📝-Spur ziehen = Timing · Aufziehen auf der 📝-Spur = neuer Text</span></div>
       <div id="textlist"></div>
     </details>
+    <details class="card" id="cardFilter" open><summary>Filter (Farbe) <span id="filtcount"></span></summary>
+      <div id="filtctl">
+      <div class="row"><label>Filter</label><select id="filtPreset"></select></div>
+      <div class="row"><label>Stärke</label><input type="range" id="filtStaerke" min="10" max="100" value="100"><span id="filtStaerkeV" style="font-size:11px;min-width:34px">100%</span></div>
+      <div class="row"><button id="bAddFilter" style="flex:1">＋ Filter ab Läufer (3 s)</button></div>
+      <div class="row"><span style="font-size:11px;opacity:.55">Oder auf der 🎨-Spur aufziehen. Ränder ziehen = Dauer. Gerendert wird genau, was die Vorschau zeigt.</span></div>
+      </div>
+      <div class="row" id="filtfehlt" style="display:none"><span style="font-size:11px;opacity:.6">Filter-Liste fehlt — Claude einmal „Cockpit neu bauen" sagen.</span></div>
+      <div id="filtlist"></div>
+    </details>
     <details class="card" id="cardVideos" open><summary>Videos (nacheinander)</summary>
       <div id="videolist"></div>
       <div class="row"><label>Weiteres anhängen</label><select id="addVideo"><option value="">— Datei wählen —</option></select></div>
+      <div class="row"><button id="bPickVideo" style="flex:1">📁 Video von woanders anhängen</button><input type="file" id="fVideo" accept="video/*" style="display:none"></div>
       <div class="row"><span style="font-size:11px;opacity:.55">Mehrere Talking-Head-Clips laufen nacheinander (Reihenfolge oben). Schnitte gelten über alle hinweg.</span></div>
     </details>
     <details class="card" id="cardAudio" open><summary>Audio hinzufügen</summary>
@@ -453,14 +718,18 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
   </aside>
 </main>
 <footer>
-  <div id="tlwrap"><div id="ruler"></div><div id="tl"></div><div id="dragtip"></div><div id="playhead"></div><div id="phgrab" title="Festhalten und ziehen = präzise spulen"></div><div id="phlabel">0:00.0</div></div>
+  <div id="tlrow">
+  <div id="trackhead"><div id="thkopf"><span>Spuren</span><button id="bAlleAuf" title="Alle Spuren aufklappen">▾ alle</button><button id="bAlleZu" title="Alle Spuren zuklappen">▸ alle</button></div><div id="thlist"></div><button id="thmehr" title="Zu den weiteren Spuren scrollen"></button></div>
+  <div id="tlwrap"><div id="ruler"></div><div id="tlv"><div id="tl"></div></div><div id="dragtip"></div><div id="playhead"></div><div id="phgrab" title="Festhalten und ziehen = präzise spulen"></div><div id="phlabel">0:00.0</div></div>
+  </div>
   <div id="songwrap" style="display:none"><canvas id="songwave"></canvas><div id="songwin" title="Ziehen = Ausschnitt im Lied wählen"></div><span id="songlbl">♪ ganzes Lied — lila Fenster = dein Ausschnitt</span></div>
   <div id="tlinfo">
-    <span id="tlzoomui" title="Zeitleiste vergrößern — zum Läufer hin. Auch: Mausrad über der Zeitleiste">🔍
+    <span id="tlzoomui" data-ico="lupe" title="Zeitleiste vergrößern — zum Läufer hin. Auch: Mausrad über der Zeitleiste">
       <button id="tzOut">−</button><span id="tlZoomLbl" title="Klick = ganze Zeitleiste zeigen">100%</span><button id="tzIn">+</button></span>
-    <span>Klick = springen · Aufziehen = Schnitt ✂ oder Lautstärke-Abschnitt 🔊 (Werkzeug oben) — je Spur</span><span id="tDur">0:00.0</span></div>
+    <span>Klick = markieren · Aufziehen = Schnitt / Lautstärke / Zoom (Tasten 1–3) · I/O = Schnitt setzen · Entf = löschen · Mausrad = zoomen</span><span id="tDur">0:00.0</span></div>
 </footer>
 <div id="toast"></div>
+
 <audio id="mus" preload="auto"></audio>
 <audio id="vo" preload="auto"></audio>
 <script src="waveform_data.js"></script>
@@ -492,12 +761,56 @@ const v = document.getElementById('v'), pv = document.getElementById('pv'),
 // preview=true: Abspielen zeigt IMMER das geschnittene Ergebnis (WYSIWYG);
 // der Schalter "Rohmaterial zeigen" setzt preview=false
 let dur = 0, preview = true, cues = [], zonesOn = true;
+// ---------- Symbole (feine Strichsymbole statt Emojis) ---------------------
+const ICO = {
+  logo: '<rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor" stroke="none"/>',
+  play: '<path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="none"/>',
+  pause: '<rect x="6" y="4.5" width="4" height="15" rx="1.2" fill="currentColor" stroke="none"/><rect x="14" y="4.5" width="4" height="15" rx="1.2" fill="currentColor" stroke="none"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  schere: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20"/><path d="M20 4 8.1 15.9"/>',
+  laut: '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/>',
+  lupe: '<circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.6-4.6"/><path d="M11 8v6M8 11h6"/>',
+  sprung: '<path d="M5 5v14l9-7z"/><path d="M18 5v14"/>',
+  roh: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/>',
+  zonen: '<rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M5 7h14M5 17h14"/>',
+  hilfe: '<circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.5-2.7 4"/><path d="M12 17.5h.01"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  haken: '<path d="M20 6 9 17l-5-5"/>',
+  film: '<rect x="2.5" y="3" width="19" height="18" rx="2.5"/><path d="M7.5 3v18M16.5 3v18M2.5 9h5M2.5 15h5M16.5 9h5M16.5 15h5"/>',
+  pip: '<rect x="2.5" y="4" width="19" height="16" rx="2.5"/><rect x="12" y="11" width="7" height="6" rx="1"/>',
+  mikro: '<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>',
+  musik: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  text: '<path d="M4 7V4.5h16V7M9 20h6M12 4.5V20"/>',
+  filter: '<circle cx="12" cy="12" r="9.5"/><path d="M12 2.5a9.5 9.5 0 0 1 0 19z" fill="currentColor" stroke="none"/>',
+  welle: '<path d="M3 10v4M7 6.5v11M11 3.5v17M15 8v8M19 5.5v13"/>'
+};
+function ic(n){
+  return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICO[n] || '')
+    + '</svg>';
+}
+/** Elemente mit data-ico bekommen ihr Symbol vor die Beschriftung. */
+function ikonen(root){
+  (root || document).querySelectorAll('[data-ico]').forEach(el => {
+    if (el.querySelector(':scope > svg.ic')) return;
+    el.insertAdjacentHTML('afterbegin', ic(el.dataset.ico));
+  });
+}
+function saveLabel(txt, sym){
+  bSave.innerHTML = ic(sym || 'save');
+  const sp = document.createElement('span'); sp.textContent = txt;
+  bSave.appendChild(sp); }
+function prevLabel(){
+  bPrev.innerHTML = skipCuts ? ic('sprung') + '<span class="lbl">Schnitte überspringen</span>'
+    : ic('roh') + '<span class="lbl">Rohmaterial (alles)</span>';
+}
+ikonen(); saveLabel('Speichern für Claude'); bPlay.innerHTML = ic('play');
 // Spur-Farben: ueberall gleich (Timeline-Balkenrand, Listen, Spur-Namen)
 const TRACKCOL = { main:'#4a9eff', pip:'#3ddc84', both:'#ff9f43',
-  music:'#be8cff', voice:'#ff8fb1', text:'#ffd66e', sfx:'#9dff5c' };
+  music:'#be8cff', voice:'#ff8fb1', text:'#ffd66e', sfx:'#9dff5c',
+  filter:'#ff7ad9' };
 const TRACKNAME = { main:'großes Video', pip:'kleines Video',
-  both:'beide Videos', music:'♪ Musik', voice:'🎙 Voiceover',
-  text:'📝 Texte', sfx:'🔊 Effekte' };
+  both:'beide Videos', music:'Musik', voice:'Voiceover',
+  text:'Texte', sfx:'Effekte', filter:'Filter' };
 const ANIMS = { fade:'Einblenden', left:'Von links', right:'Von rechts',
   up:'Von unten', pop:'Pop', none:'Keine' };
 const esc = s => String(s).replace(/[&<>"]/g,
@@ -520,20 +833,33 @@ const touch = () => {
     if (lastState) {
       undoStack.push(lastState);
       if (undoStack.length > 60) undoStack.shift();
+      redoStack.length = 0;          // neue Aenderung: Wiederholen verfaellt
     }
   }
   touch._t = now;
   clearTimeout(touch._s);
   touch._s = setTimeout(() => { lastState = JSON.stringify(P); }, 400);
 };
+const redoStack = [];
 function restoreUndo(){
   if (!undoStack.length) { toast('Nichts zum Rückgängigmachen'); return; }
   const s = undoStack.pop();
+  redoStack.push(JSON.stringify(P));
   const la = lastApplied;            // Claude-Vergleichsstand nicht verlieren
   applyProjekt(JSON.parse(s));
   lastApplied = la;
   dirty = true; lastState = s;
-  toast('↩ Rückgängig');
+  toast('↩ Rückgängig — Strg+Y stellt es wieder her');
+}
+function wiederholen(){
+  if (!redoStack.length) { toast('Nichts zum Wiederherstellen'); return; }
+  const s = redoStack.pop();
+  undoStack.push(JSON.stringify(P));
+  const la = lastApplied;
+  applyProjekt(JSON.parse(s));
+  lastApplied = la;
+  dirty = true; lastState = s;
+  toast('↪ Wiederhergestellt');
 }
 function toast(msg){ const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -547,6 +873,7 @@ function currentProjectJSON(){
   const out = JSON.parse(JSON.stringify(P));
   delete out._dateien; delete out._audiodateien; delete out._neueAudios;
   delete out._sfxlib;              // Anzeige-Info, baut build_editor.py neu
+  delete out._dateidauern; delete out._filterlib;
   // Herkunft mitschreiben: sonst weiss Claude beim Sammelordner-Speichern
   // nicht, WOHIN die Datei gehoert (Projektordner kann ueberall liegen),
   // und bei mehreren Projekten nicht, welches zuletzt bearbeitet wurde.
@@ -696,23 +1023,27 @@ document.addEventListener('keydown', e => {
   const el = document.activeElement;
   if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
       || el.tagName === 'SELECT' || el.isContentEditable)) return;
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
     e.preventDefault(); restoreUndo(); return;
   }
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
 });
 bUndo.onclick = restoreUndo;
 bPrev.onclick = () => { skipCuts = !skipCuts; bPrev.classList.toggle('on', skipCuts);
-  bPrev.textContent = skipCuts ? '✂ Schnitte überspringen' : '🎞 Rohmaterial (alles)';
+  prevLabel();
   toast(skipCuts ? '✂ Geschnittenes Ergebnis' : '🎞 Rohmaterial — Schnitte laufen mit'); };
-function onMasterPlay(){ bPlay.textContent = '⏸'; bigplay.classList.add('hidden');
+function onMasterPlay(){ bPlay.innerHTML = ic('pause'); bigplay.classList.add('hidden');
   if (MUS && mus.src) { syncMusic(true); mus.play().catch(()=>{}); }
   if (VO && vo.src) { vo.currentTime = gtime(); vo.play().catch(()=>{}); } }
-function onMasterPause(){ bPlay.textContent = '▶'; bigplay.classList.remove('hidden');
+function onMasterPause(){ bPlay.innerHTML = ic('play'); bigplay.classList.remove('hidden');
   mus.pause(); vo.pause(); sfxStopAll(); }
+// Nur bei EINEM Clip darf die Videodatei die Gesamtlaenge setzen. Bei
+// mehreren ist sie die Summe aller Clips (recalcClipStarts) — sonst
+// schrumpfte die Zeitleiste auf Clip 2, sobald die Wiedergabe dorthin sprang.
 v.addEventListener('loadedmetadata', () => {
-  if (ansicht !== 'cut') { dur = v.duration;
-    renderTL(); renderRuler(); tDur.textContent = fmt(dur); updTC(); } });
+  if (clips.length > 1 || !isFinite(v.duration) || !v.duration) return;
+  if (Math.abs(v.duration - dur) < 0.02) return;
+  clipDur[0] = v.duration; recalcClipStarts(); });
 
 // ---------- Untertitel ----------------------------------------------------
 function buildCues(){
@@ -759,7 +1090,7 @@ function renderCueList(){
 }
 // Doppelklick auf den Untertitel im Video springt zur passenden Textzeile
 cap.addEventListener('dblclick', () => {
-  const t = v.currentTime;
+  const t = masterTime();
   const i = cues.findIndex(c => t >= c[0].start && t <= c[c.length-1].end + 0.05);
   if (i >= 0) { const inp = cuelist.querySelectorAll('input')[i];
     if (inp) { inp.scrollIntoView({ block: 'center' }); inp.focus();
@@ -941,10 +1272,10 @@ function renderVideoList(){
       + (vids.length > 1 ? '<button class="del">🗑</button>' : '');
     const up = d.querySelector('.up');
     if (up) up.onclick = () => { const t = vids[i-1]; vids[i-1] = vids[i];
-      vids[i] = t; P.video = vids[0]; touch(); renderVideoList(); };
+      vids[i] = t; P.video = vids[0]; touch(); videosGeaendert(); };
     const del = d.querySelector('.del');
     if (del) del.onclick = () => { vids.splice(i, 1); P.video = vids[0] || '';
-      touch(); renderVideoList(); };
+      touch(); videosGeaendert(); };
     videolist.appendChild(d);
   });
   // Dropdown: weitere Videodateien aus dem Projektordner
@@ -954,10 +1285,48 @@ function renderVideoList(){
 }
 addVideo.onchange = () => {
   if (!addVideo.value) return;
+  // Altprojekte haben nur „video" — die Liste erst damit fuellen, sonst
+  // ersetzt das neue Video das alte, statt dahinter zu laufen.
+  if (!(P.videos && P.videos.length) && P.video) P.videos = [P.video];
   (P.videos = P.videos || []).push(addVideo.value);
-  P.video = P.videos[0]; touch(); renderVideoList();
+  P.video = P.videos[0]; touch(); videosGeaendert();
   toast('➕ Video angehängt — läuft nach dem vorigen. Wird beim Schneiden zusammengefügt.');
 };
+// Video, das (noch) nicht im Projektordner liegt: laeuft sofort in der
+// Vorschau; beim Speichern kommt der Hinweis, es in den Ordner zu legen.
+bPickVideo.onclick = () => fVideo.click();
+fVideo.onchange = e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  localBlobs[f.name] = URL.createObjectURL(f);
+  const known = (P._dateien || []).concat(P.videos || [], [P.video || '']);
+  if (!known.includes(f.name))
+    (P._neueAudios = P._neueAudios || []).push(f.name);
+  // Tonspur fuer die Anzeige gleich im Browser lesen (nur bei handlichen
+  // Dateien — ein Riesenvideo komplett zu dekodieren friert den Tab ein).
+  if (f.size < 300 * 1024 * 1024 && !(window.WAVEFORM || {})[f.name]) {
+    const r = new FileReader();
+    r.onload = () => peaksFromBuffer(r.result, rec => {
+      if (rec) { (window.WAVEFORM = window.WAVEFORM || {})[f.name] = rec;
+        drawWave(); } });
+    r.readAsArrayBuffer(f);
+  }
+  if (!(P.videos && P.videos.length) && P.video) P.videos = [P.video];
+  (P.videos = P.videos || []).push(f.name);
+  P.video = P.videos[0]; touch(); videosGeaendert();
+  toast('➕ ' + f.name + ' angehängt — Datei bitte in den Projektordner '
+    + 'legen (oder Claude sagen), sonst fehlt sie beim Rendern');
+};
+/** Reihenfolge/Anzahl der Clips hat sich geaendert: Laengen und Startpunkte
+ *  neu, Zeitleiste neu, Wiedergabe an derselben Stelle weiter. */
+function videosGeaendert(){
+  const T = gtime();
+  renderVideoList();
+  loadClipDurations(() => {
+    if (typeof drawWave === 'function') drawWave();
+    loadClip(0, 0); seekG(Math.min(T, dur));
+  });
+}
 // Lautstaerke: Basis + zeitliche Abschnitte (Vorschau = wie Render)
 function gainAt(track, t, base){
   const r = (P.volumes || []).find(r =>
@@ -1144,7 +1513,7 @@ function applyTlZoom(zeit, ankerPx){
   const maxZoom = Math.max(2, 16000 / Math.max(200, tlwrap.clientWidth));
   tlZoom = Math.max(1, Math.min(maxZoom, tlZoom));
   const breite = (tlZoom * 100) + '%';
-  tl.style.width = breite;
+  tl.style.width = breite; tlv.style.width = breite;
   document.getElementById('ruler').style.width = breite;
   tlwrap.style.overflowX = tlZoom > 1.001 ? 'auto' : 'hidden';
   tlZoomLbl.textContent = Math.round(tlZoom * 100) + '%';
@@ -1160,27 +1529,58 @@ tlZoomLbl.onclick = () => { tlZoom = 1; applyTlZoom(); };
 tlwrap.addEventListener('wheel', e => {
   if (!dur) return;
   e.preventDefault();
+  // Umschalt + Mausrad = Spuren hoch/runter (wie links in der Spurenleiste)
+  if (e.shiftKey) { tlv.scrollTop += (e.deltaY || e.deltaX); return; }
   const r = tl.getBoundingClientRect();
   const unterMaus = (e.clientX - r.left) / r.width * dur;
   const halten = e.clientX - tlwrap.getBoundingClientRect().left;
   tlZoom *= (e.deltaY < 0 ? 1.25 : 1 / 1.25);
   applyTlZoom(unterMaus, halten);      // Stelle unter der Maus bleibt stehen
 }, { passive: false });
+/** Laufende Nummern in Zeitreihenfolge: Cut 1, 2, 3 … — dieselbe Nummer
+ *  steht in der Spur und in der Liste rechts. */
+function nummern(liste, key){
+  return new Map(liste.slice().sort((a, b) => (+a[key] || 0) - (+b[key] || 0))
+    .map((x, i) => [x, i + 1]));
+}
+/** Ueberlappende Effekte auf eigene Ebenen verteilen (wie Spuren in einem
+ *  Schnittprogramm). Zugeklappt liegen alle auf einer schmalen Spur. */
+function sfxEbenen(zu){
+  if (zu) return [SFX.slice()];
+  const ebenen = [], ende = [];
+  SFX.slice().sort((a, b) => a.time - b.time).forEach(ev => {
+    let k = ende.findIndex(e => e <= ev.time + 0.001);
+    if (k < 0) { k = ende.length; ende.push(0); ebenen.push([]); }
+    ebenen[k].push(ev); ende[k] = ev.time + sfxLen(ev);
+  });
+  return ebenen.length ? ebenen : [[]];
+}
+let spurReihen = [];
 function renderTL(){
+  const scrollV = tlv.scrollTop;
   tl.innerHTML = '';
-  if (!dur) return;
+  if (!dur) { thlist.innerHTML = ''; return; }
   // Zwei Videospuren bei Bild-im-Bild, plus Voiceover-/Musikspur wenn gesetzt
   const two = !!PIP.enabled;
   // Effekt-Spur zeigen, sobald es Effekte gibt ODER ein Effekt gewaehlt ist
   const sfxAn = SFX.length > 0 || !!sfxWahl;
+  const FL = P.filter || [];
+  // Zugeklappte Spuren: P.spuren_zu (z. B. ["sfx","music"]) — kann auch
+  // Claude in der projekt.json setzen.
+  const ZU = new Set(P.spuren_zu || []);
+  const ebenen = sfxAn ? sfxEbenen(ZU.has('sfx')) : [];
   const nLanes = (two ? 2 : 1) + (VO ? 1 : 0) + (MUS ? 1 : 0)
-    + ((P.texts || []).length ? 1 : 0) + (sfxAn ? 1 : 0);
-  tl.style.height = nLanes === 1 ? '72px'
-    : (nLanes * 50 + (nLanes - 1) * 4) + 'px';
+    + ((P.texts || []).length ? 1 : 0) + (FL.length ? 1 : 0) + ebenen.length;
+  const hoch = (key, unter) => ZU.has(key) ? 16
+    : nLanes === 1 ? 72 : unter ? 36 : 46;
   const lanes = {};
-  const mkLane = (trk, lbl) => {
+  spurReihen = [];
+  const mkLane = (trk, key, name, opt) => {
+    opt = opt || {};
     const l = document.createElement('div');
-    l.className = 'lane'; l.dataset.track = trk;
+    l.className = 'lane' + (ZU.has(key) ? ' zu' : '');
+    l.dataset.track = trk;
+    l.style.height = hoch(key, opt.unter) + 'px';
     l.style.backgroundImage =
       'linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px)';
     l.style.backgroundSize = (100 / dur) + '% 100%';
@@ -1190,10 +1590,11 @@ function renderTL(){
       const lr = document.createElement('div'); lr.className = 'lrun';
       l.appendChild(lr);   // eigener Laeufer je Videospur
     }
-    if (lbl) { const s = document.createElement('span');
-      s.className = 'lanelbl'; s.textContent = lbl;
-      s.style.color = TRACKCOL[trk === 'both' ? 'main' : trk];
-      l.appendChild(s); }
+    // Die Namen stehen links in der Spurenleiste; in der Spur nur Hinweise
+    if (opt.hint) { const sp = document.createElement('span');
+      sp.className = 'lanelbl'; sp.textContent = opt.hint;
+      sp.style.color = TRACKCOL[trk === 'both' ? 'main' : trk];
+      l.appendChild(sp); }
     // Clip-Grenzen sichtbar machen: zeigt, wo Clip 1 endet und Clip 2 beginnt
     if ((trk === 'both' || trk === 'main') && clips.length > 1 && dur) {
       clips.forEach((name, i) => {
@@ -1208,14 +1609,41 @@ function renderTL(){
         l.appendChild(mark);
       });
     }
-    tl.appendChild(l); lanes[trk] = l; return l;
+    tl.appendChild(l); if (!lanes[trk]) lanes[trk] = l;
+    spurReihen.push({ l, trk, key, name, ico: opt.ico || '', unter: !!opt.unter, erste: true,
+      zeiten: opt.zeiten || (() => []), anzahl: opt.anzahl || '' });
+    return l;
   };
-  if (two) { mkLane('main', '🎬 großes Video'); mkLane('pip', '◱ kleines Video'); }
-  else mkLane('both', (MUS || VO) ? '🎬 Video' : '');
-  if (VO) mkLane('voice', '🎙 Voiceover');
-  if (MUS) mkLane('music', '♪ Musik');
-  if ((P.texts || []).length) mkLane('text', '📝 Texte');
-  if (sfxAn) mkLane('sfx', '🔊 Effekte — klicken = Effekt setzen');
+  const cutsAuf = trks => () => P.cuts
+    .filter(c => trks.indexOf(c.track || 'both') >= 0).map(c => c.start);
+  const nCuts = trks => { const n = P.cuts
+    .filter(c => trks.indexOf(c.track || 'both') >= 0).length;
+    return n ? n + ' Cut' + (n > 1 ? 's' : '') : ''; };
+  if (two) {
+    mkLane('main', 'main', 'Großes Video', { ico: 'film', zeiten: cutsAuf(['main', 'both']),
+      anzahl: nCuts(['main', 'both']) });
+    mkLane('pip', 'pip', 'Kleines Video', { ico: 'pip', zeiten: cutsAuf(['pip', 'both']),
+      anzahl: nCuts(['pip']) });
+  } else mkLane('both', 'both', 'Video', { ico: 'film', zeiten: cutsAuf(['both', 'main', 'pip']),
+    anzahl: nCuts(['both', 'main', 'pip']) });
+  if (VO) mkLane('voice', 'voice', 'Voiceover',
+    { ico: 'mikro', zeiten: cutsAuf(['voice']), anzahl: nCuts(['voice']) });
+  if (MUS) mkLane('music', 'music', 'Musik',
+    { ico: 'musik', zeiten: cutsAuf(['music']), anzahl: nCuts(['music']) });
+  if ((P.texts || []).length) mkLane('text', 'text', 'Texte',
+    { ico: 'text', zeiten: () => P.texts.map(t => t.start), anzahl: P.texts.length });
+  if (FL.length) mkLane('filter', 'filter', 'Filter',
+    { ico: 'filter', zeiten: () => FL.map(f => f.start), anzahl: FL.length,
+      hint: 'aufziehen = Filter setzen' });
+  const sfxLanes = ebenen.map((evs, k) => {
+    const l = mkLane('sfx', 'sfx', k === 0 ? 'Effekte' : 'Ebene ' + (k + 1),
+      { ico: k === 0 ? 'welle' : '', unter: ebenen.length > 1,
+        zeiten: () => evs.map(e => e.time),
+        anzahl: k === 0 ? (SFX.length || '') : evs.length,
+        hint: k === 0 && !ZU.has('sfx') ? 'klicken = Effekt setzen' : '' });
+    spurReihen[spurReihen.length - 1].erste = (k === 0);
+    l._evs = evs; return l;
+  });
   // Unterkante der Videospuren (fuer 'both'-Elemente ueber beiden Spuren)
   const vidLane = lanes.pip || lanes.both || lanes.main;
   const videoBottom = vidLane.offsetTop + vidLane.offsetHeight;
@@ -1226,6 +1654,8 @@ function renderTL(){
     if (trk === 'both') return null;   // Overlay ueber beiden Videospuren
     return lanes[trk];
   };
+  const nrCut = nummern(P.cuts, 'start');
+  const nrSfx = nummern(SFX, 'time');
   const overlaySpan = d => { d.style.bottom = 'auto'; d.style.top = '0';
     d.style.height = videoBottom + 'px'; };
   P.cuts.forEach(c => {
@@ -1236,13 +1666,15 @@ function renderTL(){
     if (overlay) parent = tl;
     const d = document.createElement('div');
     if (overlay) overlaySpan(d);
-    d.className = 'cut' + (c.active ? '' : ' inactive');
+    d.className = 'cut' + (c.active ? '' : ' inactive'); d._obj = c;
     d.style.left = (c.start / dur * 100) + '%';
     d.style.width = (Math.max(0.3, c.end - c.start) / dur * 100) + '%';
     d.style.borderLeft = '3px solid ' + (TRACKCOL[c.track] || '#ff7a7a');
-    d.title = (c.reason || 'Schnitt') + ' · ' + (TRACKNAME[c.track] || '');
+    d.title = 'Cut ' + nrCut.get(c) + ': ' + (c.reason || 'Schnitt') + ' · '
+      + (TRACKNAME[c.track] || '');
     d.innerHTML = '<span class="h l" title="Anfang ziehen"></span>' +
-                  '<span class="h r" title="Ende ziehen"></span>';
+                  '<span class="h r" title="Ende ziehen"></span>' +
+                  '<span class="nr">' + nrCut.get(c) + '</span>';
     // Koerper ziehen = verschieben
     d.addEventListener('pointerdown', ev => {
       if (ev.target.classList.contains('h')) return;
@@ -1256,8 +1688,9 @@ function renderTL(){
         moved = true;
         let ns = (e2.clientX - r.left) / r.width * dur - grabOffset;
         ns = Math.max(0, Math.min(dur - len, ns));
-        c.start = Math.round(ns * 10) / 10;
-        c.end = Math.round((ns + len) * 10) / 10;
+        ns = rasten(ns, e2);
+        c.start = ns;
+        c.end = Math.round((ns + len) * 100) / 100;
         d.style.left = (c.start / dur * 100) + '%';
         tip.textContent = 'Verschieben: ' + fmt(c.start) + '–' + fmt(c.end);
         tip.style.left = (e2.clientX - r.left - 40) + 'px';
@@ -1282,11 +1715,13 @@ function renderTL(){
         const move = e2 => {
           const r = tl.getBoundingClientRect();
           const t = Math.min(dur, Math.max(0, (e2.clientX - r.left) / r.width * dur));
-          if (left) c.start = Math.min(Math.round(t*10)/10, c.end - 0.1);
-          else c.end = Math.max(Math.round(t*10)/10, c.start + 0.1);
+          const tr = rasten(t, e2);
+          if (left) c.start = Math.min(tr, c.end - 0.1);
+          else c.end = Math.max(tr, c.start + 0.1);
           d.style.left = (c.start / dur * 100) + '%';
           d.style.width = (Math.max(0.3, c.end - c.start) / dur * 100) + '%';
-          tip.textContent = (left ? 'Anfang: ' : 'Ende: ') + fmt(left ? c.start : c.end);
+          tip.textContent = (left ? 'Anfang: ' : 'Ende: ') + fmt(left ? c.start : c.end)
+            + (rasten.zuletzt ? '  · an Wortgrenze' : '');
           tip.style.left = (e2.clientX - r.left - 20) + 'px';
           seekToRaw(left ? c.start : c.end); touch();
         };
@@ -1306,7 +1741,7 @@ function renderTL(){
       : (lanes[rg.track] || lanes.both);
     if (!parent) return;
     const d = document.createElement('div');
-    d.className = 'vol';
+    d.className = 'vol'; d._obj = rg;
     d.style.left = (rg.start / dur * 100) + '%';
     d.style.width = (Math.max(0.3, rg.end - rg.start) / dur * 100) + '%';
     d.style.borderLeft = '3px solid ' + (TRACKCOL[rg.track] || '#4a9eff');
@@ -1366,7 +1801,7 @@ function renderTL(){
   // das ganze komponierte Bild trifft — verschieben + trimmen wie Schnitte
   (P.zooms || []).forEach(z => {
     const d = document.createElement('div');
-    d.className = 'zb';
+    d.className = 'zb'; d._obj = z;
     overlaySpan(d);
     d.style.left = (z.start / dur * 100) + '%';
     d.style.width = (Math.max(0.3, z.end - z.start) / dur * 100) + '%';
@@ -1425,15 +1860,16 @@ function renderTL(){
     tl.appendChild(d);
   });
   // Text-Overlays: Timing-Balken auf der 📝-Spur (verschieben + trimmen)
+  const nrTx = nummern(P.texts || [], 'start');
   if (lanes.text) (P.texts || []).forEach(tx => {
     const d = document.createElement('div');
-    d.className = 'txt';
+    d.className = 'txt'; d._obj = tx;
     d.style.left = (tx.start / dur * 100) + '%';
     d.style.width = (Math.max(0.3, tx.end - tx.start) / dur * 100) + '%';
     d.innerHTML = '<span class="h l" title="Anfang ziehen"></span>'
       + '<span class="h r" title="Ende ziehen"></span>'
-      + '<span class="tlbl">' + esc((tx.text || '').split('\n')[0].slice(0, 22))
-      + '</span>';
+      + '<span class="tlbl">' + nrTx.get(tx) + ' · '
+      + esc((tx.text || '').split('\n')[0].slice(0, 22)) + '</span>';
     d.addEventListener('pointerdown', ev => {
       if (ev.target.classList.contains('h')) return;
       ev.preventDefault(); ev.stopPropagation();
@@ -1483,9 +1919,14 @@ function renderTL(){
     lanes.text.appendChild(d);
   });
   // Soundeffekte: je Event ein Marker auf der 🔊-Spur
-  if (lanes.sfx) SFX.forEach(ev => sfxMarker(ev, lanes.sfx));
+  sfxLanes.forEach(l => l._evs.forEach(ev => sfxMarker(ev, l, nrSfx.get(ev))));
+  // Filter-Abschnitte auf der 🎨-Spur
+  if (lanes.filter) { const nrF = nummern(FL, 'start');
+    FL.forEach(f => filterBalken(f, lanes.filter, nrF.get(f))); }
   renderList(); renderVolList(); renderTextList(); renderZoomList();
-  renderSfxList(); drawWave();
+  renderSfxList(); renderFilterList(); renderSpurKopf();
+  tlv.scrollTop = scrollV; thlist.scrollTop = tlv.scrollTop;
+  spurenMehr(); markiereAuswahl(); renderInPunkt(); drawWave();
 }
 function nudge(c, which, delta){
   if (which === 's') c.start = Math.max(0, Math.min(Math.round((c.start+delta)*10)/10, c.end - 0.1));
@@ -1496,16 +1937,18 @@ function nudge(c, which, delta){
 function renderList(){
   cutcount.textContent = '(' + P.cuts.filter(c=>c.active).length + ' aktiv)';
   cutlist.innerHTML = '';
-  P.cuts.forEach(c => {
-    const d = document.createElement('div');
+  const nr = nummern(P.cuts, 'start');
+  P.cuts.slice().sort((a, b) => a.start - b.start).forEach(c => {
+    const d = document.createElement('div'); d._obj = c;
     d.className = 'c' + (c.active ? '' : ' inactive');
     const tcol = TRACKCOL[c.track] || '#ff7a7a';
     d.style.borderLeft = '3px solid ' + tcol;
     d.innerHTML = `
       <div class="top">
         <input type="checkbox" ${c.active?'checked':''} title="Schnitt aktiv">
+        <span class="lnr" title="Cut ${nr.get(c)}">Cut ${nr.get(c)}</span>
         <span class="t">${fmt(c.start)}–${fmt(c.end)}</span>
-        <span style="color:${tcol};font-size:11px;white-space:nowrap">${TRACKNAME[c.track] || ''}</span>
+        ${(c.track === 'music' || c.track === 'voice') ? `<span style="color:${tcol};font-size:11px;white-space:nowrap">${TRACKNAME[c.track]}</span>` : ''}
         <span class="reason">${c.reason || ''}</span>
         <button class="del" title="Schnitt löschen">🗑</button>
       </div>
@@ -1551,7 +1994,7 @@ function renderVolList(){
   volcount.textContent = '(' + vols.length + ')';
   vollist.innerHTML = '';
   vols.forEach(rg => {
-    const d = document.createElement('div');
+    const d = document.createElement('div'); d._obj = rg;
     d.className = 'c';
     const tcol = TRACKCOL[rg.track] || '#4a9eff';
     d.style.borderLeft = '3px solid ' + tcol;
@@ -1580,28 +2023,40 @@ function renderVolList(){
 }
 // Werkzeug: Aufziehen erzeugt Schnitte (cut) oder Lautstaerke-Abschnitte (vol)
 let tool = 'cut';
-bTool.onclick = () => {
-  tool = tool === 'cut' ? 'vol' : tool === 'vol' ? 'zoom' : 'cut';
-  bTool.textContent = { cut:'✂ Schneiden', vol:'🔊 Lautstärke',
-    zoom:'🔍 Zoom' }[tool];
-  bTool.classList.toggle('on', tool !== 'cut');
-  toast({ cut:'✂ Aufziehen erzeugt jetzt Schnitte',
+function setTool(t, still){
+  tool = t;
+  toolseg.querySelectorAll('button').forEach(b =>
+    b.classList.toggle('on', b.dataset.t === t));
+  if (!still) toast({ cut:'✂ Aufziehen erzeugt jetzt Schnitte',
     vol:'🔊 Aufziehen erzeugt jetzt Lautstärke-Abschnitte',
     zoom:'🔍 Aufziehen auf einer Videospur erzeugt jetzt Zoom-Abschnitte'
-    }[tool]);
-};
+    }[t]);
+}
+toolseg.querySelectorAll('button').forEach(b =>
+  b.onclick = () => setTool(b.dataset.t));
+// Tasten 1 / 2 / 3 = Werkzeug (nur ausserhalb von Eingabefeldern)
+document.addEventListener('keydown', e => {
+  const el = document.activeElement;
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
+      || el.tagName === 'SELECT' || el.isContentEditable)) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = { '1': 'cut', '2': 'vol', '3': 'zoom' }[e.key];
+  if (t) setTool(t);
+});
 // Liste der Zoom-Abschnitte in der Seitenleiste
 function renderZoomList(){
   const zs = P.zooms || [];
   cardZooms.style.display = zs.length ? 'block' : 'none';
   zoomcount.textContent = '(' + zs.length + ')';
   zoomlist.innerHTML = '';
+  const nr = nummern(zs, 'start');
   zs.forEach(z => {
-    const d = document.createElement('div');
+    const d = document.createElement('div'); d._obj = z;
     d.className = 'c';
     d.style.borderLeft = '3px solid #4dd0c4';
     d.innerHTML = `
       <div class="top">
+        <span class="lnr" style="background:#4dd0c4">${nr.get(z)}</span>
         <span class="t" style="color:#4dd0c4">${fmt(z.start)}–${fmt(z.end)}</span>
         <span class="reason">🔍 Zoom</span>
         <button class="del" title="Zoom löschen">🗑</button>
@@ -1696,12 +2151,14 @@ zoomtarget.addEventListener('pointerdown', e => {
 // Liste der Text-Overlays in der Seitenleiste (Stil je Text)
 function renderTextList(){
   textlist.innerHTML = '';
+  const nr = nummern(P.texts || [], 'start');
   (P.texts || []).forEach((tx, i) => {
-    const d = document.createElement('div');
+    const d = document.createElement('div'); d._obj = tx;
     d.className = 'c';
     d.style.borderLeft = '3px solid #ffd66e';
     d.innerHTML = `
       <div class="top">
+        <span class="lnr" style="background:#ffd66e">${nr.get(tx)}</span>
         <span class="t" style="color:#ffd66e">${fmt(tx.start)}–${fmt(tx.end)}</span>
         <span class="reason"></span>
         <button class="del" title="Text löschen">🗑</button>
@@ -1757,7 +2214,7 @@ function renderTextList(){
   });
 }
 bAddText.onclick = () => {
-  const t = Math.round(v.currentTime * 10) / 10;
+  const t = Math.round(masterTime() * 10) / 10;
   P.texts.push(newText(t, Math.min(t + 3, dur || t + 3)));
   touch(); rebuildStageTexts(); renderTL();
   toast('📝 Text eingefügt — im Video an die Wunschposition ziehen');
@@ -1770,14 +2227,19 @@ tl.addEventListener('pointerdown', e => {
   const lane = e.target;
   const track = lane.dataset.track;
   const r = tl.getBoundingClientRect();
-  const t0 = (e.clientX - r.left) / r.width * dur;
+  const schnapp = (track !== 'sfx' && track !== 'filter' && tool === 'cut')
+    || track === 'text';
+  const t0 = schnapp ? rasten((e.clientX - r.left) / r.width * dur, e)
+    : (e.clientX - r.left) / r.width * dur;
   let moved = false, tmp = null, cur = null;
   const move = ev => {
-    const t1 = Math.min(dur, Math.max(0, (ev.clientX - r.left) / r.width * dur));
+    let t1 = Math.min(dur, Math.max(0, (ev.clientX - r.left) / r.width * dur));
+    if (schnapp) t1 = rasten(t1, ev);
     if (!moved && Math.abs(t1 - t0) < 0.15) return;
     moved = true;
     if (!tmp) { tmp = document.createElement('div');
       tmp.className = (track === 'sfx' ? 'sfx' : track === 'text' ? 'txt'
+        : track === 'filter' ? 'flt'
         : tool === 'cut' ? 'cut' : tool === 'zoom' ? 'zb' : 'vol')
         + ' creating';
       lane.appendChild(tmp);
@@ -1790,6 +2252,7 @@ tl.addEventListener('pointerdown', e => {
         ? '🔊 ' + (sfxWahl ? sfxWahl.n : 'Effekt') + ' — Länge '
           + (en - s).toFixed(2).replace('.', ',') + ' s ab '
       : track === 'text' ? '📝 Neuer Text: '
+      : track === 'filter' ? '🎨 ' + filterName(filtPreset.value) + ': '
       : tool === 'cut' ? 'Neuer Schnitt: '
       : tool === 'zoom' ? '🔍 Zoom: ' : '🔊 Abschnitt: ')
       + fmt(s) + (track === 'sfx' ? '' : '–' + fmt(en));
@@ -1813,6 +2276,8 @@ tl.addEventListener('pointerdown', e => {
       if (track === 'text') {
         P.texts.push(newText(cur[0], cur[1]));
         rebuildStageTexts();
+      } else if (track === 'filter') {
+        filterNeu(cur[0], cur[1]);
       } else if (tool === 'zoom') {
         if (track === 'music' || track === 'voice') {
           toast('🔍 Zoom bitte auf einer Videospur aufziehen');
@@ -1824,7 +2289,7 @@ tl.addEventListener('pointerdown', e => {
           toast('🔍 Zoom-Abschnitt — ⌖ im Video auf das Ziel ziehen');
         }
       } else if (tool === 'cut') {
-        P.cuts.push({ start: Math.round(cur[0]*10)/10,
+        P.cuts.push({ start: Math.round(cur[0]*100)/100,
           end: Math.round(cur[1]*10)/10,
           reason: 'Manuell markiert', active: true, track: track });
         P.cuts.sort((a,b) => a.start - b.start);
@@ -1842,13 +2307,6 @@ tl.addEventListener('pointerdown', e => {
   window.addEventListener('pointermove', move);
   window.addEventListener('pointerup', up);
 });
-document.getElementById('bCutHere').onclick = () => {
-  const t = Math.round(masterTime() * 10) / 10;
-  P.cuts.push({ start: t, end: Math.min(Math.round((t+1)*10)/10, dur),
-    reason: 'Manuell markiert', active: true, track: 'both' });
-  P.cuts.sort((a,b) => a.start - b.start);
-  touch(); renderTL();
-};
 
 // ---------- Laeufer -------------------------------------------------------
 function updPhLabel(){
@@ -1921,17 +2379,20 @@ function loadClipDurations(cb){
     : (P.video ? [P.video] : []);
   clipDur = new Array(clips.length).fill(0);
   if (!clips.length) { clipStart = []; cb && cb(); return; }
-  // Bevorzugt die von build_editor.py mitgelieferten Laengen (zuverlaessig);
-  // nur wenn die fehlen, im Browser nachmessen.
+  // Bevorzugt die von build_editor.py gemessenen Laengen (je Datei, also
+  // auch fuer ein gerade angehaengtes Video); nur was fehlt, misst der
+  // Browser nach.
   const vorab = P._clipdauern || [];
-  if (vorab.length === clips.length && vorab.every(d => d > 0)) {
-    clipDur = vorab.slice();
-    recalcClipStarts(); cb && cb(); return;
-  }
-  let done = 0;
+  const jeDatei = P._dateidauern || {};
   clips.forEach((f, i) => {
+    clipDur[i] = jeDatei[f] || (vorab.length === clips.length ? vorab[i] : 0) || 0;
+  });
+  const fehlt = clips.map((f, i) => i).filter(i => !(clipDur[i] > 0));
+  if (!fehlt.length) { recalcClipStarts(); cb && cb(); return; }
+  let done = 0;
+  fehlt.forEach(i => { const f = clips[i];
     const t = document.createElement('video'); t.preload = 'metadata';
-    const fin = () => { if (++done === clips.length) {
+    const fin = () => { if (++done === fehlt.length) {
       recalcClipStarts(); cb && cb(); } };
     t.onloadedmetadata = () => { clipDur[i] = t.duration || 0; t.remove(); fin(); };
     t.onerror = () => { clipDur[i] = 0; t.remove(); fin(); };
@@ -1984,6 +2445,442 @@ v.addEventListener('timeupdate', () => {
 v.addEventListener('seeked', () => { syncMusic(true); applyAudio(); updPhLabel(); });
 function updTC(){ tc.textContent = fmt(gtime()) + ' / ' + fmt(dur); }
 
+// ---------- Einrasten an Wortgrenzen ---------------------------------------
+// Schnittkanten springen beim Ziehen auf Wortanfang/-ende, sobald sie
+// naeher als 8 Bildpunkte dran sind — so wird nichts mitten im Wort
+// abgehackt. Alt gedrueckt halten = frei ziehen.
+function rasten(t, e){
+  rasten.zuletzt = false;
+  const W = P.words || [];
+  if ((e && e.altKey) || !W.length || !dur)
+    return Math.round(t * 10) / 10;
+  const breite = tl.getBoundingClientRect().width || 1;
+  let best = t, abst = 8 / breite * dur;
+  for (const w of W) {
+    if ((w.type || 'word') !== 'word') continue;
+    for (const g of [+w.start, +w.end]) {
+      const d = Math.abs(g - t);
+      if (d < abst) { abst = d; best = g; }
+    }
+  }
+  if (best !== t) { rasten.zuletzt = true; return Math.round(best * 100) / 100; }
+  return Math.round(t * 10) / 10;
+}
+
+// ---------- Auswahl: Klick auf ein Element in der Spur ---------------------
+// markiert es, springt rechts zur passenden Karte; Entf loescht es.
+let auswahl = null;                          // das markierte Datenobjekt
+const ART_VON = el => el.classList.contains('cut') ? 'cut'
+  : el.classList.contains('vol') ? 'vol' : el.classList.contains('zb') ? 'zoom'
+  : el.classList.contains('txt') ? 'text' : el.classList.contains('sfx') ? 'sfx'
+  : el.classList.contains('flt') ? 'filter' : '';
+const LISTE_VON = { cut: 'cutlist', vol: 'vollist', zoom: 'zoomlist',
+  text: 'textlist', sfx: 'sfxlist', filter: 'filtlist' };
+let auswahlArt = '';
+function markiereAuswahl(zeigen){
+  tl.querySelectorAll('.sel').forEach(x => x.classList.remove('sel'));
+  document.querySelectorAll('aside .c.sel').forEach(x => x.classList.remove('sel'));
+  if (!auswahl) return;
+  tl.querySelectorAll('.cut,.vol,.zb,.txt,.sfx,.flt').forEach(x => {
+    if (x._obj === auswahl) x.classList.add('sel'); });
+  const liste = document.getElementById(LISTE_VON[auswahlArt] || '');
+  if (!liste) return;
+  const karte = [...liste.children].find(x => x._obj === auswahl);
+  if (!karte) return;
+  karte.classList.add('sel');
+  if (zeigen) {
+    const card = liste.closest('details.card');
+    if (card) { reiterZeigen(card.dataset.tab); card.open = true; }
+    karte.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+function waehle(obj, art){
+  auswahl = obj; auswahlArt = obj ? art : '';
+  markiereAuswahl(true);
+}
+// Klick (ohne Ziehen) auf ein Element = auswaehlen. Laeuft in der
+// Capture-Phase, weil die Elemente das Ereignis selbst abfangen.
+tl.addEventListener('pointerdown', e => {
+  const el = e.target.closest('.cut,.vol,.zb,.txt,.sfx,.flt');
+  if (!el || !el._obj || el.classList.contains('creating')) {
+    if (e.target.classList.contains('lane')) waehle(null);
+    return; }
+  const x0 = e.clientX, y0 = e.clientY, obj = el._obj, art = ART_VON(el);
+  const up = e2 => { window.removeEventListener('pointerup', up, true);
+    if (Math.abs(e2.clientX - x0) >= 4 || Math.abs(e2.clientY - y0) >= 4) return;
+    // Doppelklick auf einen Cut = an/aus. Selbst erkannt: nach dem ersten
+    // Klick wird der Balken neu gezeichnet, dann meldet der Browser keinen
+    // dblclick mehr (anderes Element).
+    const jetzt = Date.now(), vor = waehle.letzter || {};
+    waehle.letzter = { t: jetzt, obj };
+    if (art === 'cut' && vor.obj === obj && jetzt - vor.t < 400) {
+      waehle.letzter = {};
+      setTimeout(() => { obj.active = !obj.active; touch(); renderTL();
+        waehle(obj, art);
+        toast(obj.active ? 'Cut ist wieder an' : 'Cut ist aus — wird nicht geschnitten');
+      }, 0);
+      return;
+    }
+    setTimeout(() => waehle(obj, art), 0);      // nach dem renderTL der Elemente
+  };
+  window.addEventListener('pointerup', up, true);
+}, true);
+function auswahlLoeschen(){
+  const o = auswahl, art = auswahlArt;
+  if (!o) return false;
+  if (art === 'cut') P.cuts = P.cuts.filter(x => x !== o);
+  else if (art === 'vol') P.volumes = (P.volumes || []).filter(x => x !== o);
+  else if (art === 'zoom') { P.zooms = (P.zooms || []).filter(x => x !== o); drawZoomFx(); }
+  else if (art === 'text') { P.texts = (P.texts || []).filter(x => x !== o);
+    rebuildStageTexts(); }
+  else if (art === 'sfx') { const i = SFX.indexOf(o); if (i >= 0) SFX.splice(i, 1);
+    if (sfxAktiv === o) sfxAktiv = null; sfxSync(); }
+  else if (art === 'filter') { filterLoeschen(o); }
+  auswahl = null; auswahlArt = '';
+  touch(); renderTL();
+  toast('Gelöscht — Strg+Z holt es zurück');
+  return true;
+}
+
+// ---------- Tastenkuerzel ---------------------------------------------------
+// ← → ein Bild · Umschalt+← → eine Sekunde · I/O Schnitt-Anfang/-Ende
+// Entf löscht das Markierte · Esc hebt die Markierung auf · Strg+Y wiederholen
+let inPunkt = null;
+document.addEventListener('keydown', e => {
+  const el = document.activeElement;
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
+      || el.tagName === 'SELECT' || el.isContentEditable)) return;
+  const k = e.key;
+  if ((e.ctrlKey || e.metaKey) && (k.toLowerCase() === 'y'
+      || (e.shiftKey && k.toLowerCase() === 'z'))) {
+    e.preventDefault(); wiederholen(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (k === 'ArrowLeft' || k === 'ArrowRight') {
+    e.preventDefault();
+    if (playing) pauseAll();
+    const schritt = (e.shiftKey ? 1 : 1 / 30) * (k === 'ArrowLeft' ? -1 : 1);
+    seekToRaw(Math.max(0, Math.min(dur, masterTime() + schritt)));
+    return;
+  }
+  if (k === 'Delete' || k === 'Backspace') {
+    if (auswahlLoeschen()) e.preventDefault(); return; }
+  if (k === 'Escape') { waehle(null); inPunkt = null; renderInPunkt(); return; }
+  const t = Math.round(masterTime() * 100) / 100;
+  if (k === 'i' || k === 'I') {
+    if (auswahlArt === 'cut' && auswahl && t < auswahl.end - 0.1) {
+      auswahl.start = t; touch(); renderTL(); markiereAuswahl();
+      toast('Anfang von Cut gesetzt'); return; }
+    inPunkt = t; renderInPunkt();
+    toast('Schnitt-Anfang bei ' + fmt(t) + ' — jetzt zur Endstelle und O drücken');
+    return;
+  }
+  if (k === 'o' || k === 'O') {
+    if (auswahlArt === 'cut' && auswahl && t > auswahl.start + 0.1) {
+      auswahl.end = t; touch(); renderTL(); markiereAuswahl();
+      toast('Ende von Cut gesetzt'); return; }
+    if (inPunkt == null || t <= inPunkt + 0.1) {
+      toast('Erst mit I den Anfang setzen'); return; }
+    const c = { start: inPunkt, end: t, reason: 'Manuell markiert',
+      active: true, track: 'both' };
+    P.cuts.push(c); P.cuts.sort((a, b) => a.start - b.start);
+    inPunkt = null; touch(); renderTL(); waehle(c, 'cut');
+    toast('Cut gesetzt'); return;
+  }
+});
+function renderInPunkt(){
+  let m = document.getElementById('inmark');
+  if (inPunkt == null || !dur) { if (m) m.remove(); return; }
+  if (!m) { m = document.createElement('div'); m.id = 'inmark'; }
+  if (m.parentNode !== tl) tl.appendChild(m);
+  m.style.left = (inPunkt / dur * 100) + '%';
+  m.title = 'Schnitt-Anfang (I) — O setzt das Ende';
+}
+
+// ---------- Reiter in der Seitenleiste --------------------------------------
+const REITER = [['schnitt', 'Schnitt', 'schere'], ['text', 'Text', 'text'],
+  ['ton', 'Ton', 'laut'], ['bild', 'Bild', 'filter']];
+const KARTE_REITER = { cardCuts: 'schnitt', cardVols: 'schnitt',
+  cardZooms: 'schnitt', cardVideos: 'schnitt', cardTL: 'schnitt',
+  cardCap: 'text', cardCues: 'text', cardTexts: 'text',
+  cardAudio: 'ton', musSec: 'ton', cardGain: 'ton', cardSfx: 'ton',
+  cardFilter: 'bild' };
+const asideEl = document.querySelector('aside');
+const reiterNav = document.createElement('nav');
+reiterNav.id = 'reiter';
+reiterNav.innerHTML = REITER.map(r => '<button data-tab="' + r[0] + '">'
+  + ic(r[2]) + '<span>' + r[1] + '</span></button>').join('');
+asideEl.prepend(reiterNav);
+// Reihenfolge im Reiter „Schnitt": das Wichtigste zuerst
+['cardCuts', 'cardVols', 'cardZooms', 'cardVideos', 'cardTL'].forEach(id => {
+  const k = document.getElementById(id); if (k) asideEl.appendChild(k); });
+function karteTaggen(k){
+  if (!k.dataset.tab) k.dataset.tab = KARTE_REITER[k.id] || 'bild'; }
+asideEl.querySelectorAll('details.card').forEach(karteTaggen);
+// Karten aus eigenen Erweiterungen (cockpit_custom.js) landen unter „Bild"
+new MutationObserver(() => {
+  asideEl.querySelectorAll('details.card:not([data-tab])').forEach(karteTaggen);
+  if (asideEl.firstElementChild !== reiterNav) asideEl.prepend(reiterNav);
+}).observe(asideEl, { childList: true });
+function reiterZeigen(tab){
+  if (!tab) return;
+  asideEl.dataset.tab = tab;
+  reiterNav.querySelectorAll('button').forEach(b =>
+    b.classList.toggle('on', b.dataset.tab === tab));
+  try { localStorage.setItem('cockpit_reiter', tab); } catch (e) {}
+}
+reiterNav.querySelectorAll('button').forEach(b =>
+  b.onclick = () => { reiterZeigen(b.dataset.tab); asideEl.scrollTop = 0; });
+let startReiter = 'schnitt';
+try { startReiter = localStorage.getItem('cockpit_reiter') || 'schnitt'; } catch (e) {}
+reiterZeigen(REITER.some(r => r[0] === startReiter) ? startReiter : 'schnitt');
+
+// ---------- Spurenleiste links (wie Ordner) ---------------------------------
+// Name klicken = zur Spur springen · ▾/▸ = auf-/zuklappen · ‹ › = zum
+// vorigen/naechsten Element dieser Spur (Cut, Effekt, Text, Filter).
+// Mausrad ueber der Leiste = Spuren hoch/runter.
+function spurZeigen(l, reihe){
+  const oben = l.offsetTop, h = l.offsetHeight;
+  if (oben < tlv.scrollTop || oben + h > tlv.scrollTop + tlv.clientHeight)
+    tlv.scrollTop = Math.max(0, oben - 4);
+  thlist.scrollTop = tlv.scrollTop;
+  [l, reihe].forEach(x => { if (!x) return; x.classList.add('blink');
+    setTimeout(() => x.classList.remove('blink'), 700); });
+}
+function spurUmschalten(key){
+  const zu = new Set(P.spuren_zu || []);
+  if (zu.has(key)) zu.delete(key); else zu.add(key);
+  if (zu.size) P.spuren_zu = [...zu]; else delete P.spuren_zu;
+  touch(); renderTL();
+}
+function renderSpurKopf(){
+  thlist.innerHTML = '';
+  const zu = new Set(P.spuren_zu || []);
+  spurReihen.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'throw' + (r.unter && !r.erste ? ' unter' : '')
+      + (zu.has(r.key) ? ' zu' : '');
+    d.style.height = r.l.style.height;
+    const col = TRACKCOL[r.trk === 'both' ? 'main' : r.trk] || '#ccc';
+    d.innerHTML = '<span class="tog">' + (r.erste ? (zu.has(r.key) ? '▸' : '▾') : '')
+      + '</span><span class="nm">' + (r.ico ? '<i style="color:' + col + '">'
+      + ic(r.ico) + '</i>' : '<i class="leer">↳</i>') + esc(r.name)
+      + '</span><span class="cnt">' + esc(String(r.anzahl || '')) + '</span>'
+      + '<button class="j jp" title="Zum vorigen Element dieser Spur">‹</button>'
+      + '<button class="j jn" title="Zum nächsten Element dieser Spur">›</button>';
+    d.title = r.name + (r.key === 'sfx' && spurReihen.filter(x => x.key === 'sfx').length > 1
+      ? ' — Effekte, die sich überschneiden, liegen auf eigenen Ebenen' : '')
+      + ' · Klick = hinspringen · ▾ = zuklappen';
+    d.querySelector('.tog').onclick = e => { e.stopPropagation();
+      if (r.erste) spurUmschalten(r.key); };
+    const spring = richtung => e => { e.stopPropagation();
+      const T = masterTime();
+      const zs = r.zeiten().slice().sort((a, b) => a - b);
+      const z = richtung > 0 ? zs.find(x => x > T + 0.05)
+        : zs.reverse().find(x => x < T - 0.05);
+      if (z == null) { toast(richtung > 0 ? 'Danach kommt auf dieser Spur nichts mehr'
+        : 'Davor liegt auf dieser Spur nichts'); return; }
+      seekToRaw(z); spurZeigen(r.l, d); };
+    d.querySelector('.jp').onclick = spring(-1);
+    d.querySelector('.jn').onclick = spring(1);
+    d.onclick = () => spurZeigen(r.l, d);
+    d.ondblclick = () => { if (r.erste) spurUmschalten(r.key); };
+    thlist.appendChild(d);
+  });
+}
+// Liegen unterhalb noch Spuren, sagt das ein Knopf unter der Leiste —
+// sonst sieht man nicht, dass es dort weitergeht.
+function spurenMehr(){
+  const unten = tlv.scrollHeight - tlv.clientHeight - tlv.scrollTop;
+  const n = spurReihen.filter(r =>
+    r.l.offsetTop + r.l.offsetHeight / 2 > tlv.scrollTop + tlv.clientHeight).length;
+  thmehr.style.display = unten > 4 && n ? 'block' : 'none';
+  thmehr.textContent = '▾ ' + n + (n === 1 ? ' weitere Spur' : ' weitere Spuren');
+}
+thmehr.onclick = () => { tlv.scrollTop = tlv.scrollHeight; };
+// beide Seiten scrollen gemeinsam
+tlv.addEventListener('scroll', () => {
+  if (thlist.scrollTop !== tlv.scrollTop) thlist.scrollTop = tlv.scrollTop;
+  spurenMehr(); });
+thlist.addEventListener('scroll', () => {
+  if (tlv.scrollTop !== thlist.scrollTop) tlv.scrollTop = thlist.scrollTop; });
+bAlleAuf.onclick = () => { if (P.spuren_zu) { delete P.spuren_zu; touch(); renderTL(); } };
+bAlleZu.onclick = () => {
+  P.spuren_zu = [...new Set(spurReihen.map(r => r.key))]; touch(); renderTL(); };
+
+// ---------- Filter (Farbe) -------------------------------------------------
+// Die Rezepte kommen aus filter_presets.py (build_editor.py legt sie als
+// P._filterlib bei) — dieselben Schritte rechnet der Render. Vorschau mit
+// CSS-Filtern (saturate/contrast/brightness/sepia) + Farbschicht fuer
+// warm/kalt: das kann jeder Browser, auch Safari. (SVG-Filter zeigt Safari
+// auf laufendem Video nicht an.)
+const filterLib = () => P._filterlib || {};
+const filterName = k => (filterLib()[k] || {}).n || k;
+function filterInit(){
+  const lib = filterLib(), keys = Object.keys(lib);
+  filtctl.style.display = keys.length ? '' : 'none';
+  filtfehlt.style.display = keys.length ? 'none' : '';
+  const alt = filtPreset.value;
+  filtPreset.innerHTML = keys.map(k => '<option value="' + k + '">'
+    + esc(lib[k].n) + '</option>').join('');
+  if (alt && lib[alt]) filtPreset.value = alt;
+}
+filtStaerke.oninput = () => { filtStaerkeV.textContent = filtStaerke.value + '%'; };
+function filterNeu(von, bis){
+  if (!filtPreset.value) { toast('Filter-Liste fehlt — Claude „Cockpit neu bauen" sagen'); return; }
+  (P.filter = P.filter || []).push({ start: Math.round(von * 10) / 10,
+    end: Math.round(bis * 10) / 10, preset: filtPreset.value,
+    staerke: filtStaerke.value / 100 });
+  P.filter.sort((a, b) => a.start - b.start);
+  touch(); renderTL();
+  toast('🎨 ' + filterName(filtPreset.value) + ' gesetzt — Ränder ziehen = Dauer');
+}
+bAddFilter.onclick = () => {
+  const t = masterTime();
+  filterNeu(t, Math.min(dur, t + 3));
+};
+function filterLoeschen(f){
+  P.filter = (P.filter || []).filter(x => x !== f);
+  if (!P.filter.length) delete P.filter;
+  touch(); renderTL();
+}
+/** Der gerade gueltige Filter — Ueberlappung wie im Render: der spaeter
+ *  beginnende gewinnt. */
+function filterBei(t){
+  const fl = (P.filter || []).filter(f => filterLib()[f.preset]
+    && f.enabled !== false).slice().sort((a, b) => a.start - b.start);
+  for (let i = 0; i < fl.length; i++) {
+    const e = i + 1 < fl.length ? Math.min(fl[i].end, fl[i + 1].start) : fl[i].end;
+    if (t >= fl[i].start && t < e) return fl[i];
+  }
+  return null;
+}
+/** Schritte mit Staerke — gleiche Formel wie filter_presets.schritte(). */
+function filterSchritte(f){
+  const s = Math.max(0, Math.min(1, f.staerke != null ? +f.staerke : 1));
+  return (filterLib()[f.preset].ops || []).map(op => op[0] === 'sepia'
+    ? ['sepia', s * op[1]]
+    : [op[0]].concat(op.slice(1).map(w => 1 + s * (w - 1))));
+}
+const CSSNAME = { sat: 'saturate', con: 'contrast', mul: 'brightness', sepia: 'sepia' };
+let filterAktivKey = '';
+function drawFilterFx(){
+  const f = filterBei(masterTime());
+  const key = f ? f.preset + '|' + (f.staerke != null ? f.staerke : 1) : '';
+  if (key === filterAktivKey) return;
+  filterAktivKey = key;
+  zoomwrap.style.filter = ''; fxtint.style.display = 'none';
+  if (!f) return;
+  const css = [];
+  filterSchritte(f).forEach(op => {
+    if (op[0] === 'tint') {
+      fxtint.style.background = 'rgb(' + op.slice(1, 4).map(w =>
+        Math.round(Math.max(0, Math.min(1, w)) * 255)).join(',') + ')';
+      fxtint.style.display = 'block';
+    } else if (CSSNAME[op[0]]) css.push(CSSNAME[op[0]] + '(' + (+op[1]).toFixed(4) + ')');
+  });
+  zoomwrap.style.filter = css.join(' ');
+}
+function filterBalken(f, lane, nr){
+  const d = document.createElement('div');
+  d.className = 'flt'; d._obj = f;
+  const setz = () => {
+    d.style.left = (f.start / dur * 100) + '%';
+    d.style.width = (Math.max(0.3, f.end - f.start) / dur * 100) + '%'; };
+  setz();
+  d.title = 'Filter ' + nr + ': ' + filterName(f.preset) + ' · '
+    + Math.round((f.staerke != null ? f.staerke : 1) * 100) + '% — Mitte ziehen = '
+    + 'verschieben · Kanten = Dauer';
+  d.innerHTML = '<span class="h l" title="Anfang ziehen"></span>'
+    + '<span class="h r" title="Ende ziehen"></span>'
+    + '<span class="nr">' + nr + '</span>'
+    + '<span class="flbl" style="left:22px">' + esc(filterName(f.preset)) + '</span>';
+  d.addEventListener('pointerdown', ev => {
+    if (ev.target.classList.contains('h')) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const r = tl.getBoundingClientRect();
+    const len = f.end - f.start;
+    const grab = (ev.clientX - r.left) / r.width * dur - f.start;
+    let bewegt = false;
+    tip.style.display = 'block';
+    const move = e2 => {
+      bewegt = true;
+      let ns = (e2.clientX - r.left) / r.width * dur - grab;
+      ns = Math.max(0, Math.min(dur - len, ns));
+      f.start = Math.round(ns * 10) / 10;
+      f.end = Math.round((ns + len) * 10) / 10;
+      setz();
+      tip.textContent = '🎨 ' + fmt(f.start) + '–' + fmt(f.end);
+      tip.style.left = (e2.clientX - r.left - 40) + 'px'; touch();
+    };
+    const up = () => { window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      tip.style.display = 'none';
+      if (!bewegt) seekToRaw(f.start);
+      P.filter.sort((a, b) => a.start - b.start); renderTL(); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+  d.querySelectorAll('.h').forEach(h => {
+    h.addEventListener('pointerdown', ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      const left = h.classList.contains('l');
+      tip.style.display = 'block';
+      const move = e2 => {
+        const r = tl.getBoundingClientRect();
+        const t = Math.min(dur, Math.max(0, (e2.clientX - r.left) / r.width * dur));
+        if (left) f.start = Math.min(Math.round(t * 10) / 10, f.end - 0.2);
+        else f.end = Math.max(Math.round(t * 10) / 10, f.start + 0.2);
+        setz();
+        tip.textContent = '🎨 ' + (left ? 'Ab: ' : 'Bis: ') + fmt(left ? f.start : f.end);
+        tip.style.left = (e2.clientX - r.left - 20) + 'px';
+        seekToRaw(left ? f.start : f.end); touch();
+      };
+      const up = () => { tip.style.display = 'none';
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up); renderTL(); };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    });
+  });
+  lane.appendChild(d);
+}
+function renderFilterList(){
+  filterInit();
+  const fl = P.filter || [];
+  filtcount.textContent = fl.length ? '(' + fl.length + ')' : '';
+  filtlist.innerHTML = '';
+  const nr = nummern(fl, 'start');
+  const lib = filterLib();
+  fl.slice().sort((a, b) => a.start - b.start).forEach(f => {
+    const st = Math.round((f.staerke != null ? f.staerke : 1) * 100);
+    const d = document.createElement('div'); d._obj = f;
+    d.className = 'c'; d.style.borderLeft = '3px solid #ff7ad9';
+    d.innerHTML = `
+      <div class="top">
+        <span class="lnr" style="background:#ff7ad9">${nr.get(f)}</span>
+        <span class="t" style="color:#ff7ad9">${fmt(f.start)}–${fmt(f.end)}</span>
+        <span class="reason"></span>
+        <button class="del" title="Filter löschen">🗑</button>
+      </div>
+      <div class="row" style="margin:7px 0 0"><label style="font-size:11px">Filter</label>
+        <select class="fp">${Object.keys(lib).map(k => '<option value="' + k + '"'
+          + (k === f.preset ? ' selected' : '') + '>' + esc(lib[k].n) + '</option>').join('')
+          + (lib[f.preset] ? '' : '<option selected>' + esc(f.preset) + ' (unbekannt)</option>')}</select></div>
+      <div class="row"><label style="font-size:11px">Stärke</label>
+        <input type="range" class="fs" min="10" max="100" value="${st}">
+        <span style="font-size:11px;min-width:34px">${st}%</span></div>`;
+    d.querySelector('.fp').onchange = e => { f.preset = e.target.value;
+      filterAktivKey = ''; touch(); renderTL(); };
+    d.querySelector('.fs').oninput = e => { f.staerke = e.target.value / 100;
+      e.target.nextElementSibling.textContent = e.target.value + '%';
+      filterAktivKey = ''; touch(); };
+    d.querySelector('.del').onclick = e => { e.stopPropagation(); filterLoeschen(f); };
+    d.querySelector('.top').onclick = e => {
+      if (!e.target.classList.contains('del')) seekToRaw(f.start); };
+    filtlist.appendChild(d);
+  });
+}
+
 // ---------- Tonspur (Waveform) --------------------------------------------
 // Peaks kommen aus waveform_data.js (erzeugt build_editor.py, gecacht):
 // window.WAVEFORM = { "datei.mp4": { d: <Sekunden>, p: [0..100, ...] } }
@@ -2009,7 +2906,7 @@ function drawWave(){
       if (!dur) return;
       const c2 = cv.getContext('2d');
       c2.fillStyle = 'rgba(157,255,92,.6)';
-      SFX.forEach(ev => {
+      (l._evs || SFX).forEach(ev => {
         const r2 = (window.WAVEFORM || {})[ev.file];
         if (!r2 || !r2.p || !r2.p.length || !r2.d) return;
         const trim = +(ev.trim || 0), lg = sfxLen(ev);
@@ -2021,6 +2918,31 @@ function drawWave(){
             Math.floor(pos / r2.d * r2.p.length))] / 100;
           const bh = Math.max(1, p * h * 0.9);
           c2.fillRect(x, (h - bh) / 2, 1, bh);
+        }
+      });
+      return;
+    }
+    // Videospur: jeder Clip zeigt SEINE Tonspur an seiner Stelle — auch
+    // ein angehaengtes zweites, drittes Video.
+    // (Text- und Filterspur zeigen ebenfalls den Videoton — zum Anlegen
+    // an gesprochene Stellen.)
+    const isMain = !isMus && !isVo && l.dataset.track !== 'pip';
+    if (isMain && clips.length) {
+      if (!dur) return;
+      const c3 = cv.getContext('2d');
+      c3.fillStyle = 'rgba(110,205,255,.38)';
+      clips.forEach((f, i) => {
+        const r3 = (window.WAVEFORM || {})[f];
+        if (!r3 || !r3.p || !r3.p.length || !r3.d) return;
+        const a = clipStart[i] || 0, lg = clipDur[i] || r3.d;
+        const x0 = a / dur * w, x1 = (a + lg) / dur * w;
+        for (let x = Math.max(0, Math.floor(x0)); x < Math.min(w, x1); x++) {
+          const pos = (x - x0) / (x1 - x0) * lg;
+          if (pos > r3.d) break;
+          const p = r3.p[Math.min(r3.p.length - 1,
+            Math.floor(pos / r3.d * r3.p.length))] / 100;
+          const bh = Math.max(1, p * h * 0.9);
+          c3.fillRect(x, (h - bh) / 2, 1, bh);
         }
       });
       return;
@@ -2189,7 +3111,7 @@ function zielAnzeigen(){
   bSave.title = dirHandle
     ? 'Speichert automatisch nach ' + dirHandle.name + '/' + projektDateiName()
     : 'Beim ersten Klick einmal den Sammelordner waehlen';
-  if (dirHandle) bSave.textContent = '💾 Speichern (' + dirHandle.name + ')';
+  if (dirHandle) saveLabel('Speichern (' + dirHandle.name + ')');
 }
 async function saveToDir(){
   // Je Projekt ein eigener Unterordner: <Sammelordner>/<projekt>/projekt.json
@@ -2215,17 +3137,17 @@ function saveToHandle(){
       // gesehene Stand. Ueberschreibt man ihn mit der eigenen Fassung,
       // haelt das Polling Claudes (unveraenderte) Datei faelschlich fuer
       // neu und spielt sie zurueck - die eigenen Aenderungen waeren weg.
-      bSave.textContent = '✓ Gespeichert'; bSave.classList.add('on');
+      saveLabel('Gespeichert', 'haken'); bSave.classList.add('on');
       setTimeout(() => { zielAnzeigen();
-        if (!dirHandle) bSave.textContent = '💾 Gespeichert (automatisch)';
+        if (!dirHandle) saveLabel('Gespeichert (automatisch)');
         bSave.classList.remove('on'); }, 1500);
       if ((P._neueAudios || []).length)
-        toast('ℹ Neue Audiodateien: ' + P._neueAudios.join(', ')
+        toast('ℹ Neue Dateien: ' + P._neueAudios.join(', ')
           + ' — in den Projektordner legen, sonst fehlen sie beim Rendern');
     } catch (e) {
       // Ordner-Erlaubnis entzogen oder Datei weg -> zurueck auf Anfang
       dirHandle = null; fileHandle = null;
-      bSave.textContent = '💾 Speichern'; bSave.title = '';
+      saveLabel('Speichern'); bSave.title = '';
       toast('⚠ Speichern fehlgeschlagen — bitte Zielordner erneut wählen');
     }
   }, 700);
@@ -2235,8 +3157,8 @@ function downloadSave(){
   a.href = URL.createObjectURL(new Blob([currentProjectJSON()],
     {type:'application/json'}));
   a.download = 'projekt.json'; a.click(); dirty = false;
-  bSave.textContent = '✓ In Downloads — sag Claude Bescheid';
-  setTimeout(() => bSave.textContent = '💾 Speichern', 4000);
+  saveLabel('In Downloads — sag Claude Bescheid', 'haken');
+  setTimeout(() => saveLabel('Speichern'), 4000);
 }
 bSave.onclick = async () => {
   // 1. Ordner schon gemerkt -> einfach speichern, kein Dialog
@@ -2449,11 +3371,32 @@ function sfxSetLevel(ev, lvl){
 /** Hörbare Länge eines Events (fürs Zeichnen und für die Vorschau). */
 function sfxLen(ev){
   if (ev.len) return +ev.len;
-  const i = sfxInfoFor(ev.file);
-  return Math.max(0.15, (i ? i.d : 0.6) - (ev.trim || 0));
+  return Math.max(0.15, sfxDauer(ev.file) - (ev.trim || 0));
+}
+/** Volle Dateilänge eines Effekts. Reihenfolge: Bibliothek, von
+ *  build_editor.py gemessen (auch Dateien außerhalb der Bibliothek),
+ *  im Browser nachgemessen. Erst wenn alles fehlt: 0,6 s Platzhalter —
+ *  und die Messung läuft im Hintergrund an. */
+const sfxGemessen = {};
+function sfxDauer(file){
+  const i = sfxInfoFor(file);
+  if (i && i.d) return i.d;
+  const d = ((P._sfxlib || {}).dauer || {})[file];
+  if (d) return d;
+  if (sfxGemessen[file]) return sfxGemessen[file];
+  if (!(file in sfxGemessen) && file) {
+    sfxGemessen[file] = 0;
+    const a = new Audio(); a.preload = 'metadata';
+    a.onloadedmetadata = () => {
+      if (isFinite(a.duration) && a.duration > 0) {
+        sfxGemessen[file] = a.duration; renderTL(); renderSfxList(); }
+    };
+    a.src = fileURL(file);
+  }
+  return 0.6;
 }
 const sfxName = ev => ev.name
-  || String(ev.file || '').split('/').pop().replace(/\.[^.]+$/, '');
+  || String(ev.file || '').split(/[\\/]/).pop().replace(/\.[^.]+$/, '');
 /** effekte.sfx nur anlegen, solange es Events gibt — sonst bleibt die
  *  projekt.json so schlank wie vorher. */
 function sfxSync(){
@@ -2579,21 +3522,23 @@ function sfxEinfuegen(t, laenge){
 sfxAdd.onclick = () => sfxEinfuegen(masterTime());
 
 // ---------- Marker auf der Spur ------------------------------------------
-function sfxMarker(ev, lane){
+function sfxMarker(ev, lane, nr){
   const d = document.createElement('div');
-  d.className = 'sfx' + (ev === sfxAktiv ? ' aktiv' : '');
+  d.className = 'sfx' + (ev === sfxAktiv ? ' aktiv' : ''); d._obj = ev;
   const setz = () => {
     d.style.left = (ev.time / dur * 100) + '%';
     d.style.width = (sfxLen(ev) / dur * 100) + '%';
   };
   setz();
-  d.title = sfxName(ev) + ' · ' + fmt(ev.time) + ' · '
+  d.title = (nr ? 'Effekt ' + nr + ': ' : '') + sfxName(ev) + ' · '
+    + fmt(ev.time) + ' · '
     + Math.round(sfxLevel(ev) * 100) + '% — Mitte ziehen = verschieben · '
     + 'linke Kante = Stille am Anfang wegschneiden · rechte Kante = Länge';
   d.innerHTML = '<span class="h l" title="Anfang beschneiden — schneidet '
     + 'vorne weg, was in der Datei noch still ist"></span>'
     + '<span class="h r" title="Länge ziehen"></span>'
-    + '<span class="slbl">' + esc(sfxName(ev).slice(0, 18)) + '</span>';
+    + '<span class="slbl">' + (nr ? nr + ' · ' : '')
+    + esc(sfxName(ev).slice(0, 18)) + '</span>';
   // Körper ziehen = verschieben
   d.addEventListener('pointerdown', e2 => {
     if (e2.target.classList.contains('h')) return;
@@ -2659,8 +3604,7 @@ function sfxMarker(ev, lane){
   // Rechte Kante = Länge (mit kurzer Ausblende)
   d.querySelector('.h.r').addEventListener('pointerdown', e2 => {
     e2.preventDefault(); e2.stopPropagation();
-    const info = sfxInfoFor(ev.file);
-    const max = info ? Math.max(0.15, info.d - (ev.trim || 0)) : 30;
+    const max = Math.max(0.15, sfxDauer(ev.file) - (ev.trim || 0));
     tip.style.display = 'block';
     const move = e3 => {
       const r = tl.getBoundingClientRect();
@@ -2688,13 +3632,14 @@ function sfxMarker(ev, lane){
 function renderSfxList(){
   if (typeof sfxlist === 'undefined') return;
   sfxlist.innerHTML = '';
-  SFX.forEach(ev => {
-    const info = sfxInfoFor(ev.file);
-    const max = info ? Math.max(0.15, info.d - (ev.trim || 0)) : 30;
-    const d = document.createElement('div');
+  const nr = nummern(SFX, 'time');
+  SFX.slice().sort((a, b) => a.time - b.time).forEach(ev => {
+    const max = Math.max(0.15, sfxDauer(ev.file) - (ev.trim || 0));
+    const d = document.createElement('div'); d._obj = ev;
     d.className = 'c';
     d.innerHTML = `
       <div class="top">
+        <span class="lnr" style="background:#9dff5c">${nr.get(ev)}</span>
         <span class="t">${fmt(ev.time)}</span>
         <span class="reason" title="${esc(ev.file)}">${esc(sfxName(ev))}</span>
         <button class="nb hear" title="Nur diesen Effekt anhören">▶</button>
@@ -2872,7 +3817,7 @@ function drawLaneRunners(){
 }
 // Zeichen-Schleife (60x/s): fluessige Anzeige fuer Zoom, Untertitel & Laeufer
 (function mainLoop(){
-  drawZoomFx(); drawLaneRunners();
+  drawZoomFx(); drawFilterFx(); drawLaneRunners();
   updPhLabel(); updTC(); drawCap(); drawTexts(); applyAudio(); applySfxPlay();
   requestAnimationFrame(mainLoop);
 })();

@@ -116,10 +116,16 @@ def zusammenfuegen(clips, ziel):
         for c in clips:
             f.write("file '{}'\n".format(os.path.abspath(c).replace('\\', '/')))
 
+    # Schnellweg nur bei wirklich gleichen Clips (auch Farbkennung) — sonst
+    # verliert das spaetere Schneiden am Clipwechsel Bild (siehe
+    # render_projekt.clip_kennung).
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from render_projekt import clip_kennung
+    gleich = len(set(clip_kennung(c) for c in clips)) == 1
     schnell = subprocess.run(
         ['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0',
-         '-i', liste, '-c', 'copy', ziel], capture_output=True)
-    if schnell.returncode == 0 and os.path.exists(ziel):
+         '-i', liste, '-c', 'copy', ziel], capture_output=True) if gleich else None
+    if gleich and schnell.returncode == 0 and os.path.exists(ziel):
         os.remove(liste)
         print("    Schnellweg (ohne Neuberechnung)")
         return True
@@ -132,7 +138,10 @@ def zusammenfuegen(clips, ziel):
         r = subprocess.run(
             ['ffmpeg', '-y', '-v', 'error', '-i', c, '-vf',
              'scale=1080:1920:force_original_aspect_ratio=decrease,'
-             'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1', '-r', '30']
+             'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1,'
+             'scale=out_color_matrix=bt709:out_range=tv,'
+             'setparams=range=tv:colorspace=bt709:'
+             'color_primaries=bt709:color_trc=bt709', '-r', '30']
             + video_encoder({}, zwischenstufe=True)
             + ['-c:a', 'aac', '-b:a', '192k', '-ar', '48000', p],
             capture_output=True)
