@@ -561,6 +561,40 @@ footer { background:var(--panel); border-top:1px solid var(--line); box-shadow:n
   justify-content:center; line-height:1; background:var(--card); }
 .farbwahl button.klein { padding:4px 8px; font-size:11.5px; }
 body.pipette #stage, body.pipette #stage * { cursor:crosshair !important; }
+/* Hilfe-Fenster (?-Knopf, Taste ?, F1) */
+#hilfe { position:fixed; inset:0; z-index:150; display:flex; justify-content:flex-end;
+  background:rgba(0,0,0,.45); }
+#hilfe[hidden] { display:none; }
+#hilfe .hbox { width:min(520px,100%); height:100%; background:var(--panel); color:var(--txt);
+  border-left:1px solid var(--line2); display:flex; flex-direction:column;
+  box-shadow:-20px 0 60px rgba(0,0,0,.5); }
+#hilfe .hkopf { display:flex; align-items:center; gap:12px; padding:14px 16px;
+  border-bottom:1px solid var(--line); flex-wrap:wrap; }
+#hilfe h2 { font-size:16px; font-weight:600; }
+#hilfe .hreiter { display:flex; gap:2px; flex:1; }
+#hilfe .hreiter button { background:none; border:1px solid transparent; color:var(--txt2);
+  padding:6px 10px; font-size:12.5px; }
+#hilfe .hreiter button.on { background:var(--btnh); color:var(--txt); border-color:var(--line2); }
+#hilfe .hzu { font-size:14px; }
+#hilfe .hinhalt { overflow-y:auto; padding:16px 18px 30px; user-select:text; }
+#hilfe .hk { margin-bottom:14px; padding:12px 14px; background:var(--card);
+  border:1px solid var(--line); border-radius:10px; }
+#hilfe h3 { font-size:12px; letter-spacing:.8px; text-transform:uppercase; color:var(--acc);
+  margin-bottom:6px; font-weight:600; }
+#hilfe p, #hilfe li { font-size:13px; line-height:1.55; color:var(--txt); }
+#hilfe .hleise { color:var(--txt2); margin-bottom:12px; }
+#hilfe .htab { width:100%; border-collapse:collapse; font-size:13px; }
+#hilfe .htab td { padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+#hilfe .htab td:first-child { white-space:nowrap; color:var(--txt); width:46%; }
+#hilfe kbd { display:inline-block; min-width:20px; padding:1px 6px; border-radius:5px;
+  border:1px solid var(--line2); background:var(--btn); font-family:var(--font);
+  font-size:11.5px; text-align:center; }
+#hilfe .mac { color:var(--txt2); font-size:11px; }
+#hilfe .hsaetze { list-style:none; display:flex; flex-direction:column; gap:8px; }
+#hilfe .hsaetze li { display:flex; align-items:center; gap:10px; padding:9px 12px;
+  background:var(--card); border:1px solid var(--line); border-radius:9px; }
+#hilfe .hsaetze li span { flex:1; }
+#hilfe .hsaetze button { padding:4px 9px; font-size:11.5px; }
 /* Speichern-Knopf: ruhig, solange alles gespeichert ist */
 #bSave.ruhig { background:transparent; color:var(--txt2); }
 /* Dialog beim ersten Speichern eines Projekts */
@@ -654,17 +688,7 @@ header > .spacer { flex:1; }
   <span class="spacer"></span>
   <button id="bPrev" class="chip on" data-ico="sprung" title="Beim Abspielen die geschnittenen Stellen überspringen (so wird das Reel). Aus = Rohmaterial mit allem."><span class="lbl">Schnitte überspringen</span></button>
   <button id="bGuides" class="chip" data-ico="zonen" title="Zeigt, wo Instagram Kopfzeile, Knöpfe und Bildunterschrift über das Video legt"><span class="lbl">Instagram-Zonen</span></button>
-  <button id="bHilfe" class="nurico" data-ico="hilfe" title="So geht's:
-• Oben in die Zeitskala klicken = Läufer hinsetzen, ziehen = spulen
-• Rote Balken = wird herausgeschnitten
-• Kanten ziehen = trimmen · Mitte ziehen = verschieben
-• Freie Fläche aufziehen = neuer Schnitt / Lautstärke / Zoom (Feld oben, Tasten 1–3)
-• Klick auf ein Element = markieren (Entf löscht) · Kanten rasten an Wortgrenzen ein (Alt/⌥ gedrückt = frei)
-• Leertaste = Abspielen · ← → ein Bild · Umschalt + ← → eine Sekunde
-• I / O = Schnitt-Anfang / -Ende an der Läuferstelle · Strg+Z / Strg+Y (Mac: ⌘Z / ⌘⇧Z) = rückgängig / wiederholen
-• Mausrad über der Zeitleiste = zoomen · Umschalt + Mausrad = Spuren
-• Rechte Maustaste gedrückt halten und ziehen = gezoomte Zeitleiste verschieben
-• Änderungen von Claude erscheinen hier automatisch"></button>
+  <button id="bHilfe" class="nurico" data-ico="hilfe" title="Hilfe, Tastenkürzel und Zuruf-Beispiele (Taste ?)"></button>
   <button id="bSave" class="primary">Speichern für Claude</button>
 </header>
 <div id="banner"><span>🔄 Claude hat das Projekt geändert, aber du hast ungespeicherte Änderungen.</span>
@@ -720,6 +744,8 @@ header > .spacer { flex:1; }
     <details class="card" id="cardFormat" open><summary>Format</summary>
       <div class="fmtwahl" id="fmtWahl"></div>
       <div class="row" id="fmtEinRow"><label>Einpassen</label><select id="fmtEin"></select></div>
+      <div class="row" id="fmtFolgenRow"><label>Kamera folgt der Person</label><input type="checkbox" id="fmtFolgen"></div>
+      <div class="row" id="fmtFolgenHinweis" style="display:none"><span style="font-size:11px;opacity:.6"></span></div>
       <div class="row" id="fmtXRow"><label>Ausschnitt ↔</label><input type="range" id="fmtX" min="0" max="100" value="50"><span id="fmtXV" style="font-size:11px;min-width:34px">Mitte</span></div>
       <div class="row" id="fmtYRow"><label>Ausschnitt ↕</label><input type="range" id="fmtY" min="0" max="100" value="50"><span id="fmtYV" style="font-size:11px;min-width:34px">Mitte</span></div>
       <div class="row"><span id="fmtQuelle" style="font-size:11px;opacity:.6"></span></div>
@@ -806,6 +832,58 @@ header > .spacer { flex:1; }
       <button id="tzOut">−</button><span id="tlZoomLbl" title="Klick = ganze Zeitleiste zeigen">100%</span><button id="tzIn">+</button></span>
     <span>Zeitskala oben = Läufer · Klick = markieren · Aufziehen = Schnitt / Lautstärke / Zoom (Tasten 1–3) · I/O = Schnitt setzen · Entf = löschen · Mausrad = zoomen</span><span id="tDur">0:00.0</span></div>
 </footer>
+<div id="hilfe" role="dialog" aria-modal="true" aria-labelledby="hilfeT" hidden>
+  <div class="hbox">
+    <div class="hkopf"><h2 id="hilfeT">Hilfe</h2>
+      <nav class="hreiter"><button data-h="start" class="on">So geht's</button><button data-h="tasten">Tastenkürzel</button><button data-h="claude">Claude sagen</button></nav>
+      <button class="nurico hzu" title="Schließen (Esc)" aria-label="Schließen">✕</button></div>
+    <div class="hinhalt">
+      <section data-h="start">
+        <div class="hk"><h3>Abspielen &amp; Springen</h3><p>Leertaste spielt ab. Ein Klick in die <b>Zeitskala oben</b> oder in eine freie Stelle einer Spur setzt den Läufer, Ziehen in der Skala spult. Mausrad über der Zeitleiste zoomt, <b>rechte Maustaste ziehen</b> verschiebt die gezoomte Zeitleiste.</p></div>
+        <div class="hk"><h3>Schneiden</h3><p><b>Rote Balken</b> werden herausgeschnitten. Freie Fläche <b>aufziehen</b> = neuer Schnitt, Kanten ziehen = kürzen, Mitte ziehen = verschieben, <b>Doppelklick</b> = Cut an/aus. Kanten rasten an Wortgrenzen ein. Oben „Aufziehen =" schaltet zwischen Schnitt, Lautstärke und Zoom um.</p></div>
+        <div class="hk"><h3>Spuren</h3><p>Links stehen alle Spuren: <b>▾/▸</b> klappt sie auf und zu, ein Klick auf den Namen springt hin, <b>‹ ›</b> springt zum vorigen/nächsten Element. Alles ist nummeriert (Cut 1, 2, 3 …) — so kannst du Claude sagen „lösch Cut 3".</p></div>
+        <div class="hk"><h3>Ton &amp; Effekte</h3><p>Reiter <b>Ton</b>: Musik, Voiceover, Lautstärke und Soundeffekte. Effekt auswählen, dann <b>Doppelklick</b> auf die Effekt-Spur — oder aufziehen für eine bestimmte Länge. Überlappende Effekte bekommen eigene Ebenen.</p></div>
+        <div class="hk"><h3>Text &amp; Untertitel</h3><p>Reiter <b>Text</b>: Untertitel-Stil, Untertitel-Text korrigieren, freie Texte (Hook, Titel). Texte im Video an die Wunschstelle ziehen.</p></div>
+        <div class="hk"><h3>Bild: Format &amp; Filter</h3><p>Reiter <b>Bild</b>: Format (9:16, 16:9, 1:1, 4:5) mit Füllen, unscharfem Hintergrund oder Balken — beim Füllen kann die <b>Kamera der Person folgen</b>. Darunter Filter und Looks, auch „Farbe behalten" (Sin City) mit Pipette.</p></div>
+        <div class="hk"><h3>Speichern</h3><p>Beim ersten Speichern fragt das Cockpit einmal, wo. Danach speichert <b>jede Änderung von selbst</b> — der Knopf oben rechts zeigt „Gespeichert". Rechtsklick darauf = Speicherort ändern.</p></div>
+      </section>
+      <section data-h="tasten" hidden>
+        <table class="htab">
+          <tr><td><kbd>Leertaste</kbd></td><td>Abspielen / Pause</td></tr>
+          <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>ein Bild zurück / vor</td></tr>
+          <tr><td><kbd>Umschalt</kbd> + <kbd>←</kbd> <kbd>→</kbd></td><td>eine Sekunde zurück / vor</td></tr>
+          <tr><td><kbd>I</kbd> / <kbd>O</kbd></td><td>Schnitt-Anfang / -Ende an der Läuferstelle</td></tr>
+          <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Aufziehen = Schnitt / Lautstärke / Zoom</td></tr>
+          <tr><td><kbd>Entf</kbd></td><td>markiertes Element löschen</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Markierung aufheben</td></tr>
+          <tr><td><kbd>Strg</kbd> + <kbd>Z</kbd> &nbsp;<span class="mac">⌘Z</span></td><td>rückgängig</td></tr>
+          <tr><td><kbd>Strg</kbd> + <kbd>Y</kbd> &nbsp;<span class="mac">⌘⇧Z</span></td><td>wiederherstellen</td></tr>
+          <tr><td><kbd>Alt</kbd> beim Ziehen &nbsp;<span class="mac">⌥</span></td><td>Kante rastet nicht an Wörtern ein</td></tr>
+          <tr><td>Mausrad</td><td>Zeitleiste zoomen (zur Maus hin)</td></tr>
+          <tr><td><kbd>Umschalt</kbd> + Mausrad</td><td>Spuren hoch / runter</td></tr>
+          <tr><td>rechte Maustaste ziehen</td><td>gezoomte Zeitleiste verschieben</td></tr>
+          <tr><td><kbd>?</kbd> oder <kbd>F1</kbd></td><td>diese Hilfe</td></tr>
+        </table>
+      </section>
+      <section data-h="claude" hidden>
+        <p class="hleise">Alles, was du im Cockpit klickst, kannst du Claude auch einfach sagen — es landet nach ein paar Sekunden hier im Tab. Zeiten so, wie du sie im Cockpit siehst; für das fertige Video „im fertigen Video" dazusagen. Am genauesten sind Wörter und Nummern.</p>
+        <ul class="hsaetze">
+          <li>Setz einen Whoosh beim Wort „Brieftaube".</li>
+          <li>Mach 1:10 bis 1:20 schwarz-weiß.</li>
+          <li>Lass nur das rote Shirt farbig, der Rest schwarz-weiß.</li>
+          <li>Leg den Kino-Look über die ersten fünf Sekunden.</li>
+          <li>Schneid alle „äh" raus.</li>
+          <li>Lösch Cut 3 und Effekt 2.</li>
+          <li>Zoom beim Wort „Turm" für zwei Sekunden auf mein Gesicht.</li>
+          <li>Mach daraus ein 9:16-Reel und lass die Kamera mir folgen.</li>
+          <li>Schreib „Kurz erklärt" als Text in die ersten drei Sekunden.</li>
+          <li>Zeig mir eine Liste aller Cuts und Effekte.</li>
+          <li>Render das Video.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 
 <audio id="mus" preload="auto"></audio>
@@ -954,7 +1032,7 @@ function currentProjectJSON(){
   delete out._dateien; delete out._audiodateien; delete out._neueAudios;
   delete out._sfxlib;              // Anzeige-Info, baut build_editor.py neu
   delete out._dateidauern; delete out._filterlib; delete out._arbeit;
-  delete out._gebaut; delete out._formate; delete out._quelle;
+  delete out._gebaut; delete out._formate; delete out._quelle; delete out._person;
   // Herkunft mitschreiben: sonst weiss Claude beim Sammelordner-Speichern
   // nicht, WOHIN die Datei gehoert (Projektordner kann ueberall liegen),
   // und bei mehreren Projekten nicht, welches zuletzt bearbeitet wurde.
@@ -2826,6 +2904,7 @@ function formatAnwenden(){
   drawZones();
   if (typeof rebuildStageTexts === 'function') rebuildStageTexts();
   try { fxLetzt = ''; } catch (e) { /* Filter-Teil noch nicht geladen */ }
+  folgenLetzt = '';
   formatKarte();
 }
 let fmtBgZeit = -1;
@@ -2865,8 +2944,15 @@ function formatKarte(){
   fmtEinRow.style.display = !q || anders ? '' : 'none';
   // Ausschnitt nur, wo beim Fuellen wirklich etwas abgeschnitten wird
   const breiter = q && q.w / q.h > f.W / f.H + 0.01, hoeher = q && q.w / q.h < f.W / f.H - 0.01;
-  fmtXRow.style.display = f.modus === 'fuellen' && (!q || breiter) ? '' : 'none';
-  fmtYRow.style.display = f.modus === 'fuellen' && hoeher ? '' : 'none';
+  const folgen = !!(P.ausschnitt || {}).folgen;
+  fmtFolgenRow.style.display = f.modus === 'fuellen' && anders ? '' : 'none';
+  fmtFolgen.checked = folgen;
+  const hinweis = fmtFolgenHinweis.querySelector('span');
+  fmtFolgenHinweis.style.display = f.modus === 'fuellen' && anders && folgen && !P._person ? '' : 'none';
+  hinweis.textContent = 'Die Erkennung läuft beim nächsten Cockpit-Bau (Claude kurz Bescheid sagen). '
+    + 'Das fertige Video folgt der Person auf jeden Fall.';
+  fmtXRow.style.display = f.modus === 'fuellen' && (!q || breiter) && !folgen ? '' : 'none';
+  fmtYRow.style.display = f.modus === 'fuellen' && hoeher && !folgen ? '' : 'none';
   fmtX.value = Math.round(f.ax * 100); fmtY.value = Math.round(f.ay * 100);
   const lage = (wert, a, b) => wert < 0.02 ? a : wert > 0.98 ? b
     : Math.abs(wert - 0.5) < 0.02 ? 'Mitte' : Math.round(wert * 100) + '%';
@@ -2879,11 +2965,135 @@ fmtEin.onchange = () => { P.einpassen = fmtEin.value;
   if (!('format' in P)) P.format = fmtInfo().key;
   touch(); formatAnwenden(); };
 const ausschnittSetzen = () => {
-  P.ausschnitt = { x: fmtX.value / 100, y: fmtY.value / 100 };
+  P.ausschnitt = Object.assign({}, P.ausschnitt || {},
+    { x: fmtX.value / 100, y: fmtY.value / 100 });
   if (!('format' in P)) P.format = fmtInfo().key;
   touch(); formatAnwenden(); };
 fmtX.oninput = ausschnittSetzen; fmtY.oninput = ausschnittSetzen;
+fmtFolgen.onchange = () => {
+  P.ausschnitt = Object.assign({}, P.ausschnitt || {}, { folgen: fmtFolgen.checked });
+  if (!('format' in P)) P.format = fmtInfo().key;
+  touch(); formatAnwenden();
+  toast(fmtFolgen.checked ? 'Kamera folgt der Person — die Vorschau zeigt die Fahrt'
+    : 'Fester Ausschnitt'); };
+
+// ---------- Kamera folgt der Person ----------------------------------------
+// Gleiche Rechnung wie person_folgen.kamerafahrt() (Zahlen kommen mit den
+// Kopfpunkten aus build_editor.py) — der Render nimmt dieselbe Fahrt.
+function kamerafahrtJS(person, zw, zh){
+  const pa = person.param, sw = person.quelle[0], sh = person.quelle[1];
+  const wf = Math.min(1, (zw / zh) / (sw / sh)), hf = Math.min(1, (zh / zw) / (sh / sw));
+  const ziel = (x, y) => [wf >= 0.999 ? 0.5 : Math.min(1, Math.max(0, (x - wf / 2) / (1 - wf))),
+    hf >= 0.999 ? 0.5 : Math.min(1, Math.max(0, (y - pa.kopf_oben * hf) / (1 - hf)))];
+  let punkte = person.punkte;
+  const fl = punkte.filter(q => q[1] != null && q.length > 3 && q[3] != null)
+    .map(q => q[3]).sort((a, b) => a - b);
+  if (fl.length) {
+    const grenze = 0.45 * fl[Math.floor(fl.length / 2)];
+    punkte = punkte.map(q => (q[1] == null || q.length < 4 || q[3] == null || q[3] >= grenze)
+      ? q : [q[0], null, null, null]);
+  }
+  const bekannt = punkte.filter(q => q[1] != null);
+  if (!bekannt.length) return [[punkte.length ? punkte[0][0] : 0, 0.5, 0.5]];
+  const n = punkte.length, luecke = new Array(n).fill(0);
+  for (let i = 0; i < n;) {
+    if (punkte[i][1] == null) { let j = i; while (j < n && punkte[j][1] == null) j++;
+      for (let k = i; k < j; k++) luecke[k] = j - i; i = j; } else i++;
+  }
+  let zuletzt = [bekannt[0][1], bekannt[0][2]];
+  const roh = punkte.map((q, i) => {
+    if (q[1] != null) { zuletzt = [q[1], q[2]]; return [q[0]].concat(ziel(zuletzt[0], zuletzt[1])); }
+    if (luecke[i] > pa.fps) return [q[0], 0.5, 0.5];
+    return [q[0]].concat(ziel(zuletzt[0], zuletzt[1]));
+  });
+  const median = (w, i) => { const f = w.slice(Math.max(0, i - 2), i + 3).sort((a, b) => a - b);
+    return f[Math.floor(f.length / 2)]; };
+  const x0 = roh.map(r => r[1]), y0 = roh.map(r => r[2]);
+  const xs = x0.map((_, i) => median(x0, i)), ys = y0.map((_, i) => median(y0, i));
+  const kamera = (X, Y) => {
+    const alpha = 1 - Math.exp(-(1 / pa.fps) / pa.traegheit);
+    let cx = X[0], cy = Y[0], zx = cx, zy = cy; const ox = [], oy = [];
+    const vz = (a, b) => b < 0 ? -a : a;
+    for (let i = 0; i < X.length; i++) {
+      const x = X[i], y = Y[i];
+      if (i && (Math.abs(x - X[i - 1]) > pa.sprung || Math.abs(y - Y[i - 1]) > pa.sprung)) {
+        cx = x; cy = y; zx = x; zy = y;
+      } else {
+        if (Math.abs(x - zx) > pa.totzone) zx = x - vz(pa.totzone * 0.5, x - zx);
+        if (Math.abs(y - zy) > pa.totzone) zy = y - vz(pa.totzone * 0.5, y - zy);
+        cx += (zx - cx) * alpha; cy += (zy - cy) * alpha;
+      }
+      ox.push(cx); oy.push(cy);
+    }
+    return [ox, oy];
+  };
+  const [vx, vy] = kamera(xs, ys);
+  const [rx, ry] = kamera(xs.slice().reverse(), ys.slice().reverse());
+  rx.reverse(); ry.reverse();
+  return roh.map((r, i) => [r[0], (vx[i] + rx[i]) / 2, (vy[i] + ry[i]) / 2]);
+}
+function fahrtWert(fahrt, t){
+  if (t <= fahrt[0][0]) return [fahrt[0][1], fahrt[0][2]];
+  const l = fahrt[fahrt.length - 1];
+  if (t >= l[0]) return [l[1], l[2]];
+  let lo = 0, hi = fahrt.length - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (fahrt[m][0] <= t) lo = m; else hi = m; }
+  const a = fahrt[lo], b = fahrt[hi], f = (t - a[0]) / Math.max(1e-9, b[0] - a[0]);
+  return [a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+}
+let folgenSpeicher = { key: '', fahrt: null }, folgenLetzt = '';
+function folgenFahrt(){
+  const pp = P._person; if (!pp || !pp.punkte || !pp.punkte.length) return null;
+  const f = fmtInfo(), key = f.W + 'x' + f.H + '|' + pp.punkte.length + '|' + pp.quelle;
+  if (folgenSpeicher.key !== key) folgenSpeicher = { key, fahrt: kamerafahrtJS(pp, f.W, f.H) };
+  return folgenSpeicher.fahrt;
+}
+function drawFolgen(){
+  const f = fmtInfo(), q = P._quelle;
+  if (!(P.ausschnitt || {}).folgen || f.modus !== 'fuellen' || !q
+      || Math.abs(q.w / q.h - f.W / f.H) <= 0.01) return;
+  const fahrt = folgenFahrt(); if (!fahrt) return;
+  const [ax, ay] = fahrtWert(fahrt, masterTime());
+  const pos = (ax * 100).toFixed(2) + '% ' + (ay * 100).toFixed(2) + '%';
+  if (pos === folgenLetzt) return;
+  folgenLetzt = pos;
+  v.style.objectPosition = pos; fxcanvas.style.objectPosition = pos;
+}
 new ResizeObserver(() => { stageAnpassen(); if (typeof rebuildStageTexts === 'function') rebuildStageTexts(); }).observe(stagewrap);
+// ---------- Hilfe-Fenster (?-Knopf, Taste ?, F1) ---------------------------
+function hilfeReiter(name){
+  hilfe.querySelectorAll('.hreiter button').forEach(b => b.classList.toggle('on', b.dataset.h === name));
+  hilfe.querySelectorAll('section').forEach(sec => sec.hidden = sec.dataset.h !== name);
+}
+function hilfeAuf(){ hilfe.hidden = false; hilfe.querySelector('.hzu').focus(); }
+function hilfeZu(){ hilfe.hidden = true; bHilfe.focus(); }
+bHilfe.onclick = () => hilfe.hidden ? hilfeAuf() : hilfeZu();
+hilfe.querySelector('.hzu').onclick = hilfeZu;
+hilfe.addEventListener('click', e => { if (e.target === hilfe) hilfeZu(); });
+hilfe.querySelectorAll('.hreiter button').forEach(b => b.onclick = () => hilfeReiter(b.dataset.h));
+// Beispielsaetze mit Kopierknopf
+hilfe.querySelectorAll('.hsaetze li').forEach(li => {
+  const text = li.textContent.trim();
+  li.innerHTML = '';
+  const sp = document.createElement('span'); sp.textContent = text;
+  const k = document.createElement('button'); k.textContent = 'Kopieren';
+  k.onclick = async () => {
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) {                          // Rueckfall ohne Zwischenablage-Recht
+      const t = document.createElement('textarea'); t.value = text;
+      document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+    }
+    k.textContent = 'Kopiert ✓'; setTimeout(() => k.textContent = 'Kopieren', 1500);
+  };
+  li.appendChild(sp); li.appendChild(k);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !hilfe.hidden) { e.preventDefault(); e.stopPropagation(); hilfeZu(); return; }
+  const el = document.activeElement;
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+  if (e.key === 'F1' || (e.key === '?' && !e.ctrlKey && !e.metaKey)) {
+    e.preventDefault(); hilfe.hidden ? hilfeAuf() : hilfeZu(); }
+}, true);
 // ---------- Spurenleiste links (wie Ordner) ---------------------------------
 // Name klicken = zur Spur springen · ▾/▸ = auf-/zuklappen · ‹ › = zum
 // vorigen/naechsten Element dieser Spur (Cut, Effekt, Text, Filter).
@@ -4451,7 +4661,7 @@ function drawLaneRunners(){
 }
 // Zeichen-Schleife (60x/s): fluessige Anzeige fuer Zoom, Untertitel & Laeufer
 (function mainLoop(){
-  drawZoomFx(); drawFilterFx(); drawFormatBg(); drawLaneRunners();
+  drawZoomFx(); drawFilterFx(); drawFormatBg(); drawFolgen(); drawLaneRunners();
   updPhLabel(); updTC(); drawCap(); drawTexts(); applyAudio(); applySfxPlay();
   requestAnimationFrame(mainLoop);
 })();

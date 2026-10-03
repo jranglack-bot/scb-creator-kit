@@ -423,6 +423,32 @@ def main():
     W, H, _fmt = bildformat.ziel(pj)
     cfg = {'input': input_file, 'output': out_name, 'width': W, 'height': H,
            'einpassen': bildformat.render_einstellung(pj)}
+    # Kamera folgt der Person (nur bei „fuellen" und anderem Seitenverhaeltnis):
+    # Fahrt in Rohzeit (person_folgen.py, gecacht) → je Ausgabebild (30/s) die
+    # Kameralage. Ueber die Rohzeit gerechnet, damit sie an jedem Schnitt
+    # sauber umspringt statt durch den Schnitt zu schwenken.
+    if (pj.get('ausschnitt') or {}).get('folgen'):
+        import person_folgen
+        try:
+            fahrt = (person_folgen.fahrt_fuer(pj, projdir)
+                     if person_folgen.gebraucht(pj, projdir) else None)
+        except Exception as e:
+            # z. B. mediapipe/opencv fehlen — dann fester Ausschnitt statt Abbruch
+            print('HINWEIS: Kamera kann der Person nicht folgen ({}) — fester '
+                  'Ausschnitt. Behebung: <python> -m pip install mediapipe '
+                  'opencv-python numpy'.format(e))
+            fahrt = None
+        if fahrt:
+            d_out = ffdur(input_file)
+            cuts_roh = person_folgen.cuts_vereinen(master_cuts)
+            spur = []
+            for i in range(int(d_out * 30) + 1):
+                t = i / 30.0
+                x, y = person_folgen.wert_bei(
+                    fahrt, person_folgen.roh_aus_fertig(t, cuts_roh))
+                spur.append([round(t, 4), round(x, 4), round(y, 4)])
+            cfg['einpassen']['spur'] = spur
+            print('Kamera folgt der Person ({} Bilder)'.format(len(spur)))
     for k in ('crf', 'preset'):
         if render.get(k):
             cfg[k] = render[k]

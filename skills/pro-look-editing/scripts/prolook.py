@@ -129,12 +129,14 @@ def ffprobe_duration(path):
     return float(json.loads(out.stdout)['format']['duration'])
 
 
-def einpass_kette(modus, W, H, ax=0.5, ay=0.5, alpha=False):
-    """Ein Bild ins Zielformat bringen (ein Strom rein, einer raus)."""
+def einpass_kette(modus, W, H, ax=0.5, ay=0.5, alpha=False, name=''):
+    """Ein Bild ins Zielformat bringen (ein Strom rein, einer raus).
+    name: crop bekommt einen Namen (crop@name), damit die Kamerafahrt
+    („Kamera folgt der Person") den Ausschnitt per sendcmd verschieben kann."""
     if modus == 'fuellen':
         return ('scale={w}:{h}:force_original_aspect_ratio=increase,'
-                'crop={w}:{h}:(in_w-out_w)*{x}:(in_h-out_h)*{y},setsar=1'
-                .format(w=W, h=H, x=ax, y=ay))
+                'crop{n}={w}:{h}:(in_w-out_w)*{x}:(in_h-out_h)*{y},setsar=1'
+                .format(w=W, h=H, x=ax, y=ay, n='@' + name if name else ''))
     return ('{f}scale={w}:{h}:force_original_aspect_ratio=decrease,'
             'pad={w}:{h}:(ow-iw)/2:(oh-ih)/2{c},setsar=1'
             .format(w=W, h=H, f='format=rgba,' if alpha else '',
@@ -197,7 +199,26 @@ def main():
                   'setsar=1[ufgs]'.format(W, H))
         fc.append('[ubgb][ufgs]overlay=(W-w)/2:(H-h)/2,setsar=1[base]')
     else:
-        fc.append('{}{}[base]'.format(vlabel, einpass_kette(modus, W, H, ax, ay)))
+        # Kamera folgt der Person: ep['spur'] = [[t, ax, ay], ...] in
+        # Ausgabezeit (render_projekt rechnet sie aus). Eine Befehlsliste
+        # verschiebt den Zuschnitt Bild fuer Bild — auch den der
+        # Vollbild-Ebenen (Freisteller), damit die Person deckungsgleich bleibt.
+        spur = ep.get('spur') if modus == 'fuellen' else None
+        ziele = ['folgen'] + ['folgen_o{}'.format(i) for i, o in
+                              enumerate(cfg.get('overlays') or [])
+                              if spur and o.get('alpha') and o.get('fullframe')
+                              and ebenen_groesse(o['file']) not in (None, (W, H))]
+        vorne = ''
+        if spur:
+            with open('r_folgen.cmd', 'w', encoding='ascii') as f:
+                for t, x, y in spur:
+                    f.write('{:.4f} {};\n'.format(t, ', '.join(
+                        'crop@{0} x (in_w-out_w)*{1:.4f}, crop@{0} y (in_h-out_h)*{2:.4f}'
+                        .format(z, x, y) for z in ziele)))
+            vorne = 'sendcmd=f=r_folgen.cmd,'
+            ax, ay = spur[0][1], spur[0][2]
+        fc.append('{}{}{}[base]'.format(vlabel, vorne, einpass_kette(
+            modus, W, H, ax, ay, name='folgen' if spur else '')))
     vlabel = '[base]'
 
     # --- Picture-in-Picture ------------------------------------------------
@@ -451,7 +472,10 @@ def main():
                 if gr and gr != (W, H):
                     passen = einpass_kette('balken' if modus == 'unscharf'
                                            else modus, W, H, ax, ay,
-                                           alpha=True) + ','
+                                           alpha=True,
+                                           name='folgen_o{}'.format(oi)
+                                           if (ep.get('spur') and modus == 'fuellen')
+                                           else '') + ','
                 fc.append('[{}:v]{}{}setpts=PTS-STARTPTS+{}/TB[ov{}]'
                           .format(oidx, passen, trim, st, oi))
                 ox, oy = '0', '0'

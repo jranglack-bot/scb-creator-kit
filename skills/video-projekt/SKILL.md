@@ -692,6 +692,27 @@ nur `PRESETS` (Schritte sat/con/mul/sepia/tint).
   das Bild des ERSTEN Clips gebracht; das Zielformat setzt erst der Render.
 - `render.width/height` überstimmt alles (nur für Sonderfälle).
 
+**Kamera folgt der Person** (`"ausschnitt": {"folgen": true}`, nur bei
+„fuellen" und abweichendem Seitenverhältnis, z. B. 16:9-Material als Reel):
+`scripts/person_folgen.py` findet den Kopf mit dem Personen-Modell der
+Freistellung (kein Download, klappt auch im Profil) — 5 Bilder/s, rund
+6× schneller als Echtzeit, gecacht in `r_person.json`. Der „Kameramann":
+Totzone (bleibt ruhig, solange der Kopf am Platz ist), weiches Nachziehen,
+vorwärts und rückwärts gerechnet (bewegt sich leicht VOR der Person statt
+hinterher), springt bei Schnitten hart um, fährt bei längeren Stellen ohne
+Person (Titelkarte) in die Bildmitte. Fehlalarme (dunkle Möbel) fallen
+weg: nur der größte Bereich zählt, und Bereiche unter 45 % der typischen
+Personengröße des Videos gelten nicht. Cockpit und Render rechnen dieselbe
+Fahrt (gemessen 03.10.2026: Abweichung 0,00005); der Render verschiebt den
+Zuschnitt Bild für Bild per `sendcmd` — auch bei Freisteller-Ebenen.
+build_editor.py rechnet die Kopfpunkte, sobald sie gebraucht werden; der
+Render rechnet sie notfalls selbst. Per Zuruf:
+`cockpit_befehl.py <projekt> --format 9:16 --folgen` (`--nicht-folgen` aus).
+Grenze: bei mehreren Personen im Bild folgt sie der größten.
+
+**Hilfe im Cockpit:** Das ?-Symbol oben (oder Taste ?/F1) öffnet Kurz-
+anleitung, alle Tastenkürzel und Beispielsätze für Zurufe an Claude.
+
 ### 2b-Spuren. Spurenleiste, Ebenen und Nummern im Cockpit
 
 Links neben der Zeitleiste stehen die Spuren wie Ordner: ▾/▸ klappt auf
@@ -753,6 +774,7 @@ zeigt es nach ~3 s — kein F5, nicht neu öffnen.
 <python> scripts/cockpit_befehl.py <projekt> --cut --wort äh --alle
 <python> scripts/cockpit_befehl.py <projekt> --loeschen effekt 3
 <python> scripts/cockpit_befehl.py <projekt> --format 16:9 [--einpassen fuellen|unscharf|balken] [--ausschnitt 0.3]
+<python> scripts/cockpit_befehl.py <projekt> --format 9:16 --folgen        # Kamera folgt der Person
 ```
 
 **Welche Zeit meint der Nutzer?** Das Cockpit zeigt Rohzeit (ungeschnitten)

@@ -572,6 +572,20 @@ def main():
     projekt['_quelle'] = ({'w': masse[0], 'h': masse[1],
                            'format': bildformat.passendes_format(*masse)}
                           if masse else None)
+    # „Kamera folgt der Person": Kopfpunkte (gecacht in r_person.json). Neu
+    # gerechnet nur, wenn es gebraucht wird (Format weicht ab + Fuellen, oder
+    # ausdruecklich eingeschaltet) — sonst nur, was schon im Cache liegt.
+    try:
+        import person_folgen
+        rechnen = (person_folgen.gebraucht(projekt, projdir)
+                   or bool((projekt.get('ausschnitt') or {}).get('folgen')))
+        sp = person_folgen.spur(projekt, projdir, rechnen=rechnen)
+        projekt['_person'] = ({'quelle': sp['quelle'], 'punkte': sp['punkte'],
+                               'param': person_folgen.parameter()}
+                              if sp else None)
+    except Exception as e:
+        projekt['_person'] = None
+        print('Hinweis: Personen-Erkennung nicht moeglich ({})'.format(e))
     # Bauzeit: Das Cockpit laedt beim Oeffnen die gespeicherte projekt.json,
     # wenn sie NEUER ist als dieser Stand (Nutzer hat nach dem letzten Bau
     # weitergearbeitet). Zeit in UTC, wie das _gespeichert des Cockpits.

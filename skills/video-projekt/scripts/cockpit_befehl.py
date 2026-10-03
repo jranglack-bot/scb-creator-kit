@@ -25,7 +25,8 @@ nach ~3 s.
     <python> cockpit_befehl.py <projekt> --cut --von 1:10 --bis 1:12,5
     <python> cockpit_befehl.py <projekt> --loeschen effekt 3     (cut|effekt|filter|text|zoom)
     <python> cockpit_befehl.py <projekt> --format 16:9 [--einpassen fuellen|unscharf|balken]
-             [--ausschnitt 0.3] [--ausschnitt-y 0.5]      (Formate: 9:16 16:9 1:1 4:5)
+             [--ausschnitt 0.3] [--ausschnitt-y 0.5] [--folgen | --nicht-folgen]
+             (Formate: 9:16 16:9 1:1 4:5; --folgen = Kamera folgt der Person, nur bei fuellen)
 
 <projekt> = Projektordner oder projekt.json.
 
@@ -533,7 +534,13 @@ def befehl_format(pj, pfad):
             a['x'] = max(0.0, min(1.0, float(arg('--ausschnitt').replace(',', '.'))))
         if arg('--ausschnitt-y') is not None:
             a['y'] = max(0.0, min(1.0, float(arg('--ausschnitt-y').replace(',', '.'))))
-        pj['ausschnitt'] = {'x': a.get('x', 0.5), 'y': a.get('y', 0.5)}
+        pj['ausschnitt'] = dict(a, x=a.get('x', 0.5), y=a.get('y', 0.5))
+    if '--folgen' in sys.argv or '--nicht-folgen' in sys.argv:
+        a = pj.get('ausschnitt') or {}
+        a['folgen'] = '--folgen' in sys.argv
+        pj['ausschnitt'] = a
+        if a['folgen'] and 'einpassen' not in pj:
+            pj['einpassen'] = 'fuellen'      # Folgen braucht den Zuschnitt
     speichern(pfad, pj)
     bauen(pfad)
     w, h, _ = bildformat.ziel(pj)
@@ -541,11 +548,13 @@ def befehl_format(pj, pfad):
                                              (pj.get('videos') or [pj.get('video', '')])[0]))
     passt = q and abs(q[0] / q[1] - w / h) < 0.01
     x, y = bildformat.ausschnitt(pj)
-    print('OK Format {} ({}×{}){}'.format(
+    folgt = (pj.get('ausschnitt') or {}).get('folgen') and bildformat.einpassen(pj) == 'fuellen'
+    print('OK Format {} ({}×{}){}{}'.format(
         fmt, w, h, ' · Video passt genau' if passt else ' · Einpassen: {}{}'.format(
             bildformat.EINPASSEN[bildformat.einpassen(pj)],
             ' · Ausschnitt x={} y={}'.format(x, y)
-            if bildformat.einpassen(pj) == 'fuellen' else '')))
+            if bildformat.einpassen(pj) == 'fuellen' and not folgt else ''),
+        ' · Kamera folgt der Person' if folgt and not passt else ''))
 
 
 def befehl_loeschen(pj, pfad):
