@@ -113,10 +113,11 @@ Begrüße den User und zeige kurz, was das Kit kann:
 > 1. **Token-Sparer (RTK)** — komprimiert Claudes Terminal-Ausgaben, dein Kontingent hält deutlich länger
 > 2. **Video-Analyse (/watch)** — Claude kann Videos „ansehen": virale Reels analysieren und daraus lernen
 > 3. **Video-Editor** — Videos automatisch schneiden, Untertitel, Musik, Voiceover, Texte — mit Browser-Cockpit und Ein-Klick-Render
-> 4. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify
-> 5. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
-> 6. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
-> 7. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
+> 4. **Karussell-Cockpit** — Karussells frei gestalten wie in Canva, mit Google Fonts, Icons, Vorlagen, Hintergrund entfernen; Ausgabe als Bilder, Canva-Datei oder PDF
+> 5. **Content-Recherche** — Profil-Audits und Nischen-Recherche über Apify
+> 6. **Auto-Posting** — Reels über Airtable + Make automatisch auf Instagram posten
+> 7. **KI-Videos generieren** — Kling 3.0 & Seedance Prompt-Builder + Higgsfield-Anbindung
+> 8. **Reel-Wissen** — Safe-Zones und erprobte Hook-Formeln (immer dabei, kein Setup nötig)
 >
 > Ich richte jetzt mit dir ein, was du davon nutzen willst — du brauchst
 > nichts vorzubereiten.
@@ -463,6 +464,30 @@ Schlägt eine Installation fehl: kurz sagen, weiter mit dem Setup —
 sie wird bei der ersten Nutzung nachgeholt, der Einstieg scheitert daran
 nie.
 
+### Schritt 5b: Karussell-Cockpit
+
+Ein Editor wie Canva für Karussells, lokal im Browser (Skill
+`karussell-posts`). Erst still prüfen:
+
+    <python> <kit>/skills/karussell-posts/cockpit/einrichten.py
+
+- **Exit 2, Pakete oder Browser fehlen:** kurz erklären („Für das
+  Karussell-Cockpit lade ich ein paar kostenlose Python-Bausteine und einen
+  Browser für den Export, etwa 200 MB, einmalig.“), per AskUserQuestion
+  Ja/Nein, bei Ja `... einrichten.py --pakete`.
+- **Karussell-Ordner fehlt:** `... einrichten.py --vorschlag` zeigt den
+  Standard (Bilder/SCB Karussells). Per AskUserQuestion: „Wo sollen deine
+  Karussells liegen?“ mit dem Vorschlag (empfohlen) und „anderer Ordner“.
+  Liegt der Bilder-Ordner in OneDrive oder iCloud, ist das hier unkritisch
+  (nur Bilder und kleine Dateien). Dann `... einrichten.py --ordner "<pfad>"`.
+  Das legt die Doppelklick-Datei „Karussell Cockpit“ in den Ordner.
+- **Exit 3** heißt nur: die Freisteller (Hintergrund entfernen, 180 MB bzw.
+  973 MB) sind noch nicht geladen. Nicht im Setup laden; das Cockpit fragt
+  beim ersten Gebrauch selbst und lädt mit Prüfsumme.
+
+Dem User in einem Satz sagen, wie er startet: „Sag einfach ‚mach mir ein
+Karussell‘ oder doppelklick ‚Karussell Cockpit‘ in deinem Karussell-Ordner.“
+
 ### Schritt 6: Instagram-Audit & Recherche (Apify)
 
 Frage: „Willst du Profil-Audits und Nischen-Recherche nutzen? Dafür brauchst
@@ -558,6 +583,7 @@ Fasse zusammen, was eingerichtet wurde und was der User jetzt sagen kann:
 > - „Schneide mein Video" → automatischer Schnitt
 > - „Mach Untertitel drauf" → sprach-synchrone Untertitel in der Safe-Zone
 > - „Schreib mir ein Reel" → Hook-Formeln & Reel-Struktur (fragt nach deinem Keyword)
+> - „Mach mir ein Karussell" → Karussell-Cockpit im Browser, frei gestalten wie in Canva
 > - „Mach ein Audit von meinem Profil" → Apify-Analyse + Verbesserungen
 > - „Richte mein Auto-Posting ein" → Airtable + Make Aufbau
 > - „Merk dir: …" → landet dauerhaft in Claudes Gedächtnis

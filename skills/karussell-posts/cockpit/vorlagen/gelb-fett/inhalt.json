@@ -1,0 +1,175 @@
+{
+  "stil": {
+    "breite": 1080,
+    "hoehe": 1350,
+    "randX": 110,
+    "randOben": 300,
+    "randUnten": 94,
+    "titel": 120,
+    "textgroesse": 40,
+    "titelAbstand": 1.1,
+    "textAbstand": 1.42,
+    "bg": "#FFD84D",
+    "text": "#111111",
+    "akzent": "#111111",
+    "schrift": "Oswald",
+    "palette": [
+      "#FFD84D",
+      "#111111",
+      "#FFFFFF",
+      "#E63946"
+    ]
+  },
+  "slides": [
+    {
+      "bloecke": [
+        {
+          "id": "b1",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>MYTHOS</b>",
+          "x": 110,
+          "y": 160,
+          "w": 230,
+          "groesse": 34,
+          "farbe": "#FFD84D",
+          "zeichen": 120,
+          "flaeche": {
+            "farbe": "#111111",
+            "rund": 6,
+            "innen": 16
+          }
+        },
+        {
+          "id": "b2",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Das stimmt nicht</b>",
+          "x": 110,
+          "y": 270,
+          "w": 860,
+          "groesse": 160,
+          "abstand": 0.95,
+          "gross": true
+        },
+        {
+          "id": "b3",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Und warum es trotzdem fast jeder glaubt.",
+          "x": 110,
+          "y": 760,
+          "w": 760,
+          "groesse": 44,
+          "font": "Inter"
+        },
+        {
+          "id": "b4",
+          "typ": "form",
+          "form": "icon",
+          "icon": "tabler-voll/bolt",
+          "x": 790,
+          "y": 1010,
+          "w": 220,
+          "h": 220,
+          "fuellung": "#111111",
+          "dreh": 12
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b5",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/quote",
+          "x": 110,
+          "y": 150,
+          "w": 150,
+          "h": 150,
+          "fuellung": "#111111"
+        },
+        {
+          "id": "b6",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Ein Satz, der hängen bleibt.</b>",
+          "x": 110,
+          "y": 360,
+          "w": 860,
+          "groesse": 104,
+          "abstand": 1.0,
+          "gross": true
+        },
+        {
+          "id": "b7",
+          "typ": "form",
+          "form": "linie",
+          "x": 110,
+          "y": 820,
+          "w": 160,
+          "h": 20,
+          "fuellung": "#111111",
+          "staerke": 8
+        },
+        {
+          "id": "b8",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Name, Rolle",
+          "x": 110,
+          "y": 860,
+          "w": 600,
+          "groesse": 34,
+          "font": "Inter",
+          "farbe": "#333333"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b9",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Folg für mehr</b>",
+          "x": 110,
+          "y": 360,
+          "w": 860,
+          "groesse": 150,
+          "abstand": 0.95,
+          "gross": true
+        },
+        {
+          "id": "b10",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Kommentiere WORT</b>",
+          "x": 110,
+          "y": 760,
+          "w": 520,
+          "groesse": 40,
+          "farbe": "#FFD84D",
+          "font": "Inter",
+          "flaeche": {
+            "farbe": "#111111",
+            "rund": 8,
+            "innen": 22
+          }
+        },
+        {
+          "id": "b11",
+          "typ": "form",
+          "form": "pfeil",
+          "x": 110,
+          "y": 960,
+          "w": 300,
+          "h": 70,
+          "fuellung": "#111111",
+          "staerke": 10
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2511 @@
+<!doctype html><meta charset="utf-8"><title>Karussell Cockpit</title>
+<link rel="stylesheet" href="stil.css">
+<link rel="stylesheet" href="fonts/google.css" id="googleCss">
+<style>
+:root{--ui:#22282b;--ui2:#2d3438;--rand:#3d464b;--fg:#e7ecee;--akz:#7fb3a3}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;display:grid;grid-template-rows:48px 1fr;
+     background:var(--ui);color:var(--fg);font:14px/1.45 system-ui,sans-serif;overflow:hidden}
+header{display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--ui2);
+       border-bottom:1px solid var(--rand)}
+header h1{font-size:14px;font-weight:600;margin:0;letter-spacing:.02em}
+#projektwahl{display:flex;align-items:center;gap:6px;margin:0 auto 0 8px;min-width:0}
+#projektwahl select{background:#1b2023;color:var(--fg);border:1px solid var(--rand);
+  border-radius:6px;padding:6px 8px;font:13px system-ui;max-width:230px;min-width:90px;flex:0 1 auto}
+#projektwahl button{padding:6px 11px;font-size:13px}
+.dlg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  z-index:5000;background:#000a}
+.dlg .karte{background:var(--ui2);border:1px solid var(--akz);border-radius:12px;
+  padding:20px 22px;width:400px;max-width:calc(100vw - 32px);box-shadow:0 12px 40px #000c}
+.dlg h2{font-size:15px;margin:0 0 4px}
+.dlg .unter{font-size:12px;opacity:.65;margin:0 0 12px}
+.dlg input[type=text]{font-size:15px;padding:9px}
+.dlg .wahl{display:flex;gap:9px;align-items:flex-start;margin-top:8px;padding:9px 10px;
+  border:1px solid var(--rand);border-radius:8px;cursor:pointer;opacity:1}
+.dlg .wahl:has(input:checked){border-color:var(--akz);background:#1b2023}
+.dlg .wahl input{margin-top:3px;accent-color:var(--akz)}
+.dlg .wahl b{display:block;font-size:13px}
+.dlg .wahl span{font-size:12px;opacity:.65}
+.dlg .fehler{color:#e59a9a;font-size:12px;min-height:18px;margin-top:8px}
+.dlg .knoepfe{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+button{background:var(--rand);color:var(--fg);border:0;border-radius:6px;padding:7px 14px;
+       font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:#4b565c}
+button.haupt{background:var(--akz);color:#12201c}
+button.haupt:hover{background:#96c6b7}
+button:disabled{opacity:.45;cursor:default}
+#status{font-size:12px;opacity:.75;min-width:0;flex:0 1 200px;text-align:right;line-height:1.3}
+header h1,header button{white-space:nowrap}
+main{display:grid;grid-template-columns:126px 1fr 336px;overflow:hidden}
+#liste{overflow-y:auto;padding:10px;background:#1b2023;border-right:1px solid var(--rand)}
+.mini{position:relative;width:104px;margin-bottom:9px;border:2px solid transparent;
+      border-radius:4px;overflow:hidden;cursor:pointer;background:#000}
+.mini.an{border-color:var(--akz)}
+.mini .slide{transform-origin:top left}
+.mini .nr{position:absolute;left:4px;bottom:2px;font:600 10px system-ui;color:#fff;
+          text-shadow:0 1px 3px #000;z-index:2}
+#mitte{display:grid;grid-template-rows:1fr 46px;overflow:hidden;min-width:0}
+#buehne{display:flex;align-items:center;justify-content:center;overflow:auto;
+        background:#4d5457;padding:18px}
+#rahmen{box-shadow:0 8px 30px #0007;background:#fff;position:relative;
+        margin:auto;flex:none}
+#buehne.pan,#buehne.pan *{cursor:grab!important}
+#buehne.schiebt,#buehne.schiebt *{cursor:grabbing!important}
+.moveable-control-box{--moveable-color:#7fb3a3!important}
+.moveable-control-box.gesperrt{--moveable-color:#9aa3a7!important}
+.moveable-control-box.gesperrt .moveable-control{display:none!important}
+.selecto-selection{border:1px solid #7fb3a3!important;background:rgba(127,179,163,.15)!important}
+#zoomleiste{display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--ui2);
+  border-top:1px solid var(--rand)}
+#zoomleiste input[type=range]{flex:1;accent-color:var(--akz);min-width:60px}
+#zoomleiste button{padding:5px 10px;font-size:13px;line-height:1}
+#zoomleiste input[type=number]{width:66px;background:#1b2023;color:var(--fg);
+  border:1px solid var(--rand);border-radius:5px;padding:5px 6px;font:13px system-ui;
+  text-align:right}
+#zoomleiste .proz{font-size:12px;opacity:.7;margin-left:-4px}
+#rahmen .slide{transform-origin:top left}
+#rahmen .box{cursor:move;-webkit-user-select:none;user-select:none}
+#rahmen .box.tippt{cursor:text;-webkit-user-select:text;user-select:text;outline:2px dashed #7fb3a3;outline-offset:6px}
+#rahmen .box:hover{outline:1px dashed rgba(127,179,163,.5);outline-offset:4px}
+#rahmen .box.gewaehlt:hover{outline:none}
+#ausrichten{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:6px}
+#ausrichten button,.knopfreihe button{padding:5px 0;font-size:12px}
+.knopfreihe{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.tasten{font-size:11px;opacity:.6;line-height:1.45;margin-top:6px;display:grid;
+  grid-template-columns:auto 1fr;gap:5px 10px}
+.tasten b{font-weight:600;white-space:nowrap}
+details.abschnitt{border-top:1px solid var(--rand);margin-top:12px;padding-top:4px}
+details.abschnitt summary{cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;opacity:.75;padding:6px 0}
+details.abschnitt[open] summary{opacity:1;color:var(--akz)}
+.vorlagen{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:4px}
+.vorlagen button{padding:5px 0;font-size:11px}
+#rahmen .box.zuschneiden{cursor:grab;outline:2px solid #7fb3a3;outline-offset:0}
+#flaeche .geist{position:absolute;opacity:.35;pointer-events:none;overflow:visible!important}
+#flaeche .geist .spiegel{position:absolute}
+#buehne.ablegen{outline:3px dashed var(--akz);outline-offset:-8px}
+.dlg .karte.breit{width:720px}
+.reiter{display:flex;gap:6px;align-items:center}
+.reiter button.an{background:var(--akz);color:#12201c}
+.formraster{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.formwahl{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;background:#1b2023}
+.formwahl svg{width:80px;height:60px;overflow:visible}
+.formwahl span{font-size:12px;opacity:.8}
+.iconraster{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px;
+  max-height:52vh;overflow-y:auto;padding:2px}
+.iconwahl{padding:8px;background:#1b2023;aspect-ratio:1}
+.iconwahl:hover{background:#2f3a3e}
+.iconbild{width:100%;height:100%;background:var(--fg);-webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.blk .vorschau.form{display:flex;align-items:center;justify-content:center;padding:3px}
+.galerie{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;max-height:46vh;overflow-y:auto}
+.vorlagekarte{display:flex;flex-direction:column;gap:5px;padding:6px;background:#1b2023;border:2px solid transparent}
+.vorlagekarte.an{border-color:var(--akz)}
+.vorlagekarte img,.vorlagekarte .leerkarte{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:4px;background:#e7ecee}
+.vorlagekarte .leerkarte{display:flex;align-items:center;justify-content:center;color:#12201c;font-weight:300;font-size:44px}
+.vorlagekarte span{font-size:11px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.schriftliste{max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.schriftzeile{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:6px 8px;background:#1b2023;border-radius:6px}
+.schriftname{font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.palette{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:4px}
+.palette.klein{margin-top:5px}
+.farbfeld{width:24px;height:24px;padding:0;border-radius:5px;border:1px solid #0006;position:relative}
+.palette.klein .farbfeld{width:18px;height:18px}
+.farbfeld span{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#fff;
+  text-shadow:0 0 3px #000;font-size:14px}
+.palette:not(.klein) .farbfeld:hover span{display:flex}
+.palette input[type=color]{width:32px;height:26px;padding:0;border:1px solid var(--rand);border-radius:5px;background:#1b2023}
+#rahmen .griff{-webkit-user-select:none;user-select:none;position:absolute;background:#7fb3a3;
+  border:1px solid #12201c;border-radius:2px}
+#rahmen .griff.fassen{color:#12201c;display:flex;align-items:center;
+  justify-content:center;font-weight:700;line-height:1}
+#rahmen ::selection{background:#7fb3a3;color:#12201c}
+#werkzeuge{position:fixed;display:none;align-items:center;gap:4px;z-index:99;
+  background:#12181b;border:1px solid var(--akz);border-radius:8px;padding:5px 6px;
+  box-shadow:0 6px 20px #0009}
+#werkzeuge button{padding:5px 9px;font-size:13px;line-height:1;min-width:30px}
+#werkzeuge input[type=color]{width:30px;height:26px;padding:0;border:1px solid var(--rand);
+  border-radius:5px;background:#1b2023}
+#werkzeuge select{background:#1b2023;color:var(--fg);border:1px solid var(--rand);
+  border-radius:5px;padding:4px;font:12px system-ui;max-width:130px}
+#werkzeuge .trenn{width:1px;height:20px;background:var(--rand);margin:0 2px}
+#regler{overflow-y:auto;padding:14px;background:var(--ui2);border-left:1px solid var(--rand)}
+fieldset{border:1px solid var(--rand);border-radius:8px;padding:10px 12px 14px;margin:0 0 14px;min-width:0}
+fieldset.aktiv{border-color:var(--akz)}
+legend{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+       opacity:.65;padding:0 5px}
+fieldset.aktiv legend{opacity:1;color:var(--akz)}
+label{display:block;font-size:11px;opacity:.75;margin:9px 0 3px}
+textarea,input[type=text],input[type=number],select.schrift{width:100%;background:#1b2023;
+  color:var(--fg);border:1px solid var(--rand);border-radius:5px;padding:7px;
+  font:13px/1.45 system-ui;resize:vertical}
+textarea{min-height:64px}
+.reihe{display:flex;align-items:center;gap:8px}
+.reihe input[type=range]{flex:1;accent-color:var(--akz);min-width:0}
+.reihe output{width:44px;text-align:right;font-variant-numeric:tabular-nums;font-size:12px;opacity:.85}
+.reihe input[type=color]{width:38px;height:26px;padding:0;border:1px solid var(--rand);
+  border-radius:5px;background:#1b2023;flex:none}
+.zwei{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.drei{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.hint{font-size:11px;opacity:.55;margin-top:10px;line-height:1.6}
+.klein{padding:5px 9px;font-size:12px;font-weight:500}
+.klein.an{background:var(--akz);color:#12201c}
+.blk{display:flex;align-items:center;gap:6px;padding:4px;margin-bottom:4px;
+  border:1px solid transparent;border-radius:6px;cursor:pointer}
+.blk:hover{background:#1b2023}
+.blk.an{border-color:var(--akz);background:#1b2023}
+.blk .vorschau{width:34px;height:26px;flex:none;border-radius:4px;background:#1b2023;
+  background-size:cover;background-position:center;border:1px solid var(--rand)}
+.blk .vorschau.txt{display:flex;align-items:center;justify-content:center;
+  font:700 12px system-ui;opacity:.55}
+.blk .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-size:12px}
+.blk button{padding:3px 6px;font-size:11px;line-height:1;flex:none}
+.blk button.weg:hover{background:#9c4040}
+#konflikt{position:fixed;left:50%;top:60px;transform:translateX(-50%);display:none;
+  align-items:center;gap:10px;z-index:120;background:#12181b;color:var(--fg);
+  border:1px solid var(--akz);border-radius:9px;padding:10px 14px;font-size:13px;
+  box-shadow:0 8px 26px #000a}
+#konflikt button{padding:6px 12px;font-size:12px}
+#fertig{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);display:none;
+  align-items:center;gap:10px;z-index:120;background:#12181b;color:var(--fg);
+  border:1px solid var(--akz);border-radius:9px;padding:10px 14px;font-size:13px;
+  box-shadow:0 8px 26px #000a}
+#fertig button{padding:6px 12px;font-size:12px}
+#fertig #fZu{padding:4px 9px;background:transparent;opacity:.6}
+</style>
+<script src="lib/moveable.min.js"></script>
+<script src="lib/selecto.min.js"></script>
+<script src="render.js"></script>
+<body>
+<header>
+  <h1>Karussell Cockpit</h1>
+  <div id="projektwahl">
+    <select id="projekt" title="Welches Karussell"></select>
+    <button id="pNeu" title="Neues Karussell, leer oder aus einer Vorlage">Neu</button>
+    <button id="pDup" title="Gleicher Look und gleiche Texte unter neuem Namen">Duplizieren</button>
+    <button id="pVorlage" title="Dieses Karussell als Vorlage fuer neue speichern">Als Vorlage</button>
+    <button id="pClaude" title="Wunsch zu den markierten Elementen an Claude geben">An Claude</button>
+  </div>
+  <span id="status"></span>
+  <button id="zurueck" title="Strg+Z">&#8630; Zurueck</button>
+  <button id="vor" title="Strg+Y">&#8631; Vor</button>
+  <button id="speichern">Gesichert</button>
+  <button id="rBilder" class="haupt">Bilder fuer Instagram</button>
+  <button id="rPptx">Datei fuer Canva</button>
+  <button id="rPdf" title="Alle Folien als ein PDF, z. B. fuer LinkedIn oder zum Drucken">PDF</button>
+</header>
+<main>
+  <div id="liste"></div>
+  <div id="mitte">
+    <div id="buehne"><div id="rahmen"><div id="flaeche"></div></div></div>
+    <div id="zoomleiste">
+      <button id="zMinus" title="rauszoomen">&minus;</button>
+      <input type="range" id="zBalken" min="100" max="500" step="5" value="100">
+      <button id="zPlus" title="reinzoomen">+</button>
+      <input type="number" id="zZahl" min="25" max="800" step="5" value="100">
+      <span class="proz">%</span>
+      <button id="zFit">Einpassen</button>
+    </div>
+  </div>
+  <div id="regler"></div>
+</main>
+<div id="konflikt">
+  <span>Jemand anderes hat gleichzeitig etwas geaendert. Was soll gelten?</span>
+  <button id="kUeber" class="haupt">Die neue Aenderung</button>
+  <button id="kMeins">Meine Fassung</button>
+</div>
+<div id="fertig">
+  <span id="fText"></span>
+  <button id="fOrdner" class="haupt">Anzeigen</button>
+  <button id="fZip">Als ZIP laden</button>
+  <button id="fPdf">PDF herunterladen</button>
+  <button id="fZu" title="schliessen">&times;</button>
+</div>
+<div id="elemente" class="dlg">
+  <div class="karte breit">
+    <div class="reiter">
+      <button data-tab="formen">Formen</button>
+      <button data-tab="icons">Icons</button>
+      <span class="unter" style="margin:0 0 0 auto">Lucide und Tabler, frei nutzbar</span>
+    </div>
+    <div id="eFormen" class="formraster"></div>
+    <div id="eIcons" style="display:none">
+      <div class="reihe" style="margin:10px 0 8px">
+        <input type="text" id="eSuche" placeholder="Suchen, z. B. Herz, Geld, Pfeil, Instagram" autocomplete="off">
+        <select id="eSatz" class="schrift" style="width:auto">
+          <option value="">alle</option><option value="lucide">Lucide</option>
+          <option value="tabler">Tabler</option><option value="tabler-voll">gefuellt</option>
+        </select>
+      </div>
+      <div id="eAnzahl" class="unter"></div>
+      <div id="eRaster" class="iconraster"></div>
+    </div>
+    <div class="knoepfe"><button id="eZu">Schliessen</button></div>
+  </div>
+</div>
+<div id="auftrag" class="dlg">
+  <div class="karte">
+    <h2>An Claude</h2>
+    <p class="unter" id="aUnter"></p>
+    <textarea id="aText" style="min-height:110px" placeholder="Was soll Claude machen? Zum Beispiel: Mach den Titel kuerzer und knalliger."></textarea>
+    <div class="fehler" id="aFehler"></div>
+    <div class="knoepfe">
+      <button id="aAb">Abbrechen</button>
+      <button id="aOk" class="haupt">An Claude geben</button>
+    </div>
+  </div>
+</div>
+<div id="dialog" class="dlg">
+  <div class="karte">
+    <h2 id="dTitel"></h2>
+    <p class="unter" id="dUnter"></p>
+    <input type="text" id="dName" placeholder="Name, z. B. Kompass" autocomplete="off">
+    <div id="dGalerie" class="galerie"></div>
+    <div id="dFormat">
+      <label class="wahl"><input type="radio" name="fmt" value="45" checked>
+        <div><b>4:5, fuer automatisches Posten</b><span>Standard. Geht so um 8 Uhr live, wie du es hier siehst.</span></div></label>
+      <label class="wahl"><input type="radio" name="fmt" value="34">
+        <div><b>3:4, nur fuer Posten von Hand in der App</b><span>Etwas hoeher. Die Automatik muss es verkleinern.</span></div></label>
+    </div>
+    <div class="fehler" id="dFehler"></div>
+    <div class="knoepfe">
+      <button id="dAb">Abbrechen</button>
+      <button id="dOk" class="haupt">Anlegen</button>
+    </div>
+  </div>
+</div>
+<div id="schriften" class="dlg">
+  <div class="karte breit">
+    <h2>Schriften</h2>
+    <p class="unter">Google Fonts, frei nutzbar und auch in Canva vorhanden. Einmal laden, danach offline.</p>
+    <div class="reihe" style="margin-bottom:10px">
+      <input type="text" id="sSuche" placeholder="Suchen, z. B. Bebas, Playfair, Caveat" autocomplete="off">
+      <select id="sArt" class="schrift" style="width:auto">
+        <option value="">alle Arten</option><option value="Sans Serif">ohne Serifen</option>
+        <option value="Serif">mit Serifen</option><option value="Display">Display</option>
+        <option value="Handwriting">Handschrift</option><option value="Monospace">Monospace</option>
+      </select>
+    </div>
+    <div id="sListe" class="schriftliste"></div>
+    <div class="knoepfe"><button id="sZu">Schliessen</button></div>
+  </div>
+</div>
+<div id="werkzeuge">
+  <button data-f="b" title="fett"><b>F</b></button>
+  <button data-f="i" title="kursiv"><i>K</i></button>
+  <button data-f="u" title="unterstrichen"><u>U</u></button>
+  <span class="trenn"></span>
+  <button data-f="akzent" title="Akzentfarbe">Akzent</button>
+  <button data-f="m" title="gruen hinterlegt">Marker</button>
+  <input type="color" id="wFarbe" title="eigene Farbe">
+  <span class="trenn"></span>
+  <select id="wSchrift" title="Schrift der Markierung"></select>
+  <span class="trenn"></span>
+  <button data-f="weg" title="Auszeichnungen entfernen">&#8630;</button>
+</div>
+<script>
+let D = null, akt = 0, sel = null, letzteLayout = {}, k = 1, timer = null;
+let posFelder = {}, gemerkteMk = null, historie = [], zukunft = [];
+let meinStand = null, gesicherterStand = '', speichertGerade = false, sicherTimer = null;
+let zoom = 100, kFit = 1;
+let PROJEKT = '', wechseltGerade = false;
+
+// Jede Anfrage nennt ihr Projekt. So landet nichts im falschen Karussell,
+// auch wenn von aussen gerade ein anderes geoeffnet wird.
+function mitProjekt(url){
+  return url + (url.indexOf('?') < 0 ? '?' : '&') + 'projekt=' + encodeURIComponent(PROJEKT);
+}
+
+function q(tag, attr, kinder){
+  const e = document.createElement(tag);
+  for (const n in (attr || {})) { if (n === 'html') e.innerHTML = attr[n]; else e.setAttribute(n, attr[n]); }
+  (kinder || []).forEach(x => e.appendChild(x));
+  return e;
+}
+// Mac: Tasten so nennen, wie sie auf der Tastatur stehen
+const MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+function tt(s){
+  if (!MAC) return s;
+  return String(s).replace(/Strg\+Umschalt\+/g, '\u2318\u21e7').replace(/Strg\+Y/g, '\u2318\u21e7Z')
+    .replace(/Strg\+/g, '\u2318').replace(/\bStrg\b/g, '\u2318').replace(/\bEntf\b/g, '\u232b')
+    .replace(/Explorer/g, 'Finder').replace(/Mausrad/g, 'Mausrad oder Trackpad');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (MAC) document.querySelectorAll('[title]').forEach(el => { el.title = tt(el.title); });
+});
+function melde(t, dauer){
+  const s = document.getElementById('status');
+  t = tt(t);
+  s.textContent = t;
+  if (dauer !== 0) setTimeout(() => { if (s.textContent === t) s.textContent = ''; }, dauer || 2600);
+}
+function slide(){ return D.slides[akt]; }
+function bloecke(){ const s = slide(); if (!s.bloecke) s.bloecke = []; return s.bloecke; }
+function blockVon(id){ return bloecke().filter(b => b.id === id)[0] || null; }
+function istBild(id){ const b = blockVon(id); return !!(b && b.typ === 'bild'); }
+function neueId(){
+  let max = 0;
+  D.slides.forEach(s => (s.bloecke || []).forEach(b => {
+    const n = +String(b.id || '').slice(1); if (n > max) max = n;
+  }));
+  return 'b' + (max + 1);
+}
+// Lesen friert nichts ein. Erst eine Positionsaenderung nimmt die Slide aus dem Raster.
+function posVon(id){
+  const b = blockVon(id);
+  if (!b) return null;
+  return frei(b) ? b : (letzteLayout[id] || null);
+}
+function posSchreiben(id){
+  const s = slide();
+  (s.bloecke || []).forEach(b => {
+    if (!frei(b) && letzteLayout[b.id]){
+      const L = letzteLayout[b.id];
+      b.x = L.x; b.y = L.y; b.w = L.w;
+      if (b.typ === 'bild' && L.h !== undefined) b.h = L.h;
+    }
+  });
+  return blockVon(id);
+}
+function imRaster(){ return (slide().bloecke || []).every(b => b.typ === 'form' || !frei(b)); }
+function insRaster(){
+  (slide().bloecke || []).forEach(b => { if (b.typ !== 'form'){ delete b.x; delete b.y; delete b.w; delete b.h; } });
+}
+
+// --------------------------------------------- Datei live nachziehen
+
+function schmutzig(){ return JSON.stringify(D) !== gesicherterStand; }
+
+async function datenHolen(){
+  const d = await (await fetch(BASIS + 'inhalt.json?' + Date.now())).json();
+  d.stil = Object.assign({}, STIL_STD, d.stil || {});
+  return d;
+}
+function konflikt(an){ document.getElementById('konflikt').style.display = an ? 'flex' : 'none'; }
+
+async function vonDatei(){
+  const vorher = JSON.stringify(D);
+  const merkSel = sel;
+  D = await datenHolen();
+  if (akt >= D.slides.length) akt = D.slides.length - 1;
+  sel = blockVon(merkSel) ? merkSel : null;
+  gemerkteMk = null;
+  historie.push(vorher);                 // Zurueck macht die fremde Aenderung rueckgaengig
+  if (historie.length > 50) historie.shift();
+  zukunft.length = 0;
+  alles();
+  gesicherterStand = JSON.stringify(D);
+  knoepfe(); konflikt(false);
+}
+
+async function speichern(){
+  speichertGerade = true;
+  try {
+    const r = await fetch(mitProjekt('speichern'), {method: 'POST', body: JSON.stringify(D, null, 2)});
+    if (r.ok){
+      meinStand = (await r.text()).trim();
+      gesicherterStand = JSON.stringify(D);
+      konflikt(false);
+    }
+    return r.ok;
+  } finally { speichertGerade = false; }
+}
+
+// Stand = "<aktuelles Projekt>|<Zeitstempel>". Wurde von aussen ein anderes
+// Projekt geoeffnet, wechselt das Cockpit mit, statt einen Konflikt zu melden.
+async function pruefeDatei(){
+  if (speichertGerade || wechseltGerade) return;
+  let s;
+  try { s = (await (await fetch('stand', {cache: 'no-store'})).text()).trim(); }
+  catch (e) { return; }
+  if (!s || s === meinStand) return;
+  const name = s.split('|')[0];
+  if (name && name !== PROJEKT){
+    await projektLaden(name);
+    melde('Von aussen geoeffnet: ' + name, 9000);
+    return;
+  }
+  if (!D) return;
+  meinStand = s;
+  if (schmutzig()){ konflikt(true); return; }
+  await vonDatei();
+  melde('Von aussen geaendert. Gefaellt es nicht? Oben auf Zurueck.', 9000);
+}
+
+// Alles wird von selbst gesichert, niemand muss ans Speichern denken.
+function knopfStand(){
+  const b = document.getElementById('speichern');
+  const s = schmutzig();
+  b.textContent = s ? 'sichert ...' : 'Gesichert';
+  b.disabled = !s;
+}
+function autoSichern(){
+  knopfStand();
+  clearTimeout(sicherTimer);
+  sicherTimer = setTimeout(async () => {
+    if (!schmutzig()) return;
+    if (document.getElementById('konflikt').style.display === 'flex') return;
+    await speichern();
+    knopfStand();
+  }, 900);
+}
+
+// ------------------------------------------------------------ Zurueck / Vor
+
+function merke(){
+  const s = JSON.stringify(D);
+  if (historie.length && historie[historie.length - 1] === s) return;
+  historie.push(s);
+  if (historie.length > 50) historie.shift();
+  zukunft.length = 0;
+  knoepfe();
+}
+function knoepfe(){
+  document.getElementById('zurueck').disabled = !historie.length;
+  document.getElementById('vor').disabled = !zukunft.length;
+}
+function springe(von, nach){
+  if (!von.length) return;
+  nach.push(JSON.stringify(D));
+  D = JSON.parse(von.pop());
+  sel = null; gemerkteMk = null;
+  if (akt >= D.slides.length) akt = D.slides.length - 1;
+  alles(); knoepfe();
+}
+function schiebeEbene(id, richtung){
+  const s = slide();
+  const f = ebenen(s);
+  const i = f.indexOf(id), j = i + richtung;
+  if (i < 0 || j < 0 || j >= f.length) return;
+  const t = f[i]; f[i] = f[j]; f[j] = t;
+  s.ebenen = f;
+  baueRegler(); zeichneBuehne(); zeichneMinis();
+}
+
+// ------------------------------------------------- Markieren und Formatieren
+
+function spanFuer(node){
+  let n = (node && node.nodeType === 3) ? node.parentElement : node;
+  while (n && !(n.dataset && n.dataset.von !== undefined)) n = n.parentElement;
+  return n;
+}
+function markierung(){
+  const s = window.getSelection();
+  if (!s || s.isCollapsed || !s.rangeCount) return null;
+  const r = s.getRangeAt(0);
+  if (!document.getElementById('rahmen').contains(r.commonAncestorContainer)) return null;
+  const a = spanFuer(r.startContainer), b = spanFuer(r.endContainer);
+  if (!a || !b) return null;
+  const box = a.closest('.box');
+  if (!box || box !== b.closest('.box')) return null;
+  const v = +a.dataset.von + r.startOffset, w = +b.dataset.von + r.endOffset;
+  if (v === w) return null;
+  return {art: box.dataset.art, von: Math.min(v, w), bis: Math.max(v, w),
+          rechteck: r.getBoundingClientRect()};
+}
+function feldFuer(id){
+  const b = blockVon(id);
+  return (b && b.typ !== 'bild') ? {lies: () => b.text || '', schreib: v => b.text = v} : null;
+}
+function aktuelleMk(){ return markierung() || gemerkteMk; }
+
+function formatiere(aend){
+  const mk = aktuelleMk();
+  if (!mk) return;
+  const feld = feldFuer(mk.art);
+  if (!feld) return;
+  merke();
+  const z = zerlege(feld.lies());
+  const teil = z.slice(mk.von, mk.bis);
+  if (!teil.length) return;
+  Object.keys(aend).forEach(t => {
+    let w = aend[t];
+    if (w === 'um') w = teil.every(x => x.f[t]) ? undefined : true;
+    teil.forEach(x => { if (w === undefined) delete x.f[t]; else x.f[t] = w; });
+  });
+  feld.schreib(serialisiere(z));
+  baueRegler(); zeichneBuehne(); zeichneMinis();
+  markiereWieder(mk.art, mk.von, mk.bis);
+}
+function markiereWieder(id, von, bis){
+  const box = [].slice.call(document.querySelectorAll('#rahmen .box'))
+                .filter(b => b.dataset.art === id)[0];
+  if (!box) return;
+  const sp = [].slice.call(box.querySelectorAll('[data-von]'));
+  const a = sp.filter(s => +s.dataset.von <= von && von < +s.dataset.bis)[0];
+  const b = sp.filter(s => +s.dataset.von < bis && bis <= +s.dataset.bis)[0];
+  if (!a || !b || !a.firstChild || !b.firstChild) return;
+  try {
+    const r = document.createRange();
+    r.setStart(a.firstChild, von - +a.dataset.von);
+    r.setEnd(b.firstChild, bis - +b.dataset.von);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  } catch (e) { return; }
+  werkzeugeZeigen();
+}
+function werkzeugeZeigen(){
+  const t = document.getElementById('werkzeuge');
+  const mk = markierung();
+  if (!mk){ if (!gemerkteMk) t.style.display = 'none'; return; }
+  gemerkteMk = mk;
+  t.style.display = 'flex';
+  const r = mk.rechteck, bw = t.offsetWidth, bh = t.offsetHeight;
+  t.style.left = Math.max(8, Math.min(window.innerWidth - bw - 8, r.left + r.width / 2 - bw / 2)) + 'px';
+  t.style.top  = Math.max(8, r.top - bh - 10) + 'px';
+  const feld = feldFuer(mk.art);
+  if (!feld) return;
+  const teil = zerlege(feld.lies()).slice(mk.von, mk.bis);
+  t.querySelectorAll('button[data-f]').forEach(b => {
+    const kk = b.dataset.f;
+    const an = kk === 'weg' ? false
+             : kk === 'akzent' ? teil.every(x => x.f.c === 'akzent')
+             : teil.length && teil.every(x => x.f[kk]);
+    b.classList.toggle('an', !!an);
+  });
+  document.getElementById('wSchrift').value = (teil[0] && teil[0].f.f) || '';
+}
+function abwaehlen(){
+  gemerkteMk = null;
+  document.getElementById('werkzeuge').style.display = 'none';
+  const s = window.getSelection(); if (s) s.removeAllRanges();
+  if (sel || auswahl.length || textModus){ sel = null; auswahl = []; textModus = null; baueRegler(); zielSetzen(); }
+}
+
+// ------------------------------------------------------------- Bedienteile
+
+function schieber(bez, wert, min, max, schritt, cb, resetbar){
+  const box = q('div', {}, [q('label', {html: bez})]);
+  const r = q('div', {class: 'reihe'});
+  const i = document.createElement('input');
+  i.type = 'range'; i.min = min; i.max = max; i.step = schritt;
+  i.value = (wert === null || wert === undefined) ? min : wert;
+  const o = document.createElement('output');
+  o.textContent = (wert === null || wert === undefined) ? 'auto' : (+i.value).toFixed(schritt < 1 ? 2 : 0);
+  i.onpointerdown = merke;
+  i.oninput = () => { o.textContent = (+i.value).toFixed(schritt < 1 ? 2 : 0); cb(+i.value); zeichne(); };
+  r.appendChild(i); r.appendChild(o);
+  if (resetbar){
+    const b = q('button', {class: 'klein', html: 'auto'});
+    b.onclick = () => { merke(); cb(null); baueRegler(); zeichne(); };
+    r.appendChild(b);
+  }
+  box.appendChild(r); return box;
+}
+function farbe(bez, wert, cb){
+  const box = q('div', {}, [q('label', {html: bez})]);
+  const r = q('div', {class: 'reihe'});
+  const i = document.createElement('input'); i.type = 'color'; i.value = wert;
+  const t = document.createElement('input'); t.type = 'text';  t.value = wert;
+  i.onpointerdown = merke; t.onfocus = merke;
+  i.oninput  = () => { t.value = i.value; cb(i.value); zeichne(); };
+  t.onchange = () => { i.value = t.value; cb(t.value); zeichne(); };
+  r.appendChild(i); r.appendChild(t); box.appendChild(r);
+  if (D && D.stil){
+    const p = q('div', {class: 'palette klein'});
+    markenfarben().forEach(c => {
+      const f = q('button', {class: 'farbfeld', title: c});
+      f.style.background = c;
+      f.onclick = () => { merke(); i.value = c; t.value = c; cb(c); zeichne(); };
+      p.appendChild(f);
+    });
+    box.appendChild(p);
+  }
+  return box;
+}
+function zahl(bez, wert, cb){
+  const box = q('div', {}, [q('label', {html: bez})]);
+  const i = document.createElement('input'); i.type = 'number'; i.value = Math.round(wert || 0);
+  i.onfocus = merke;
+  i.oninput = () => { cb(Math.round(+i.value)); zeichne(); };
+  box.appendChild(i); return {box: box, feld: i};
+}
+function auswahlFeld(bez, wert, liste, cb, leer){
+  const box = q('div', {}, [q('label', {html: bez})]);
+  const s = document.createElement('select');
+  s.className = 'schrift';
+  s.innerHTML = (leer ? '<option value="">wie global</option>' : '') +
+    liste.map(n => '<option' + (n === wert ? ' selected' : '') + '>' + esc(n) + '</option>').join('');
+  s.onchange = () => { merke(); cb(s.value || undefined); zeichne(); };
+  box.appendChild(s);
+  return box;
+}
+function bildWaehlen(cb){
+  const i = document.createElement('input');
+  i.type = 'file'; i.accept = 'image/*';
+  i.onchange = async () => {
+    const f = i.files && i.files[0];
+    if (!f) return;
+    melde('lade Bild hoch ...', 0);
+    const r = await fetch(mitProjekt('bild?name=' + encodeURIComponent(f.name)), {method: 'POST', body: f});
+    const name = (await r.text()).trim();
+    melde(r.ok ? 'Bild uebernommen: ' + name : 'Upload fehlgeschlagen');
+    if (r.ok) cb(name);
+  };
+  i.click();
+}
+
+// ------------------------------------------------------------ Anordnen
+
+const IKON = {
+  links:  '<path d="M2 1v14"/><rect x="4" y="3" width="9" height="3"/><rect x="4" y="10" width="6" height="3"/>',
+  mitte:  '<path d="M8 1v14"/><rect x="2" y="3" width="12" height="3"/><rect x="4" y="10" width="8" height="3"/>',
+  rechts: '<path d="M14 1v14"/><rect x="3" y="3" width="9" height="3"/><rect x="6" y="10" width="6" height="3"/>',
+  oben:   '<path d="M1 2h14"/><rect x="3" y="4" width="3" height="9"/><rect x="10" y="4" width="3" height="6"/>',
+  mittig: '<path d="M1 8h14"/><rect x="3" y="2" width="3" height="12"/><rect x="10" y="4" width="3" height="8"/>',
+  unten:  '<path d="M1 14h14"/><rect x="3" y="3" width="3" height="9"/><rect x="10" y="6" width="3" height="6"/>',
+  vh:     '<path d="M1 2v12M15 2v12"/><rect x="4" y="4" width="2" height="8"/><rect x="10" y="4" width="2" height="8"/>',
+  vv:     '<path d="M2 1h12M2 15h12"/><rect x="4" y="4" width="8" height="2"/><rect x="4" y="10" width="8" height="2"/>'
+};
+function ikon(n){
+  return '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" stroke="currentColor" ' +
+         'stroke-width="1.4" style="vertical-align:middle">' + IKON[n] + '</svg>';
+}
+function anordnenTeil(f, mehrere){
+  f.appendChild(q('label', {html: mehrere ? 'Aneinander ausrichten' : 'An der Folie ausrichten'}));
+  const a = q('div', {id: 'ausrichten'});
+  [['links', 'links'], ['mitte', 'waagerecht mittig'], ['rechts', 'rechts'],
+   ['oben', 'oben'], ['mittig', 'senkrecht mittig'], ['unten', 'unten']].forEach(o => {
+    const b = q('button', {class: 'klein', html: ikon(o[0]), title: o[1]});
+    b.onclick = () => ausrichten(o[0]);
+    a.appendChild(b);
+  });
+  f.appendChild(a);
+}
+function knopf(text, titel, tun, an){
+  const b = q('button', {class: 'klein' + (an ? ' an' : ''), html: text, title: tt(titel || '')});
+  b.onclick = tun;
+  return b;
+}
+function befehleTeil(f){
+  const gesperrt = auswahl.length && auswahl.every(id => blockVon(id).gesperrt);
+  const gruppe = auswahl.some(id => blockVon(id).gruppe);
+  const r = q('div', {class: 'knopfreihe'});
+  r.appendChild(knopf('Duplizieren', 'Strg+D', duplizieren));
+  r.appendChild(knopf('Loeschen', 'Entf', loeschen));
+  if (auswahl.length > 1 || gruppe)
+    r.appendChild(gruppe ? knopf('Gruppe aufloesen', 'Strg+Umschalt+G', entgruppieren)
+                         : knopf('Gruppieren', 'Strg+G', gruppieren));
+  r.appendChild(knopf(gesperrt ? 'Entsperren' : 'Sperren', 'Strg+L', sperren, gesperrt));
+  r.appendChild(knopf('An Claude', 'Wunsch zu diesen Elementen an Claude', () => auftragAuf()));
+  f.appendChild(r);
+}
+function mehrfachRegler(){
+  const f = q('fieldset', {class: 'aktiv'}, [q('legend', {html: auswahl.length + ' Elemente gewaehlt'})]);
+  anordnenTeil(f, true);
+  f.appendChild(q('label', {html: 'Gleiche Abstaende (ab 3 Elementen)'}));
+  const v = q('div', {class: 'knopfreihe'});
+  const vh = knopf(ikon('vh') + ' waagerecht', '', () => verteilen('h'));
+  const vv = knopf(ikon('vv') + ' senkrecht', '', () => verteilen('v'));
+  vh.disabled = vv.disabled = auswahl.length < 3;
+  v.appendChild(vh); v.appendChild(vv); f.appendChild(v);
+  befehleTeil(f);
+  f.appendChild(q('div', {class: 'hint', html: 'Ziehen verschiebt alle, Ecken skalieren alle gemeinsam.'}));
+  return f;
+}
+function tastenRegler(){
+  const f = q('fieldset', {}, [q('legend', {html: 'Bedienung'})]);
+  const paare = [
+    ['Klick', 'Element waehlen'],
+    ['Umschalt', 'mehrere waehlen, oder Rahmen ziehen'],
+    ['Doppelklick', 'Text: Woerter formatieren. Bild: Ausschnitt waehlen'],
+    ['Entf', 'loeschen'],
+    ['Pfeile', '1 px schieben, mit Umschalt 10 px'],
+    ['Strg+C / V', 'kopieren, einfuegen, auch auf andere Folien'],
+    ['Strg+V', 'Screenshot oder kopiertes Bild einfuegen'],
+    ['Ziehen', 'Bilder aus dem Explorer auf die Folie, auf ein Bild = ersetzen'],
+    ['Strg+D', 'duplizieren'],
+    ['Strg+G', 'gruppieren (mit Umschalt: aufloesen)'],
+    ['Strg+L', 'sperren'],
+    ['Strg+A', 'alles auf der Folie'],
+    ['Leertaste', 'halten und ziehen: Ansicht schieben'],
+    ['Mausrad', 'zoomen']];
+  f.appendChild(q('div', {class: 'tasten', html: paare.map(p => '<b>' + tt(p[0]) + '</b><span>' + tt(p[1]) + '</span>').join('')}));
+  return f;
+}
+
+// ------------------------------------------------------------ Bilder bearbeiten
+// Ausschnitt (Doppelklick aufs Bild), Spiegeln, Filter, Deckkraft, Ecken,
+// Rahmen, Schatten. Gezeichnet wird in render.js (bildWirkung), hier nur Bedienung.
+
+let zuschnitt = null;                   // id des Bildes im Ausschnitt-Modus
+const bildMasse = {};                   // url -> {w, h} der Originaldatei
+const offeneAbschnitte = {};            // welche Panel-Abschnitte offen sind
+
+function bildMasseLaden(url){
+  if (bildMasse[url]) return Promise.resolve(bildMasse[url]);
+  return new Promise(fertig => {
+    const i = new Image();
+    i.onload = () => { bildMasse[url] = {w: i.naturalWidth, h: i.naturalHeight}; fertig(bildMasse[url]); };
+    i.onerror = () => fertig({w: 0, h: 0});
+    i.src = url;
+  });
+}
+
+// Wo liegt das ganze Bild relativ zur Box? (gleiche Rechnung wie object-fit
+// cover + background-position + Zoom um den gewaehlten Punkt)
+function ausschnittGeometrie(b, w, h, iw, ih){
+  const a = ausschnittVon(b), s0 = Math.max(w / iw, h / ih);
+  const W = iw * s0 * a.z, H = ih * s0 * a.z;
+  const cx = w - W, cy = h - H;          // immer <= 0: so weit laesst sich schieben
+  return {L: a.x / 100 * cx, T: a.y / 100 * cy, W: W, H: H, cx: cx, cy: cy};
+}
+
+// Unterobjekt-Feld setzen; Standardwert oder null entfernt es wieder
+function setzeTief(b, gruppe, feld, wert, standard){
+  const o = Object.assign({}, b[gruppe] || {});
+  if (wert === null || wert === undefined || wert === standard) delete o[feld]; else o[feld] = wert;
+  if (Object.keys(o).length) b[gruppe] = o; else delete b[gruppe];
+}
+
+// ----- Ausschnitt-Modus
+function zuschnittStart(id){
+  const b = blockVon(id);
+  if (!b || b.typ !== 'bild' || b.gesperrt) return;
+  zuschnitt = id; textModus = null;
+  sel = id; auswahl = [id];
+  baueRegler(); zielSetzen(); geistZeigen();
+  melde('Ausschnitt: Bild ziehen verschiebt, Mausrad zoomt. Esc oder Klick daneben beendet.', 8000);
+}
+function zuschnittEnde(){
+  if (!zuschnitt) return;
+  zuschnitt = null;
+  const g = document.querySelector('#flaeche .geist'); if (g) g.remove();
+  baueRegler(); zielSetzen(); zeichneMinis();
+}
+// Das ganze Bild blass hinter der Box zeigen, wie Canva beim Zuschneiden
+async function geistZeigen(){
+  const alt = document.querySelector('#flaeche .geist'); if (alt) alt.remove();
+  if (!zuschnitt) return;
+  const b = blockVon(zuschnitt), el = boxVon(zuschnitt);
+  if (!b || !el || !DATEI_OK.test(b.datei || '')) return;
+  const m = await bildMasseLaden(BASIS + b.datei);
+  if (!m.w || zuschnitt !== b.id || !el.isConnected) return;
+  const rand = el.clientLeft, w = el.clientWidth, h = el.clientHeight;
+  const g = ausschnittGeometrie(b, w, h, m.w, m.h);
+  const geist = document.createElement('div');
+  geist.className = 'geist';
+  geist.style.cssText = el.style.cssText;
+  geist.style.filter = ''; geist.style.opacity = ''; geist.style.border = '';
+  const sp = el.querySelector('.spiegel').cloneNode(false);
+  sp.style.inset = rand + 'px';
+  const bildEl = document.createElement('img');
+  bildEl.src = BASIS + b.datei;
+  bildEl.style.cssText = 'position:absolute;left:' + g.L + 'px;top:' + g.T + 'px;width:' + g.W +
+                         'px;height:' + g.H + 'px;filter:' + (el.querySelector('.bildflaeche').style.filter || 'none');
+  sp.appendChild(bildEl); geist.appendChild(sp);
+  el.parentNode.insertBefore(geist, el);
+}
+function zuschnittAendern(neu){
+  const b = blockVon(zuschnitt), el = boxVon(zuschnitt);
+  if (!b || !el) return;
+  b.ausschnitt = neu;
+  if (neu.z === 1 && neu.x === 50 && neu.y === 50) delete b.ausschnitt;
+  bildWirkung(el, b); geistZeigen(); autoSichern();
+}
+// Ziehen verschiebt das Bild in seiner Box (Drehung und Spiegeln eingerechnet)
+async function zuschnittZiehen(e){
+  const b = blockVon(zuschnitt), el = boxVon(zuschnitt);
+  const m = await bildMasseLaden(BASIS + b.datei);
+  if (!m.w) return;
+  merke();
+  const w = el.clientWidth, h = el.clientHeight;
+  const start = ausschnittGeometrie(b, w, h, m.w, m.h), a0 = ausschnittVon(b);
+  const mx = e.clientX, my = e.clientY, r = (b.dreh || 0) * Math.PI / 180;
+  const s = String(b.spiegeln || ''), fx = s.indexOf('h') >= 0 ? -1 : 1, fy = s.indexOf('v') >= 0 ? -1 : 1;
+  const move = ev => {
+    const dx = (ev.clientX - mx) / k, dy = (ev.clientY - my) / k;
+    const lx = (dx * Math.cos(r) + dy * Math.sin(r)) * fx, ly = (-dx * Math.sin(r) + dy * Math.cos(r)) * fy;
+    const nx = start.cx < -0.5 ? Math.max(0, Math.min(100, 100 * (start.L + lx) / start.cx)) : a0.x;
+    const ny = start.cy < -0.5 ? Math.max(0, Math.min(100, 100 * (start.T + ly) / start.cy)) : a0.y;
+    zuschnittAendern({z: a0.z, x: Math.round(nx * 10) / 10, y: Math.round(ny * 10) / 10});
+  };
+  const up = () => {
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', up);
+    baueRegler(); zeichneMinis();
+  };
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up);
+}
+function zuschnittZoom(faktor){
+  const b = blockVon(zuschnitt); if (!b) return;
+  const a = ausschnittVon(b);
+  const z = Math.max(1, Math.min(5, Math.round(a.z * faktor * 100) / 100));
+  if (z === a.z) return;
+  if (Date.now() - (zuschnittZoom.gemerkt || 0) > 1500) merke();   // ein Zurueck je Zoom-Serie
+  zuschnittZoom.gemerkt = Date.now();
+  zuschnittAendern({z: z, x: a.x, y: a.y});
+  clearTimeout(zuschnittZoom.t); zuschnittZoom.t = setTimeout(baueRegler, 250);
+}
+
+// ----- Bilder aus dem Explorer ziehen oder aus der Zwischenablage einfuegen
+function istBilddatei(f){
+  return /^image\//.test(f.type || '') || /\.(png|jpe?g|webp|gif|svg|heic|heif|tiff?)$/i.test(f.name || '');
+}
+let pasteKam = false;
+function folienPunkt(cx, cy){
+  const r = document.getElementById('rahmen').getBoundingClientRect();
+  return {x: (cx - r.left) / k, y: (cy - r.top) / k};
+}
+async function bilderEinsetzen(dateien, punkt, ersetzeId){
+  melde('lade ' + dateien.length + (dateien.length === 1 ? ' Bild' : ' Bilder') + ' hoch ...', 0);
+  const neu = [];
+  for (const f of dateien){
+    let r;
+    try { r = await fetch(mitProjekt('bild?name=' + encodeURIComponent(f.name || 'eingefuegt.png')), {method: 'POST', body: f}); }
+    catch (e) { melde('Upload fehlgeschlagen.', 6000); return; }
+    const name = (await r.text()).trim();
+    if (!r.ok){ melde('Upload fehlgeschlagen: ' + name, 8000); return; }
+    neu.push({name: name, m: await bildMasseLaden(BASIS + name)});
+  }
+  merke();
+  if (ersetzeId && neu.length === 1){
+    const b = blockVon(ersetzeId);
+    if (b && !b.gesperrt){
+      b.datei = neu[0].name; delete b.original; delete b.ausschnitt;
+      alles(); melde('Bild ersetzt. Strg+Z holt das alte zurueck.', 6000); return;
+    }
+  }
+  einfrieren();
+  const st = D.stil, ids = [];
+  neu.forEach((n, i) => {
+    const iw = n.m.w || 800, ih = n.m.h || 600;
+    let w = Math.min(iw, st.breite * 0.6), h = w * ih / iw;
+    if (h > st.hoehe * 0.6){ h = st.hoehe * 0.6; w = h * iw / ih; }
+    const p = punkt || {x: st.breite / 2, y: st.hoehe / 2};
+    const b = {id: neueId(), typ: 'bild', datei: n.name,
+               x: Math.round(p.x - w / 2 + 30 * i), y: Math.round(p.y - h / 2 + 30 * i),
+               w: Math.round(w), h: Math.round(h)};
+    bloecke().push(b); ids.push(b.id);
+  });
+  auswahl = ids; sel = ids[ids.length - 1];
+  alles();
+  melde(ids.length === 1 ? 'Bild eingefuegt.' : ids.length + ' Bilder eingefuegt.', 4000);
+}
+
+// ----- Panel: Abschnitte fuer Bilder
+function abschnitt(titel, offenStandard){
+  const d = document.createElement('details');
+  d.className = 'abschnitt';
+  d.open = (titel in offeneAbschnitte) ? offeneAbschnitte[titel] : !!offenStandard;
+  d.ontoggle = () => { offeneAbschnitte[titel] = d.open; };
+  d.appendChild(q('summary', {html: titel}));
+  return d;
+}
+const FILTER_VORLAGEN = [
+  ['Original', {}],
+  ['S/W', {grau: 100, kontrast: 110}],
+  ['Warm', {sepia: 25, saett: 120, hell: 103}],
+  ['Kraeftig', {saett: 140, kontrast: 115}],
+  ['Hell', {hell: 115, kontrast: 95}],
+  ['Verblasst', {kontrast: 85, hell: 110, saett: 75}],
+  ['Vintage', {sepia: 45, kontrast: 90, hell: 105, saett: 85}],
+  ['Dunkel', {hell: 80, kontrast: 115}]
+];
+function bildRegler(f, b){
+  const id = b.id;
+  // Ausschnitt und Spiegeln
+  const d1 = abschnitt('Ausschnitt und Spiegeln', true);
+  const r1 = q('div', {class: 'knopfreihe'});
+  r1.appendChild(knopf(zuschnitt === id ? 'Ausschnitt fertig' : 'Ausschnitt waehlen',
+    'Doppelklick aufs Bild geht auch', () => zuschnitt === id ? zuschnittEnde() : zuschnittStart(id), zuschnitt === id));
+  r1.appendChild(knopf('Ausschnitt zuruecksetzen', '', () => { merke(); delete b.ausschnitt; alles(); geistZeigen(); }));
+  d1.appendChild(r1);
+  const a = ausschnittVon(b);
+  d1.appendChild(schieber('Zoom in Prozent', Math.round(a.z * 100), 100, 500, 5, v => {
+    const n = ausschnittVon(b); b.ausschnitt = {z: v / 100, x: n.x, y: n.y};
+    if (v === 100 && n.x === 50 && n.y === 50) delete b.ausschnitt;
+  }));
+  const s = String(b.spiegeln || '');
+  const r2 = q('div', {class: 'knopfreihe'});
+  const umschalten = c => { merke(); const neu = (s.indexOf(c) >= 0 ? s.replace(c, '') : s + c);
+                            if (neu) b.spiegeln = neu.split('').sort().join(''); else delete b.spiegeln; alles(); };
+  r2.appendChild(knopf('&#8596; waagerecht spiegeln', '', () => umschalten('h'), s.indexOf('h') >= 0));
+  r2.appendChild(knopf('&#8597; senkrecht spiegeln', '', () => umschalten('v'), s.indexOf('v') >= 0));
+  d1.appendChild(r2);
+  f.appendChild(d1);
+
+  // Filter
+  const d2 = abschnitt('Filter', false);
+  const fv = q('div', {class: 'vorlagen'});
+  const jetzt = JSON.stringify(b.filter || {});
+  FILTER_VORLAGEN.forEach(v => {
+    fv.appendChild(knopf(v[0], '', () => {
+      merke();
+      if (Object.keys(v[1]).length) b.filter = Object.assign({}, v[1]); else delete b.filter;
+      alles();
+    }, JSON.stringify(v[1]) === jetzt));
+  });
+  d2.appendChild(fv);
+  const fw = Object.assign({}, FILTER_STD, b.filter || {});
+  [['Helligkeit', 'hell', 0, 200, 1], ['Kontrast', 'kontrast', 0, 200, 1], ['Saettigung', 'saett', 0, 200, 1],
+   ['Schwarzweiss', 'grau', 0, 100, 1], ['Sepia', 'sepia', 0, 100, 1], ['Weichzeichnen', 'unschaerfe', 0, 30, 0.5]]
+    .forEach(o => d2.appendChild(schieber(o[0], fw[o[1]], o[2], o[3], o[4],
+      v => setzeTief(b, 'filter', o[1], v, FILTER_STD[o[1]]))));
+  f.appendChild(d2);
+
+  // Form und Wirkung
+  const d3 = abschnitt('Deckkraft, Ecken, Rahmen, Schatten', false);
+  d3.appendChild(schieber('Deckkraft in Prozent', b.deckkraft === undefined ? 100 : b.deckkraft, 0, 100, 1,
+    v => { if (v >= 100) delete b.deckkraft; else b.deckkraft = v; }));
+  d3.appendChild(schieber('Ecken abrunden', b.ecken || 0, 0, 400, 1,
+    v => { if (v) b.ecken = v; else delete b.ecken; }));
+  const rw = b.rahmen || {};
+  d3.appendChild(schieber('Rahmenbreite', rw.breite || 0, 0, 60, 1,
+    v => setzeTief(b, 'rahmen', 'breite', v, 0)));
+  if (rw.breite) d3.appendChild(farbe('Rahmenfarbe', rw.farbe || '#ffffff', v => setzeTief(b, 'rahmen', 'farbe', v, null)));
+  const r3 = q('div', {class: 'knopfreihe'});
+  r3.appendChild(knopf(b.schatten ? 'Schatten aus' : 'Schatten an', 'folgt der Form, auch bei freigestellten Bildern',
+    () => { merke(); if (b.schatten) delete b.schatten; else b.schatten = {}; alles(); }, !!b.schatten));
+  d3.appendChild(r3);
+  if (b.schatten){
+    const sw = b.schatten;
+    [['Weichheit', 'weich', 24, 0, 120], ['Abstand', 'abstand', 14, 0, 120],
+     ['Richtung in Grad', 'winkel', 45, 0, 359], ['Deckkraft Schatten', 'deck', 45, 0, 100]]
+      .forEach(o => d3.appendChild(schieber(o[0], sw[o[1]] === undefined ? o[2] : sw[o[1]], o[3], o[4], 1,
+        v => setzeTief(b, 'schatten', o[1], v, null))));
+    d3.appendChild(farbe('Schattenfarbe', sw.farbe || '#000000', v => setzeTief(b, 'schatten', 'farbe', v, null)));
+  }
+  f.appendChild(d3);
+}
+
+// ------------------------------------------------------------ Elemente: Formen und Icons
+// Formen zeichnet render.js als SVG, Icons kommen aus bib/ (Lucide, Tabler) als Farbmaske.
+
+let iconIndex = null, deWoerter = {}, elementeErsetzen = null;
+
+async function iconIndexLaden(){
+  if (iconIndex) return iconIndex;
+  const [i, d] = await Promise.all([fetch('bib/index.json').then(r => r.json()),
+                                    fetch('bib/de.json').then(r => r.json()).catch(() => ({}))]);
+  iconIndex = i; deWoerter = d;
+  return iconIndex;
+}
+// Gleiche Wertung wie icons_suchen() in k.py
+function iconsSuchen(frage, satzFilter, n){
+  const woerter = (frage.toLowerCase().match(/[a-z0-9äöüß]+/g) || []).map(w => {
+    w = w.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+    return [w].concat((Object.prototype.hasOwnProperty.call(deWoerter, w) ? String(deWoerter[w]) : '').split(' ').filter(Boolean));
+  });
+  const treffer = [];
+  for (const satz in iconIndex){
+    if (satzFilter && satz !== satzFilter) continue;
+    const e = iconIndex[satz];
+    for (const nm in e){
+      if (!woerter.length){ treffer.push([0, satz !== 'lucide', nm.length, satz + '/' + nm]); continue; }
+      let punkte = 0, ok = true;
+      const teile = nm.split('-'), tags = ' ' + e[nm] + ' ';
+      for (const varianten of woerter){
+        let best = 0;
+        for (const w of varianten){
+          if (nm === w) best = Math.max(best, 10);
+          else if (teile.indexOf(w) >= 0) best = Math.max(best, 6);
+          else if (tags.indexOf(' ' + w + ' ') >= 0) best = Math.max(best, 3);
+          else if (nm.indexOf(w) >= 0) best = Math.max(best, 2);
+        }
+        if (!best){ ok = false; break; }
+        punkte += best;
+      }
+      if (ok && punkte) treffer.push([-punkte, satz !== 'lucide', nm.length, satz + '/' + nm]);
+    }
+  }
+  treffer.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || (a[3] < b[3] ? -1 : 1));
+  return treffer.slice(0, n || 120).map(t => t[3]);
+}
+
+const FORM_NAMEN = [['rechteck', 'Rechteck'], ['kreis', 'Kreis'], ['dreieck', 'Dreieck'], ['raute', 'Raute'],
+                    ['stern', 'Stern'], ['linie', 'Linie'], ['pfeil', 'Pfeil']];
+
+function elementeAuf(tab, ersetzeId){
+  elementeErsetzen = ersetzeId || null;
+  const d = document.getElementById('elemente');
+  d.style.display = 'flex';
+  elementeTab(tab || 'formen');
+}
+function elementeZu(){ document.getElementById('elemente').style.display = 'none'; elementeErsetzen = null; }
+function elementeTab(tab){
+  document.querySelectorAll('#elemente .reiter button').forEach(b => b.classList.toggle('an', b.dataset.tab === tab));
+  document.getElementById('eFormen').style.display = tab === 'formen' ? '' : 'none';
+  document.getElementById('eIcons').style.display = tab === 'icons' ? '' : 'none';
+  if (tab === 'formen'){
+    const g = document.getElementById('eFormen'); g.innerHTML = '';
+    FORM_NAMEN.forEach(f => {
+      const b = q('button', {class: 'formwahl', title: f[1],
+        html: formSvg({form: f[0], fuellung: '#7fb3a3', staerke: 8}, 80, f[0] === 'linie' || f[0] === 'pfeil' ? 30 : 80) +
+              '<span>' + f[1] + '</span>'});
+      b.onclick = () => { elementeZu(); formEinfuegen(f[0]); };
+      g.appendChild(b);
+    });
+  } else {
+    const s = document.getElementById('eSuche');
+    s.focus();
+    iconIndexLaden().then(iconsZeigen);
+  }
+}
+function iconsZeigen(){
+  const frage = document.getElementById('eSuche').value;
+  const satz = document.getElementById('eSatz').value;
+  const liste = iconsSuchen(frage, satz, 160);
+  const g = document.getElementById('eRaster'); g.innerHTML = '';
+  document.getElementById('eAnzahl').textContent = liste.length ? '' : 'Nichts gefunden. Englische Woerter gehen auch.';
+  liste.forEach(name => {
+    const b = q('button', {class: 'iconwahl', title: name});
+    const z = q('div', {class: 'iconbild'});
+    z.style.webkitMaskImage = z.style.maskImage = 'url("bib/' + name + '.svg")';
+    b.appendChild(z);
+    b.onclick = () => { const e = elementeErsetzen; elementeZu(); iconEinfuegen(name, e); };
+    g.appendChild(b);
+  });
+}
+function formEinfuegen(form){
+  merke(); einfrieren();
+  const st = D.stil, linie = form === 'linie' || form === 'pfeil';
+  const w = linie ? 500 : 400, h = linie ? 60 : 400;
+  const b = {id: neueId(), typ: 'form', form: form, fuellung: st.akzent,
+             x: Math.round((st.breite - w) / 2), y: Math.round((st.hoehe - h) / 2), w: w, h: h};
+  if (linie) b.staerke = 8;
+  bloecke().push(b);
+  auswahl = [b.id]; sel = b.id; alles();
+}
+function iconEinfuegen(name, ersetzeId){
+  merke();
+  const alt = ersetzeId && blockVon(ersetzeId);
+  if (alt && alt.form === 'icon'){ alt.icon = name; alles(); return; }
+  einfrieren();
+  const st = D.stil, w = 200;
+  const b = {id: neueId(), typ: 'form', form: 'icon', icon: name, fuellung: st.akzent,
+             x: Math.round((st.breite - w) / 2), y: Math.round((st.hoehe - w) / 2), w: w, h: w};
+  bloecke().push(b);
+  auswahl = [b.id]; sel = b.id; alles();
+}
+
+// ----- Schatten-Regler, geteilt von Bildern, Formen und Text
+function schattenTeil(d, b, std){
+  const r = q('div', {class: 'knopfreihe'});
+  r.appendChild(knopf(b.schatten ? 'Schatten aus' : 'Schatten an', 'folgt der Form',
+    () => { merke(); if (b.schatten) delete b.schatten; else b.schatten = {}; alles(); }, !!b.schatten));
+  d.appendChild(r);
+  if (!b.schatten) return;
+  const sw = b.schatten;
+  [['Weichheit', 'weich', std.weich, 0, 120], ['Abstand', 'abstand', std.abstand, 0, 120],
+   ['Richtung in Grad', 'winkel', 45, 0, 359], ['Deckkraft Schatten', 'deck', std.deck, 0, 100]]
+    .forEach(o => d.appendChild(schieber(o[0], sw[o[1]] === undefined ? o[2] : sw[o[1]], o[3], o[4], 1,
+      v => setzeTief(b, 'schatten', o[1], v, null))));
+  d.appendChild(farbe('Schattenfarbe', sw.farbe || '#000000', v => setzeTief(b, 'schatten', 'farbe', v, null)));
+}
+const SCHATTEN_BOX = {weich: 24, abstand: 14, deck: 45};
+const SCHATTEN_TEXT = {weich: 10, abstand: 6, deck: 50};
+
+// ----- Panel fuer Formen und Icons
+function formRegler(f, b){
+  if (b.form === 'icon'){
+    f.appendChild(farbe('Farbe', b.fuellung || D.stil.akzent, v => { b.fuellung = v; }));
+    const r = q('div', {class: 'knopfreihe'});
+    r.appendChild(knopf('Anderes Icon', '', () => elementeAuf('icons', b.id)));
+    f.appendChild(r);
+  } else {
+    const linie = b.form === 'linie' || b.form === 'pfeil';
+    f.appendChild(farbe(linie ? 'Farbe' : 'Fuellung', b.fuellung === 'keine' ? '#ffffff' : (b.fuellung || D.stil.akzent),
+      v => { b.fuellung = v; }));
+    if (!linie){
+      const r = q('div', {class: 'knopfreihe'});
+      r.appendChild(knopf(b.fuellung === 'keine' ? 'Fuellung an' : 'Ohne Fuellung', 'nur der Rand bleibt',
+        () => { merke(); b.fuellung = b.fuellung === 'keine' ? D.stil.akzent : 'keine'; alles(); }, b.fuellung === 'keine'));
+      f.appendChild(r);
+      const rd = b.rand || {};
+      f.appendChild(schieber('Randbreite', rd.breite || 0, 0, 60, 1, v => setzeTief(b, 'rand', 'breite', v, 0)));
+      if (rd.breite) f.appendChild(farbe('Randfarbe', rd.farbe || '#000000', v => setzeTief(b, 'rand', 'farbe', v, null)));
+      if (b.form === 'rechteck')
+        f.appendChild(schieber('Ecken abrunden', b.ecken || 0, 0, 400, 1, v => { if (v) b.ecken = v; else delete b.ecken; }));
+    } else {
+      f.appendChild(schieber('Linienstaerke', b.staerke || 8, 1, 60, 1, v => { b.staerke = v; }));
+      const r = q('div', {class: 'drei'});
+      [['voll', 'durchgehend'], ['gestrichelt', 'gestrichelt'], ['gepunktet', 'gepunktet']].forEach(o => {
+        r.appendChild(knopf(o[1], '', () => { merke(); if (o[0] === 'voll') delete b.strich; else b.strich = o[0]; alles(); },
+                            (b.strich || 'voll') === o[0]));
+      });
+      f.appendChild(r);
+    }
+  }
+  const d = abschnitt('Deckkraft und Schatten', false);
+  d.appendChild(schieber('Deckkraft in Prozent', b.deckkraft === undefined ? 100 : b.deckkraft, 0, 100, 1,
+    v => { if (v >= 100) delete b.deckkraft; else b.deckkraft = v; }));
+  schattenTeil(d, b, SCHATTEN_BOX);
+  f.appendChild(d);
+}
+
+// ----- Text-Effekte mit Vorlagen wie in Canva
+function texteffektVorlagen(b){
+  const farbeText = b.farbe || D.stil.text, akzent = D.stil.akzent;
+  return [
+    ['Keine', () => { delete b.schatten; delete b.umriss; delete b.flaeche; }],
+    ['Schatten', () => { b.schatten = {}; }],
+    ['Weich', () => { b.schatten = {abstand: 0, weich: 24, deck: 60}; }],
+    ['Neon', () => { b.schatten = {abstand: 0, weich: 18, deck: 100, farbe: FARBE_OK.test(akzent) ? akzent : '#7fb3a3'}; }],
+    ['Umriss', () => { b.umriss = {breite: 3, farbe: '#000000'}; }],
+    ['Hohl', () => { b.umriss = {breite: 3, farbe: FARBE_OK.test(farbeText) ? farbeText : '#000000', hohl: true}; }],
+    ['Flaeche', () => { b.flaeche = {farbe: FARBE_OK.test(akzent) ? akzent : '#7fb3a3', rund: 16, innen: 24}; }],
+    ['Etikett', () => { b.flaeche = {farbe: '#000000', deck: 70, rund: 8, innen: 16}; }]
+  ];
+}
+function texteffektRegler(f, b){
+  const d = abschnitt('Text-Effekte', false);
+  const v = q('div', {class: 'vorlagen'});
+  texteffektVorlagen(b).forEach(o => v.appendChild(knopf(o[0], '', () => { merke(); o[1](); alles(); })));
+  d.appendChild(v);
+  d.appendChild(schieber('Zeichenabstand', b.zeichen || 0, -100, 800, 5, x => { if (x) b.zeichen = x; else delete b.zeichen; }));
+  const r = q('div', {class: 'knopfreihe'});
+  r.appendChild(knopf('GROSSBUCHSTABEN', '', () => { merke(); if (b.gross) delete b.gross; else b.gross = true; alles(); }, !!b.gross));
+  d.appendChild(r);
+  schattenTeil(d, b, SCHATTEN_TEXT);
+  const u = b.umriss || {};
+  d.appendChild(schieber('Umriss', u.breite || 0, 0, 20, 0.5, x => setzeTief(b, 'umriss', 'breite', x, 0)));
+  if (u.breite){
+    d.appendChild(farbe('Umrissfarbe', u.farbe || '#000000', x => setzeTief(b, 'umriss', 'farbe', x, null)));
+    const h = q('div', {class: 'knopfreihe'});
+    h.appendChild(knopf('Hohl (nur Umriss)', '', () => { merke(); setzeTief(b, 'umriss', 'hohl', u.hohl ? null : true, null); alles(); }, !!u.hohl));
+    d.appendChild(h);
+  }
+  const fl = q('div', {class: 'knopfreihe'});
+  fl.appendChild(knopf(b.flaeche ? 'Flaeche aus' : 'Flaeche hinter dem Text', '',
+    () => { merke(); if (b.flaeche) delete b.flaeche; else b.flaeche = {farbe: '#ffffff', rund: 12, innen: 20}; alles(); }, !!b.flaeche));
+  d.appendChild(fl);
+  if (b.flaeche){
+    const w = b.flaeche;
+    d.appendChild(farbe('Flaechenfarbe', w.farbe || '#ffffff', x => setzeTief(b, 'flaeche', 'farbe', x, null)));
+    d.appendChild(schieber('Deckkraft Flaeche', w.deck === undefined ? 100 : w.deck, 0, 100, 1, x => setzeTief(b, 'flaeche', 'deck', x, 100)));
+    d.appendChild(schieber('Rundung', w.rund || 0, 0, 200, 1, x => setzeTief(b, 'flaeche', 'rund', x, null)));
+    d.appendChild(schieber('Innenabstand', w.innen === undefined ? 24 : w.innen, 0, 120, 1, x => setzeTief(b, 'flaeche', 'innen', x, null)));
+  }
+  f.appendChild(d);
+}
+
+// ----- Folienhintergrund
+function hintergrundTeil(f){
+  const s = slide(), hg = s.hg || {}, art = hg.art || (hg.farbe ? 'farbe' : '');
+  f.appendChild(q('label', {html: 'Hintergrund dieser Folie'}));
+  const r = q('div', {class: 'vorlagen'});
+  [['', 'wie alle'], ['farbe', 'Farbe'], ['verlauf', 'Verlauf'], ['bild', 'Bild']].forEach(o => {
+    r.appendChild(knopf(o[1], '', () => {
+      merke();
+      if (!o[0]) delete s.hg;
+      else if (o[0] === 'bild') { bildWaehlen(n => { s.hg = {art: 'bild', datei: n}; alles(); }); return; }
+      else s.hg = Object.assign({farbe: hg.farbe || D.stil.bg}, o[0] === 'verlauf' ? {art: 'verlauf', farbe2: hg.farbe2 || D.stil.akzent, winkel: hg.winkel === undefined ? 180 : hg.winkel} : {art: 'farbe'});
+      alles();
+    }, art === o[0]));
+  });
+  f.appendChild(r);
+  if (art === 'farbe' || art === 'verlauf')
+    f.appendChild(farbe(art === 'verlauf' ? 'Farbe 1' : 'Farbe', hg.farbe || D.stil.bg, v => { s.hg.farbe = v; }));
+  if (art === 'verlauf'){
+    f.appendChild(farbe('Farbe 2', hg.farbe2 || D.stil.akzent, v => { s.hg.farbe2 = v; }));
+    f.appendChild(schieber('Richtung in Grad', hg.winkel === undefined ? 180 : hg.winkel, 0, 359, 1, v => { s.hg.winkel = v; }));
+  }
+  if (art === 'bild'){
+    const b = q('div', {class: 'knopfreihe'});
+    b.appendChild(knopf('anderes Bild', hg.datei || '', () => bildWaehlen(n => { merke(); s.hg.datei = n; alles(); })));
+    f.appendChild(b);
+  }
+  if (art){
+    const a = q('div', {class: 'knopfreihe'});
+    a.appendChild(knopf('Auf alle Folien', 'diesen Hintergrund fuer jede Folie', () => {
+      merke(); D.slides.forEach(x => { x.hg = JSON.parse(JSON.stringify(s.hg)); }); alles();
+      melde('Hintergrund auf alle Folien uebertragen.', 4000);
+    }));
+    f.appendChild(a);
+  }
+}
+
+// ------------------------------------------------------------ Schriften (Google Fonts)
+// Verzeichnis bib/fonts.json, laden ueber POST /schrift (schriften.py), danach offline.
+
+let fontVerzeichnis = null;
+const ARTNAME = {'Sans Serif': 'ohne Serifen', 'Serif': 'mit Serifen', 'Display': 'Display',
+                 'Handwriting': 'Handschrift', 'Monospace': 'Monospace'};
+
+async function schriftenAuf(){
+  document.getElementById('schriften').style.display = 'flex';
+  if (!fontVerzeichnis){
+    try { fontVerzeichnis = await (await fetch('bib/fonts.json')).json(); }
+    catch (e) { fontVerzeichnis = []; }
+  }
+  document.getElementById('sSuche').focus();
+  schriftenZeigen();
+}
+function schriftenZu(){ document.getElementById('schriften').style.display = 'none'; }
+function schriftenZeigen(){
+  const frage = document.getElementById('sSuche').value.trim().toLowerCase();
+  const art = document.getElementById('sArt').value;
+  const geladen = new Set(SCHRIFTEN_EXTRA), eingebaut = new Set(SCHRIFTEN);
+  const treffer = (fontVerzeichnis || []).filter(e => (!art || e.k === art) && (!frage || e.f.toLowerCase().indexOf(frage) >= 0))
+    .sort((a, b) => (a.f.toLowerCase().indexOf(frage) === 0 ? 0 : 1) - (b.f.toLowerCase().indexOf(frage) === 0 ? 0 : 1) || a.p - b.p)
+    .slice(0, 60);
+  const L = document.getElementById('sListe'); L.innerHTML = '';
+  if (!treffer.length) L.appendChild(q('div', {class: 'unter', html: 'Keine Schrift gefunden.'}));
+  treffer.forEach(e => {
+    const da = geladen.has(e.f) || eingebaut.has(e.f);
+    const z = q('div', {class: 'schriftzeile'});
+    const n = q('div', {class: 'schriftname'});
+    n.textContent = e.f;
+    if (da && SCHRIFT_OK.test(e.f)) n.style.fontFamily = "'" + e.f + "', system-ui";
+    z.appendChild(n);
+    z.appendChild(q('span', {class: 'unter', html: esc(ARTNAME[e.k] || e.k)}));
+    const b = knopf(eingebaut.has(e.f) ? 'eingebaut' : geladen.has(e.f) ? 'geladen' : 'Laden', '', () => schriftHolen(e.f, b));
+    b.disabled = da;
+    z.appendChild(b);
+    L.appendChild(z);
+  });
+}
+async function schriftHolen(family, knopfEl){
+  knopfEl.disabled = true; knopfEl.textContent = 'laedt ...';
+  let j;
+  try { j = await (await fetch('schrift', {method: 'POST', body: JSON.stringify({family: family})})).json(); }
+  catch (e) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+  if (!j.ok){ knopfEl.disabled = false; knopfEl.textContent = 'Laden'; melde('Schrift ging nicht: ' + j.fehler, 8000); return; }
+  // neue @font-face-Regeln einlesen, ohne die Seite neu zu laden
+  const css = document.getElementById('googleCss');
+  css.href = 'fonts/google.css?' + Date.now();
+  await new Promise(r => { css.onload = r; setTimeout(r, 1500); });
+  await schriftenLaden();
+  try { await document.fonts.load("400 40px '" + family + "'"); await document.fonts.load("700 40px '" + family + "'"); } catch (e) {}
+  werkzeugSchriftenFuellen();
+  schriftenZeigen(); baueRegler();
+  melde('Schrift ' + family + ' geladen. Sie steht jetzt in jeder Schriftauswahl.', 6000);
+}
+function werkzeugSchriftenFuellen(){
+  const ws = document.getElementById('wSchrift');
+  ws.innerHTML = '<option value="">Schrift</option>' + alleSchriften().map(n => '<option style="font-family:&quot;' + n + '&quot;">' + esc(n) + '</option>').join('');
+}
+
+// ------------------------------------------------------------ Markenfarben
+// stil.palette: bis zu 12 Farben, erscheinen unter jedem Farbregler.
+function markenfarben(){
+  const st = D.stil, liste = [];
+  [st.bg, st.text, st.akzent].concat(Array.isArray(st.palette) ? st.palette.slice(0, 12) : []).forEach(c => {
+    c = String(c || '').toLowerCase();
+    if (FARBE_OK.test(c) && liste.indexOf(c) < 0) liste.push(c);
+  });
+  return liste.slice(0, 15);
+}
+function paletteTeil(f){
+  const st = D.stil;
+  f.appendChild(q('label', {html: 'Markenfarben (erscheinen bei jeder Farbwahl)'}));
+  const r = q('div', {class: 'palette'});
+  (Array.isArray(st.palette) ? st.palette.slice(0, 12) : []).forEach((c, i) => {
+    const b = q('button', {class: 'farbfeld', title: c + ' entfernen'});
+    b.style.background = FARBE_OK.test(c) ? c : '#000';
+    b.innerHTML = '<span>&times;</span>';
+    b.onclick = () => { merke(); st.palette.splice(i, 1); if (!st.palette.length) delete st.palette; baueRegler(); zeichne(); };
+    r.appendChild(b);
+  });
+  const neu = document.createElement('input'); neu.type = 'color'; neu.value = st.akzent || '#7fb3a3';
+  neu.title = 'Farbe waehlen, dann +';
+  const plus = knopf('+', 'zur Palette', () => {
+    merke(); st.palette = (Array.isArray(st.palette) ? st.palette : []).concat([neu.value]).slice(0, 12);
+    baueRegler(); zeichne();
+  });
+  r.appendChild(neu); r.appendChild(plus);
+  f.appendChild(r);
+}
+
+// ------------------------------------------------------------ Freistellen
+// Laeuft auf dem eigenen Rechner. Das Ergebnis ersetzt die Bilddatei, das
+// Original bleibt im Feld `original` und kommt mit einem Klick zurueck.
+const laeuftFrei = {};
+// Freisteller einmalig laden (GitHub, mit Pruefsumme), Fortschritt aus GET /modelle
+async function modellLaden(modell){
+  let j;
+  try { j = await (await fetch('modell', {method: 'POST', body: JSON.stringify({modell: modell})})).json(); }
+  catch (e) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+  if (!j.ok){ melde('Laden ging nicht: ' + j.fehler, 9000); return false; }
+  for (;;){
+    await new Promise(r => setTimeout(r, 1000));
+    let st;
+    try { st = await (await fetch('modelle', {cache: 'no-store'})).json(); } catch (e) { continue; }
+    const l = st.laden || {};
+    if (l.fehler){ melde('Laden ging nicht: ' + l.fehler, 9000); return false; }
+    if ((st.da || []).indexOf(modell) >= 0){ melde('Freisteller ist eingerichtet.', 3000); return true; }
+    if (!l.modell){ melde('Laden wurde abgebrochen. Bitte noch einmal versuchen.', 9000); return false; }
+    const pz = l.gesamt ? Math.min(99, Math.floor(100 * l.gelesen / l.gesamt)) : 0;
+    melde('Lade den Freisteller ... ' + pz + ' %', 0);
+  }
+}
+
+async function freistellen(id, modell){
+  const b0 = blockVon(id);
+  if (!b0) return;
+  const quelle = b0.original || b0.datei, projekt = PROJEKT, schluessel = id + modell;
+  if (laeuftFrei[schluessel]) return;
+  laeuftFrei[schluessel] = true;
+  melde(modell === 'genau' ? 'Stelle gruendlich frei, etwa 2 Minuten. Du kannst weiterarbeiten.'
+                           : 'Entferne den Hintergrund ...', 0);
+  let j;
+  try {
+    j = await (await fetch(mitProjekt('freistellen'), {method: 'POST',
+      body: JSON.stringify({datei: quelle, modell: modell})})).json();
+  } catch (e) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+  delete laeuftFrei[schluessel];
+  if (!j.ok && j.fehlt){
+    const mb = Math.round(+j.mb || 0);
+    if (!confirm('Der Freisteller ist noch nicht eingerichtet. Jetzt einmalig laden (' + mb +
+                 ' MB)? Danach geht es ohne Internet.')) { melde('', 0); return; }
+    if (await modellLaden(j.fehlt)) return freistellen(id, modell);
+    return;
+  }
+  if (!j.ok){ melde('Freistellen ging nicht: ' + j.fehler, 9000); return; }
+  if (PROJEKT !== projekt){ melde('Freigestellt, liegt im Projekt ' + projekt + '.', 6000); return; }
+  let ziel = null;
+  D.slides.forEach(s => (s.bloecke || []).forEach(x => { if (x.id === id) ziel = x; }));
+  if (!ziel){ melde('Freigestellt, aber das Bild ist nicht mehr da.', 6000); return; }
+  merke();
+  if (!ziel.original) ziel.original = ziel.datei;
+  ziel.datei = j.datei;
+  alles();
+  melde('Hintergrund entfernt. Gefaellt es nicht? Original zurueck oder Strg+Z.', 8000);
+}
+
+// --------------------------------------------------------------- Blockliste
+
+function bloeckeRegler(){
+  const s = slide();
+  const f = q('fieldset', {}, [q('legend', {html: 'Bloecke dieser Slide (oben liegt vorn)'})]);
+  ebenen(s).slice().reverse().forEach(id => {
+    const b = blockVon(id);
+    if (!b) return;
+    const z = q('div', {class: 'blk' + (auswahl.indexOf(id) >= 0 ? ' an' : '')});
+    const v = q('div', {class: 'vorschau' + (b.typ === 'bild' ? '' : ' txt'),
+                        html: (b.typ === 'bild' || b.typ === 'form') ? '' : (b.rolle === 'titel' ? 'H' : 'T')});
+    if (b.typ === 'bild') v.style.backgroundImage = bildUrl(b.datei);
+    if (b.typ === 'form'){
+      v.className = 'vorschau form';
+      if (b.form === 'icon' && ICON_OK.test(b.icon || '')){
+        const z = q('div', {class: 'iconbild'});
+        z.style.webkitMaskImage = z.style.maskImage = 'url("bib/' + b.icon + '.svg")';
+        z.style.backgroundColor = farbeOder(b.fuellung, '#7fb3a3');
+        v.appendChild(z);
+      } else v.style.background = b.fuellung === 'keine' ? 'transparent' : farbeOder(b.fuellung, '#7fb3a3');
+    }
+    z.appendChild(v);
+    const zusatz = (b.gesperrt ? ' &middot; gesperrt' : '') + (b.gruppe ? ' &middot; Gruppe' : '');
+    z.appendChild(q('span', {class: 'name', html: esc(nameVon(b)) +
+      (zusatz ? '<span style="opacity:.5">' + zusatz + '</span>' : '')}));
+    z.onclick = e => {
+      if (e.shiftKey || e.metaKey) waehle(auswahl.indexOf(id) >= 0 ? auswahl.filter(x => x !== id) : auswahl.concat([id]));
+      else waehle([id]);
+    };
+    const hoch = q('button', {class: 'klein', html: '▲', title: 'nach vorn'});
+    hoch.onclick = e => { e.stopPropagation(); merke(); schiebeEbene(id, +1); };
+    const run = q('button', {class: 'klein', html: '▼', title: 'nach hinten'});
+    run.onclick = e => { e.stopPropagation(); merke(); schiebeEbene(id, -1); };
+    const de = q('button', {class: 'klein weg', html: '✕', title: 'Block loeschen'});
+    de.onclick = e => {
+      e.stopPropagation(); merke();
+      s.bloecke = s.bloecke.filter(x => x.id !== id);
+      if (s.ebenen) s.ebenen = s.ebenen.filter(x => x !== id);
+      sel = null; alles();
+    };
+    z.appendChild(hoch); z.appendChild(run); z.appendChild(de);
+    f.appendChild(z);
+  });
+
+  const zwei = q('div', {class: 'zwei'});
+  const tb = q('button', {class: 'klein', html: '+ Textblock'});
+  tb.onclick = () => {
+    merke();
+    const b = {id: neueId(), typ: 'text', rolle: 'text', text: 'Neuer Text'};
+    bloecke().push(b);
+    sel = b.id; alles();
+  };
+  const bb = q('button', {class: 'klein', html: '+ Bild'});
+  bb.onclick = () => bildWaehlen(n => {
+    merke();
+    const hatBild = bloecke().some(x => x.typ === 'bild' && !frei(x));
+    const b = {id: neueId(), typ: 'bild', datei: n};
+    if (hatBild){
+      const w = Math.round(D.stil.breite * 0.5);
+      Object.assign(b, {x: Math.round(D.stil.breite * 0.25),
+                        y: Math.round(D.stil.hoehe * 0.4), w: w, h: Math.round(w * 0.75)});
+    } else {
+      b.rolle = 'bild';
+    }
+    bloecke().push(b);
+    sel = b.id; alles();
+  });
+  zwei.appendChild(tb); zwei.appendChild(bb);
+  const zwei2 = q('div', {class: 'zwei'});
+  zwei2.appendChild(knopf('+ Form', 'Rechteck, Kreis, Linie, Pfeil ...', () => elementeAuf('formen')));
+  zwei2.appendChild(knopf('+ Icon', 'ueber 8.000 Icons mit Suche', () => elementeAuf('icons')));
+  f.appendChild(zwei);
+  f.appendChild(zwei2);
+  f.appendChild(q('div', {class: 'hint', html:
+    'Ein Klick waehlt den Block aus, darunter kannst du ihn bearbeiten. ' +
+    'Das erste Bild einer Slide fliesst unter dem Text mit, jedes weitere steht frei.'}));
+  return f;
+}
+
+// ---------------------------------------------------------- Block bearbeiten
+
+function blockRegler(){
+  const b = blockVon(sel);
+  if (!b) return null;
+  const p = posVon(sel) || {x: 0, y: 0, w: D.stil.breite};
+  const f = q('fieldset', {class: 'aktiv'},
+              [q('legend', {html: (b.typ === 'bild' ? 'Bild' : b.typ === 'form' ? (b.form === 'icon' ? 'Icon' : 'Form') : 'Textblock') + ' bearbeiten'})]);
+
+  if (b.typ === 'bild'){
+    const w = q('button', {class: 'klein', html: 'andere Datei waehlen'});
+    w.style.width = '100%';
+    w.onclick = () => bildWaehlen(n => { merke(); b.datei = n; delete b.original; alles(); });
+    f.appendChild(w);
+    if (!/\.svg$/i.test(b.original || b.datei || '')){
+      const fr = q('div', {class: 'knopfreihe'});
+      fr.appendChild(knopf('Hintergrund entfernen', 'unter 1 Sekunde', () => freistellen(b.id, 'schnell')));
+      fr.appendChild(knopf('Gruendlicher', 'sauberer bei Glas, Fell, Illustrationen. Etwa 2 Minuten, du arbeitest weiter',
+                           () => freistellen(b.id, 'genau')));
+      if (b.original) fr.appendChild(knopf('Original zurueck', b.original, () => {
+        merke(); b.datei = b.original; delete b.original; alles();
+      }));
+      f.appendChild(fr);
+    }
+    bildRegler(f, b);
+  } else if (b.typ === 'form'){
+    formRegler(f, b);
+  } else {
+    f.appendChild(q('label', {html: 'Text'}));
+    const ta = document.createElement('textarea');
+    ta.value = b.text || ''; ta.style.minHeight = '110px';
+    ta.onfocus = merke;
+    ta.oninput = () => { b.text = ta.value; zeichne(); };
+    f.appendChild(ta);
+
+    const r = q('div', {class: 'reihe'}); r.style.marginTop = '5px';
+    const sw = document.createElement('select');
+    sw.className = 'schrift'; sw.style.flex = '1'; sw.style.minWidth = '0';
+    sw.innerHTML = '<option value="">Schrift wie global</option>' +
+      alleSchriften().map(n => '<option' + (n === b.font ? ' selected' : '') + ' style="font-family:&quot;' + n + '&quot;">' + esc(n) + '</option>').join('');
+    sw.onchange = () => { merke(); if (sw.value) b.font = sw.value; else delete b.font; baueRegler(); zeichne(); };
+    const cf = document.createElement('input');
+    cf.type = 'color'; cf.value = b.farbe || D.stil.text; cf.title = 'Farbe des ganzen Blocks';
+    cf.onpointerdown = merke;
+    cf.oninput = () => { b.farbe = cf.value; zeichne(); };
+    r.appendChild(sw); r.appendChild(cf);
+    r.appendChild(knopf('+', 'weitere Schriften (Google Fonts)', schriftenAuf));
+    if (b.farbe){
+      const zu = q('button', {class: 'klein', html: 'auto', title: 'Farbe wieder global'});
+      zu.onclick = () => { merke(); delete b.farbe; baueRegler(); zeichne(); };
+      r.appendChild(zu);
+    }
+    f.appendChild(r);
+
+    const folgt = b.rolle === 'titel' ? 'folgt der Ueberschrift-Einstellung'
+                : b.rolle === 'text'  ? 'folgt der Fliesstext-Einstellung' : 'eigene Groesse';
+    f.appendChild(schieber('Schriftgroesse (' + folgt + ')',
+      b.groesse === undefined ? null : b.groesse, 14, 220, 1,
+      v => { if (v === null) delete b.groesse; else b.groesse = v; }, true));
+    f.appendChild(schieber('Zeilenabstand',
+      b.abstand === undefined ? null : b.abstand, .9, 2, .01,
+      v => { if (v === null) delete b.abstand; else b.abstand = v; }, true));
+
+    f.appendChild(q('label', {html: 'Ausrichtung'}));
+    const aus = q('div', {class: 'drei'});
+    [['left','links'],['center','mitte'],['right','rechts']].forEach(function(o){
+      const bt = q('button', {class: 'klein' + ((b.aus || 'left') === o[0] ? ' an' : ''), html: o[1]});
+      bt.onclick = () => { merke(); b.aus = o[0]; baueRegler(); zeichne(); };
+      aus.appendChild(bt);
+    });
+    f.appendChild(aus);
+    f.appendChild(q('div', {class: 'hint', html:
+      'Einzelne Woerter: in der Vorschau markieren, die Formatleiste erscheint darueber.'}));
+    texteffektRegler(f, b);
+  }
+
+  f.appendChild(q('label', {html: 'Position' + (frei(b) ? ' (frei gesetzt)' : ' (im Raster)')}));
+  posFelder = {};
+  const drei = q('div', {class: 'drei'});
+  const fx = zahl('X', p.x, v => { posSchreiben(sel).x = v; }); posFelder.x = fx.feld;
+  const fy = zahl('Y', p.y, v => { posSchreiben(sel).y = v; }); posFelder.y = fy.feld;
+  const fw = zahl('Breite', p.w, v => { posSchreiben(sel).w = Math.max(60, v); }); posFelder.w = fw.feld;
+  drei.appendChild(fx.box); drei.appendChild(fy.box); drei.appendChild(fw.box);
+  f.appendChild(drei);
+  if (b.typ === 'bild' || b.typ === 'form'){
+    const fh = zahl('Hoehe', p.h || 400, v => { posSchreiben(sel).h = Math.max(4, v); });
+    posFelder.h = fh.feld; f.appendChild(fh.box);
+  }
+  const dr = zahl('Drehen in Grad (unten am Rahmen ziehen geht auch)', b.dreh || 0, v => {
+    posSchreiben(sel);
+    const d = ((v % 360) + 360) % 360;
+    if (d) b.dreh = d; else delete b.dreh;
+  });
+  f.appendChild(dr.box);
+  anordnenTeil(f, false);
+  befehleTeil(f);
+  if (b.gesperrt) f.appendChild(q('div', {class: 'hint', html:
+    tt('Gesperrt: laesst sich nicht verschieben, drehen oder loeschen. Entsperren mit Strg+L.')}));
+  if (!imRaster()){
+    const zur = q('button', {class: 'klein', html: 'Alle Bloecke zurueck ins Raster'});
+    zur.style.marginTop = '10px'; zur.style.width = '100%';
+    zur.onclick = () => { merke(); insRaster(); alles(); };
+    f.appendChild(zur);
+  }
+  return f;
+}
+
+// --------------------------------------------------------------- Panel
+
+function baueRegler(){
+  const R = document.getElementById('regler');
+  R.innerHTML = '';
+  const st = D.stil;
+
+  auswahlAbgleichen();
+  if (auswahl.length > 1) R.appendChild(mehrfachRegler());
+  else if (sel){ const bp = blockRegler(); if (bp) R.appendChild(bp); else sel = null; }
+  R.appendChild(bloeckeRegler());
+  if (!sel) R.appendChild(tastenRegler());
+
+  const f1 = q('fieldset', {}, [q('legend', {html: 'Slide ' + (akt + 1) + ' von ' + D.slides.length})]);
+  const nav = q('div', {class: 'zwei'}); nav.style.marginTop = '0';
+  const del = q('button', {class: 'klein', html: 'Slide loeschen'});
+  del.onclick = () => { if (D.slides.length < 2) return; merke(); D.slides.splice(akt, 1); akt = Math.max(0, akt - 1); sel = null; alles(); };
+  const neu = q('button', {class: 'klein', html: 'Slide danach'});
+  neu.onclick = () => {
+    merke();
+    D.slides.splice(akt + 1, 0, {bloecke: [
+      {id: neueId(), typ: 'text', rolle: 'titel', text: '<b>Neue Slide</b>'}]});
+    akt++; sel = null; alles();
+  };
+  nav.appendChild(del); nav.appendChild(neu); f1.appendChild(nav);
+  const nav2 = q('div', {class: 'zwei'});
+  const hoch = q('button', {class: 'klein', html: 'Slide nach vorn'});
+  hoch.onclick = () => { if (akt === 0) return; merke(); const x = D.slides[akt-1]; D.slides[akt-1] = D.slides[akt]; D.slides[akt] = x; akt--; alles(); };
+  const run = q('button', {class: 'klein', html: 'Slide nach hinten'});
+  run.onclick = () => { if (akt === D.slides.length-1) return; merke(); const x = D.slides[akt+1]; D.slides[akt+1] = D.slides[akt]; D.slides[akt] = x; akt++; alles(); };
+  nav2.appendChild(hoch); nav2.appendChild(run); f1.appendChild(nav2);
+  hintergrundTeil(f1);
+  R.appendChild(f1);
+
+  const f2 = q('fieldset', {}, [q('legend', {html: 'Alle Slides'})]);
+  f2.appendChild(schieber('Ueberschrift', st.titel, 40, 150, 1, v => st.titel = v));
+  f2.appendChild(schieber('Fliesstext', st.textgroesse, 20, 80, 1, v => st.textgroesse = v));
+  f2.appendChild(schieber('Zeilenabstand Ueberschrift', st.titelAbstand, .95, 1.6, .01, v => st.titelAbstand = v));
+  f2.appendChild(schieber('Zeilenabstand Text', st.textAbstand, 1.1, 1.9, .01, v => st.textAbstand = v));
+  f2.appendChild(schieber('Rand links und rechts', st.randX, 40, 260, 2, v => st.randX = v));
+  f2.appendChild(schieber('Textoberkante', st.randOben, 80, 700, 2, v => st.randOben = v));
+  f2.appendChild(schieber('Rand unten', st.randUnten, 20, 300, 2, v => st.randUnten = v));
+  f2.appendChild(q('div', {class: 'hint', html:
+    'Wirkt nur auf Bloecke im Raster ohne eigene Groesse.'}));
+  R.appendChild(f2);
+
+  const f3 = q('fieldset', {}, [q('legend', {html: 'Farben und Format'})]);
+  f3.appendChild(farbe('Hintergrund', st.bg, v => st.bg = v));
+  f3.appendChild(farbe('Text', st.text, v => st.text = v));
+  f3.appendChild(farbe('Akzent', st.akzent, v => st.akzent = v));
+  paletteTeil(f3);
+  f3.appendChild(auswahlFeld('Schrift (alle Slides)', st.schrift, alleSchriften(),
+    v => st.schrift = v || 'Montserrat', false));
+  { const r = q('div', {class: 'knopfreihe'}); r.appendChild(knopf('+ Google Fonts', 'ueber 1.800 Schriften', schriftenAuf)); f3.appendChild(r); }
+  f3.appendChild(schieber('Hoehe (Breite bleibt 1080)', st.hoehe, 1080, 1600, 10, v => st.hoehe = v));
+  f3.appendChild(q('div', {class: 'hint', html:
+    '1350 = 4:5 &nbsp; 1440 = 3:4<br><br>' +
+    'Im Text: <b>**</b> gibt es nicht mehr, Auszeichnungen setzt du ueber die Leiste.<br>' +
+    'Zeile mit &bdquo;- &ldquo; wird Aufzaehlung, Leerzeile = neuer Absatz.'}));
+  R.appendChild(f3);
+}
+
+// ------------------------------------------------------------- Zeichnen
+
+// Auswahl: auswahl = alle markierten ids, sel = die zuletzt angeklickte (fuer das Panel).
+// Ziehen, Skalieren, Drehen und Einrasten macht Moveable, die Rahmenauswahl Selecto.
+let mv = null, sx = null, auswahl = [], textModus = null, leertaste = false;
+let ablage = null;
+
+function boxVon(id){
+  return [].slice.call(document.querySelectorAll('#flaeche .box')).filter(el => el.dataset.art === id)[0] || null;
+}
+function auswahlAbgleichen(){
+  auswahl = auswahl.filter(id => blockVon(id));
+  if (!sel) auswahl = [];
+  else if (auswahl.indexOf(sel) < 0) auswahl = [sel];
+  if (textModus && auswahl.indexOf(textModus) < 0) textModus = null;
+  if (zuschnitt && (auswahl.indexOf(zuschnitt) < 0 || !blockVon(zuschnitt))) zuschnitt = null;
+}
+// Gruppen werden immer ganz gewaehlt, wie in Canva
+function mitGruppen(ids){
+  const aus = [];
+  ids.forEach(id => {
+    const b = blockVon(id);
+    if (!b) return;
+    (b.gruppe ? bloecke().filter(x => x.gruppe === b.gruppe).map(x => x.id) : [id])
+      .forEach(x => { if (aus.indexOf(x) < 0) aus.push(x); });
+  });
+  return aus;
+}
+function waehle(ids){
+  auswahl = mitGruppen(ids);
+  sel = auswahl.length ? auswahl[auswahl.length - 1] : null;
+  if (zuschnitt && auswahl.indexOf(zuschnitt) < 0){ zuschnitt = null; }
+  if (textModus && auswahl.indexOf(textModus) < 0) textModus = null;
+  gemerkteMk = null;
+  baueRegler(); zielSetzen();
+}
+function gesperrtDabei(){ return auswahl.some(id => (blockVon(id) || {}).gesperrt); }
+
+// Alle Raster-Bloecke der Slide bekommen feste Positionen. Erst danach darf
+// irgendetwas verschoben werden, sonst springt der Rest.
+function einfrieren(){ posSchreiben(null); }
+
+function rechteck(id){
+  const b = blockVon(id), L = letzteLayout[id] || {};
+  const p = frei(b) ? b : L;
+  return {x: p.x || 0, y: p.y || 0, w: p.w || 0,
+          h: (b.typ === 'bild' ? (p.h || L.h) : null) || L.hBox || 0};
+}
+
+function zielSetzen(){
+  if (!mv) return;
+  auswahlAbgleichen();
+  const els = auswahl.map(boxVon).filter(Boolean);
+  const gesperrt = gesperrtDabei();
+  document.querySelectorAll('#flaeche .box').forEach(el => {
+    el.classList.toggle('gewaehlt', auswahl.indexOf(el.dataset.art) >= 0);
+    el.classList.toggle('tippt', el.dataset.art === textModus);
+    el.classList.toggle('zuschneiden', el.dataset.art === zuschnitt);
+  });
+  const nurText = els.length === 1 && (blockVon(auswahl[0]) || {}).typ !== 'bild' && (blockVon(auswahl[0]) || {}).typ !== 'form';
+  const aktiv = !gesperrt && !textModus && !zuschnitt;
+  mv.className = gesperrt ? 'gesperrt' : '';
+  mv.draggable = aktiv;
+  mv.resizable = aktiv;
+  mv.rotatable = aktiv;
+  mv.keepRatio = els.length > 1;
+  mv.renderDirections = nurText ? ['w', 'e', 'nw', 'ne', 'sw', 'se']
+                                : ['n', 's', 'w', 'e', 'nw', 'ne', 'sw', 'se'];
+  mv.elementGuidelines = [].slice.call(document.querySelectorAll('#flaeche .box'))
+                           .filter(el => els.indexOf(el) < 0);
+  const st = D.stil;
+  mv.verticalGuidelines = [0, st.randX, st.breite / 2, st.breite - st.randX, st.breite].map(v => v * k);
+  mv.horizontalGuidelines = [0, st.randOben, st.hoehe / 2, st.hoehe - st.randUnten, st.hoehe].map(v => v * k);
+  mv.target = els.length > 1 ? els : (els[0] || null);
+  mv.updateRect();
+}
+
+// Eine Geste beginnt. Ein blosser Klick ist fuer Moveable auch ein Zieh-Beginn,
+// darum wird erst bei der ersten echten Bewegung gemerkt und eingefroren.
+let bewegt = false;
+function gesteStart(){
+  if (gesperrtDabei() || textModus) return false;
+  bewegt = false;
+  return true;
+}
+function ersteBewegung(){
+  if (bewegt) return;
+  bewegt = true;
+  merke();
+  einfrieren();
+}
+// Eine Geste endet: Werte aus den Boxen ins Modell schreiben
+function gesteEnde(){
+  auswahl.forEach(id => {
+    const b = blockVon(id), el = boxVon(id);
+    if (!b || !el) return;
+    b.x = Math.round(parseFloat(el.style.left));
+    b.y = Math.round(parseFloat(el.style.top));
+    b.w = Math.max(20, Math.round(parseFloat(el.style.width)));
+    if (b.typ === 'bild' || b.typ === 'form') b.h = Math.max(4, Math.round(parseFloat(el.style.height)));
+    if (el.dataset.dreh !== undefined){
+      let d = Math.round(((+el.dataset.dreh % 360) + 360) % 360 * 10) / 10;
+      if (d === 0 || d === 360) delete b.dreh; else b.dreh = d;
+    }
+    if (el.dataset.skaliert) b.groesse = Math.max(6, Math.round(parseFloat(el.style.fontSize)));
+  });
+  alles();
+}
+function felderZeigen(el){
+  if (auswahl.length !== 1 || !el) return;
+  const p = {x: parseFloat(el.style.left), y: parseFloat(el.style.top),
+             w: parseFloat(el.style.width), h: parseFloat(el.style.height)};
+  for (const ff in posFelder) if (posFelder[ff] && !isNaN(p[ff])) posFelder[ff].value = Math.round(p[ff]);
+}
+
+function moveableAnlegen(){
+  const rah = document.getElementById('rahmen');
+  mv = new Moveable(rah, {
+    target: null, draggable: true, resizable: true, rotatable: true, snappable: true,
+    origin: false, rotationPosition: 'bottom',
+    throttleDrag: 0, throttleResize: 0, throttleRotate: 0,
+    snapThreshold: 6, snapGap: true, isDisplaySnapDigit: false,
+    snapRotationDegrees: [0, 45, 90, 135, 180, 225, 270, 315], snapRotationThreshold: 4,
+    snapDirections: {top: true, left: true, bottom: true, right: true, center: true, middle: true},
+    elementSnapDirections: {top: true, left: true, bottom: true, right: true, center: true, middle: true}
+  });
+
+  // ----- Verschieben
+  const zieh = (ev) => {
+    ersteBewegung();
+    ev.target.style.left = ev.left + 'px';
+    ev.target.style.top  = ev.top + 'px';
+  };
+  mv.on('dragStart', e => { if (!gesteStart()) e.stop(); });
+  mv.on('drag', e => { zieh(e); felderZeigen(e.target); });
+  mv.on('dragEnd', e => { if (e.isDrag && bewegt) gesteEnde(); });
+  mv.on('dragGroupStart', e => { if (!gesteStart()) e.stop(); });
+  mv.on('dragGroup', e => e.events.forEach(zieh));
+  mv.on('dragGroupEnd', e => { if (e.isDrag && bewegt) gesteEnde(); });
+
+  // ----- Groesse und Drehung. Moveable liefert Breite, Hoehe und Winkel, die
+  // Position rechnen wir selbst in Folien-Pixeln: Beim Skalieren bleibt der
+  // gegenueberliegende Punkt stehen, beim Gruppen-Drehen die Gruppenmitte.
+  // Gilt auch fuer gedrehte Elemente (Drehung um die eigene Mitte wie in CSS).
+  // Text: Seiten = Breite (Text bricht um), Ecken = alles groesser.
+  // Bild: Ecken behalten das Seitenverhaeltnis, Seiten schneiden zu (cover).
+  const merkeStart = t => {
+    const left = parseFloat(t.style.left) || 0, top = parseFloat(t.style.top) || 0;
+    const w = t.offsetWidth, h = t.offsetHeight;
+    const d = t.dataset.dreh !== undefined ? +t.dataset.dreh : ((blockVon(t.dataset.art) || {}).dreh || 0);
+    t._start = {left: left, top: top, w: w, h: h, cx: left + w / 2, cy: top + h / 2, dreh: d,
+                fs: parseFloat(getComputedStyle(t).fontSize)};
+  };
+  const drehe = (x, y, grad) => {
+    const r = grad * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    return [x * c - y * s, x * s + y * c];
+  };
+  const platziere = (t, cx, cy) => {
+    t.style.left = (cx - t.offsetWidth / 2) + 'px';
+    t.style.top  = (cy - t.offsetHeight / 2) + 'px';
+  };
+  const setzeGroesse = (t, w, h, schrift) => {
+    t.style.width = w + 'px';
+    if (t.classList.contains('bild') || t.classList.contains('form')) t.style.height = h + 'px';
+    else if (schrift){ t.style.fontSize = (t._start.fs * w / t._start.w) + 'px'; t.dataset.skaliert = '1'; }
+  };
+  const groesse = ev => {
+    ersteBewegung();
+    const t = ev.target, s = t._start, dir = ev.direction, ecke = !!(dir[0] && dir[1]);
+    // Ecken: Verhaeltnis selbst erzwingen, Moveable haelt es bei gedrehten Elementen nicht
+    setzeGroesse(t, ev.width, ecke ? ev.width * s.h / s.w : ev.height, ecke);
+    // Text an der Seite gezogen: die Oberkante bleibt, der Text waechst nach unten
+    const dy = (dir[1] === 0 && !t.classList.contains('bild') && !t.classList.contains('form')) ? 1 : dir[1];
+    const fest = drehe(-dir[0] * s.w / 2, -dy * s.h / 2, s.dreh);
+    const neu  = drehe(-dir[0] * t.offsetWidth / 2, -dy * t.offsetHeight / 2, s.dreh);
+    platziere(t, s.cx + fest[0] - neu[0], s.cy + fest[1] - neu[1]);
+  };
+  const rahmenVon = liste => {
+    const R = liste.map(t => t._start);
+    const x0 = Math.min.apply(null, R.map(s => s.left)), y0 = Math.min.apply(null, R.map(s => s.top));
+    const x1 = Math.max.apply(null, R.map(s => s.left + s.w)), y1 = Math.max.apply(null, R.map(s => s.top + s.h));
+    return {x0: x0, y0: y0, x1: x1, y1: y1};
+  };
+  mv.on('resizeStart', e => {
+    if (!gesteStart()){ e.stop(); return; }
+    merkeStart(e.target);
+    if (e.direction[0] && e.direction[1]) e.setRatio(e.target.offsetWidth / e.target.offsetHeight);
+  });
+  mv.on('resize', groesse);
+  mv.on('resizeEnd', e => { if (e.isDrag && bewegt) gesteEnde(); });
+
+  let gruppe0 = null;
+  mv.on('resizeGroupStart', e => {
+    if (!gesteStart()){ e.stop(); return; }
+    e.events.forEach(ev => merkeStart(ev.target));
+    gruppe0 = Object.assign(rahmenVon(e.events.map(ev => ev.target)), {dir: e.direction});
+  });
+  mv.on('resizeGroup', e => {
+    if (!e.events.length) return;
+    ersteBewegung();
+    const g = gruppe0, dir = g.dir, erst = e.events[0];
+    const f = Math.max(0.05, erst.width / erst.target._start.w);     // Gruppen skalieren im Verhaeltnis
+    const ax = dir[0] > 0 ? g.x0 : dir[0] < 0 ? g.x1 : (g.x0 + g.x1) / 2;
+    const ay = dir[1] > 0 ? g.y0 : dir[1] < 0 ? g.y1 : (g.y0 + g.y1) / 2;
+    e.events.forEach(ev => {
+      const t = ev.target, s = t._start;
+      setzeGroesse(t, s.w * f, s.h * f, true);
+      platziere(t, ax + (s.cx - ax) * f, ay + (s.cy - ay) * f);
+    });
+  });
+  mv.on('resizeGroupEnd', e => { if (e.isDrag && bewegt) gesteEnde(); });
+
+  // ----- Drehen (rastet bei 0, 45, 90 ... Grad ein)
+  const setzeDreh = (t, grad) => {
+    t.style.transform = 'rotate(' + grad + 'deg)';
+    t.dataset.dreh = grad;
+  };
+  mv.on('rotateStart', e => { if (!gesteStart()) e.stop(); });
+  mv.on('rotate', e => {
+    ersteBewegung();
+    setzeDreh(e.target, e.rotation !== undefined ? e.rotation : e.rotate);
+  });
+  mv.on('rotateEnd', e => { if (e.isDrag && bewegt) gesteEnde(); });
+
+  let drehMitte = null;
+  mv.on('rotateGroupStart', e => {
+    if (!gesteStart()){ e.stop(); return; }
+    e.events.forEach(ev => merkeStart(ev.target));
+    const g = rahmenVon(e.events.map(ev => ev.target));
+    drehMitte = [(g.x0 + g.x1) / 2, (g.y0 + g.y1) / 2];
+  });
+  mv.on('rotateGroup', e => {
+    ersteBewegung();
+    const delta = e.rotation !== undefined ? e.rotation : e.rotate;
+    e.events.forEach(ev => {
+      const t = ev.target, s = t._start;
+      const p = drehe(s.cx - drehMitte[0], s.cy - drehMitte[1], delta);
+      setzeDreh(t, s.dreh + delta);
+      platziere(t, drehMitte[0] + p[0], drehMitte[1] + p[1]);
+    });
+  });
+  mv.on('rotateGroupEnd', e => { if (e.isDrag && bewegt) gesteEnde(); });
+
+  // ----- Auswahl per Klick, Umschalt-Klick und Rahmen ziehen
+  const buehne = document.getElementById('buehne');
+  sx = new Selecto({
+    container: document.body, dragContainer: buehne,
+    selectableTargets: ['#flaeche .box'], hitRate: 0, ratio: 0,
+    selectByClick: true, selectFromInside: false, toggleContinueSelect: [['shift'], ['meta']]
+  });
+  sx.on('dragStart', e => {
+    const t = e.inputEvent.target;
+    if (leertaste || e.inputEvent.button === 1){ e.stop(); return; }            // Ansicht schieben
+    if (mv.isMoveableElement(t)){ e.stop(); return; }                            // Griffe
+    if (zuschnitt){                                                              // Bild im Rahmen schieben
+      const el = boxVon(zuschnitt);
+      if (el && el.contains(t)){ e.stop(); zuschnittZiehen(e.inputEvent); return; }
+    }
+    const drauf = auswahl.map(boxVon).some(el => el && (el === t || el.contains(t)));
+    if (drauf && !e.inputEvent.shiftKey){ e.stop(); return; }                    // Gewaehlte ziehen
+    if (textModus){ const el = boxVon(textModus); if (el && el.contains(t)){ e.stop(); return; } }
+  });
+  sx.on('selectEnd', e => {
+    waehle(e.selected.map(el => el.dataset.art));
+    if (e.isDragStart && e.selected.length){
+      e.inputEvent.preventDefault();
+      mv.waitToChangeTarget().then(() => mv.dragStart(e.inputEvent));
+    }
+  });
+
+  // ----- Doppelklick auf Text: Textmodus, Woerter markieren und formatieren
+  document.getElementById('flaeche').addEventListener('dblclick', e => {
+    const box = e.target.closest && e.target.closest('.box');
+    if (!box) return;
+    if ((blockVon(box.dataset.art) || {}).gesperrt) return;
+    if (box.classList.contains('bild')){ zuschnittStart(box.dataset.art); return; }
+    textModus = box.dataset.art;
+    sel = textModus; auswahl = [textModus];
+    baueRegler(); zielSetzen();
+    melde('Textmodus: Woerter markieren und oben formatieren. Esc beendet.', 6000);
+  });
+
+  // ----- Ansicht schieben: Leertaste halten oder mittlere Maustaste
+  buehne.addEventListener('mousedown', e => {
+    if (!(leertaste || e.button === 1)) return;
+    e.preventDefault();
+    const ax = buehne.scrollLeft, ay = buehne.scrollTop, mx = e.clientX, my = e.clientY;
+    buehne.classList.add('schiebt');
+    const move = ev => {
+      buehne.scrollLeft = ax - (ev.clientX - mx);
+      buehne.scrollTop  = ay - (ev.clientY - my);
+    };
+    const up = () => {
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+      buehne.classList.remove('schiebt');
+    };
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
+}
+
+function zeichneBuehne(){
+  const buehne = document.getElementById('buehne');
+  const rah = document.getElementById('rahmen');
+  const fl = document.getElementById('flaeche');
+  const sx0 = buehne.scrollLeft, sy0 = buehne.scrollTop;
+  fl.innerHTML = '';
+  kFit = Math.min((buehne.clientHeight - 40) / D.stil.hoehe,
+                  (buehne.clientWidth  - 40) / D.stil.breite);
+  k = kFit * zoom / 100;
+  rah.style.width  = Math.round(D.stil.breite * k) + 'px';
+  rah.style.height = Math.round(D.stil.hoehe  * k) + 'px';
+  const r = renderSlide(slide(), D.stil, fl);
+  r.el.style.transform = 'scale(' + k + ')';
+  letzteLayout = r.masse.layout;
+  if (!mv) moveableAnlegen();
+  zielSetzen();
+  if (zuschnitt) geistZeigen();
+  buehne.scrollLeft = sx0; buehne.scrollTop = sy0;
+}
+
+// ----------------------------------------------------- Befehle fuer die Auswahl
+
+function loeschen(){
+  const weg = auswahl.filter(id => !(blockVon(id) || {}).gesperrt);
+  if (!weg.length) return;
+  merke();
+  const s = slide();
+  s.bloecke = s.bloecke.filter(x => weg.indexOf(x.id) < 0);
+  if (s.ebenen) s.ebenen = s.ebenen.filter(x => weg.indexOf(x) < 0);
+  sel = null; auswahl = []; textModus = null;
+  alles();
+}
+function verschieben(dx, dy){
+  if (gesperrtDabei() || !auswahl.length) return;
+  merke(); einfrieren();
+  auswahl.forEach(id => { const b = blockVon(id); b.x += dx; b.y += dy; });
+  zeichne(); baueRegler();
+}
+// Kopie mit festen Positionen, auch wenn das Original im Raster liegt
+function kopieVon(ids){
+  return ids.map(id => {
+    const b = JSON.parse(JSON.stringify(blockVon(id)));
+    const L = letzteLayout[id] || {};
+    if (!frei(b)){ b.x = L.x; b.y = L.y; b.w = L.w; if (L.h) b.h = L.h; }
+    if (b.typ === 'bild' && b.h === undefined && L.h) b.h = L.h;
+    delete b.gesperrt;
+    return b;
+  });
+}
+function kopieren(){
+  if (!auswahl.length) return;
+  ablage = {projekt: PROJEKT, slide: akt, mal: 0, bloecke: kopieVon(auswahl)};
+  melde(auswahl.length + (auswahl.length === 1 ? ' Element' : ' Elemente') + ' kopiert', 2500);
+}
+async function einsetzen(liste, versatz){
+  merke(); einfrieren();
+  const neueGruppen = {}, ids = [];
+  for (const q0 of liste){
+    const b = JSON.parse(JSON.stringify(q0));
+    b.id = neueId();
+    b.x = (b.x || 0) + versatz; b.y = (b.y || 0) + versatz;
+    if (b.gruppe){ neueGruppen[b.gruppe] = neueGruppen[b.gruppe] || ('g' + Date.now().toString(36) + ids.length); b.gruppe = neueGruppen[b.gruppe]; }
+    if (b.typ === 'bild' && b.rolle === 'bild') delete b.rolle;
+    bloecke().push(b); ids.push(b.id);
+  }
+  auswahl = ids; sel = ids[ids.length - 1];
+  alles();
+}
+async function einfuegen(){
+  if (!ablage) return;
+  if (ablage.projekt !== PROJEKT){
+    // Bilder aus einem anderen Projekt mitnehmen
+    for (const b of ablage.bloecke.filter(x => x.typ === 'bild' && x.datei)){
+      for (const datei of [b.datei, b.original].filter(Boolean)){
+        await fetch(mitProjekt('bildkopie'), {method: 'POST',
+          body: JSON.stringify({von: ablage.projekt, datei: datei})});
+      }
+    }
+  }
+  const gleich = ablage.projekt === PROJEKT && ablage.slide === akt;
+  ablage.mal++;
+  await einsetzen(ablage.bloecke, gleich ? 24 * ablage.mal : 0);
+}
+function duplizieren(){
+  if (!auswahl.length) return;
+  einsetzen(kopieVon(auswahl), 24);
+}
+function gruppieren(){
+  if (auswahl.length < 2) return;
+  merke();
+  const g = 'g' + Date.now().toString(36);
+  auswahl.forEach(id => { blockVon(id).gruppe = g; });
+  alles(); melde('Gruppiert. Ein Klick waehlt jetzt alle.', 3000);
+}
+function entgruppieren(){
+  if (!auswahl.some(id => blockVon(id).gruppe)) return;
+  merke();
+  auswahl.forEach(id => { delete blockVon(id).gruppe; });
+  alles(); melde('Gruppe aufgeloest.', 2500);
+}
+function sperren(){
+  if (!auswahl.length) return;
+  merke();
+  const alleZu = auswahl.every(id => blockVon(id).gesperrt);
+  auswahl.forEach(id => { if (alleZu) delete blockVon(id).gesperrt; else blockVon(id).gesperrt = true; });
+  alles(); melde(alleZu ? 'Entsperrt.' : 'Gesperrt: laesst sich nicht mehr verschieben.', 3000);
+}
+function drehenAuf(grad){
+  if (gesperrtDabei() || !auswahl.length) return;
+  merke(); einfrieren();
+  auswahl.forEach(id => { const b = blockVon(id); if (grad) b.dreh = grad; else delete b.dreh; });
+  alles();
+}
+// Eine Auswahl an der Folie, mehrere aneinander ausrichten
+function ausrichten(art){
+  const ids = auswahl.filter(id => !blockVon(id).gesperrt);
+  if (!ids.length) return;
+  merke(); einfrieren();
+  const st = D.stil;
+  const R = auswahl.map(rechteck);
+  let ref = {x: 0, y: 0, w: st.breite, h: st.hoehe};
+  if (auswahl.length > 1){
+    const x0 = Math.min.apply(null, R.map(r => r.x)), y0 = Math.min.apply(null, R.map(r => r.y));
+    const x1 = Math.max.apply(null, R.map(r => r.x + r.w)), y1 = Math.max.apply(null, R.map(r => r.y + r.h));
+    ref = {x: x0, y: y0, w: x1 - x0, h: y1 - y0};
+  }
+  ids.forEach(id => {
+    const b = blockVon(id), r = rechteck(id);
+    if (art === 'links')  b.x = ref.x;
+    if (art === 'mitte')  b.x = Math.round(ref.x + (ref.w - r.w) / 2);
+    if (art === 'rechts') b.x = ref.x + ref.w - r.w;
+    if (art === 'oben')   b.y = ref.y;
+    if (art === 'mittig') b.y = Math.round(ref.y + (ref.h - r.h) / 2);
+    if (art === 'unten')  b.y = ref.y + ref.h - r.h;
+  });
+  alles();
+}
+function verteilen(richtung){
+  if (auswahl.length < 3) return;
+  merke(); einfrieren();
+  const xy = richtung === 'h' ? 'x' : 'y', wh = richtung === 'h' ? 'w' : 'h';
+  const R = auswahl.map(id => Object.assign({id: id}, rechteck(id))).sort((a, b) => a[xy] - b[xy]);
+  const anfang = R[0][xy], ende = R[R.length - 1][xy] + R[R.length - 1][wh];
+  const summe = R.reduce((s, r) => s + r[wh], 0);
+  const luecke = (ende - anfang - summe) / (R.length - 1);
+  let pos = anfang;
+  R.forEach(r => { const b = blockVon(r.id); if (!b.gesperrt) b[xy] = Math.round(pos); pos += r[wh] + luecke; });
+  alles();
+}
+
+// ----------------------------------------------------------------- Zoom
+
+function zoomAnzeigen(){
+  document.getElementById('zBalken').value = Math.max(100, Math.min(500, Math.round(zoom)));
+  document.getElementById('zZahl').value = Math.round(zoom);
+}
+function zoomSetzen(neu, zeigerX, zeigerY){
+  const buehne = document.getElementById('buehne');
+  const rah = document.getElementById('rahmen');
+  neu = Math.max(25, Math.min(800, neu));
+  if (Math.abs(neu - zoom) < 0.01) return;
+  let px = null, py = null;
+  if (zeigerX !== undefined){
+    const r = rah.getBoundingClientRect();
+    px = (zeigerX - r.left) / k;      // Punkt der Slide unter dem Zeiger
+    py = (zeigerY - r.top)  / k;
+  }
+  zoom = neu;
+  zoomAnzeigen();
+  zeichneBuehne();
+  if (px !== null){
+    const r2 = rah.getBoundingClientRect();
+    buehne.scrollLeft += (r2.left + px * k) - zeigerX;
+    buehne.scrollTop  += (r2.top  + py * k) - zeigerY;
+  }
+}
+
+function zeichneMinis(){
+  const L = document.getElementById('liste');
+  const stand = L.scrollTop;
+  L.innerHTML = '';
+  const km = 104 / D.stil.breite;
+  D.slides.forEach((s, i) => {
+    const m = q('div', {class: 'mini' + (i === akt ? ' an' : '')});
+    m.style.height = Math.round(D.stil.hoehe * km) + 'px';
+    m.onclick = () => { akt = i; sel = null; gemerkteMk = null; alles(); };
+    L.appendChild(m);
+    renderSlide(s, D.stil, m).el.style.transform = 'scale(' + km + ')';
+    m.appendChild(q('span', {class: 'nr', html: i + 1}));
+  });
+  L.scrollTop = stand;
+}
+function zeichne(){
+  clearTimeout(timer);
+  timer = setTimeout(() => { zeichneBuehne(); zeichneMinis(); }, 60);
+  autoSichern();
+}
+function alles(){ baueRegler(); zeichneBuehne(); zeichneMinis(); autoSichern(); }
+
+// --------------------------------------------------------------- Verdrahtung
+
+(function(){
+  const t = document.getElementById('werkzeuge');
+  t.onmousedown = e => {
+    const tag = (e.target.tagName || '').toUpperCase();
+    if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'OPTION') e.preventDefault();
+  };
+  t.querySelectorAll('button[data-f]').forEach(b => {
+    b.onclick = () => {
+      const kk = b.dataset.f;
+      if (kk === 'weg')
+        formatiere({b: undefined, i: undefined, u: undefined, m: undefined, c: undefined, f: undefined});
+      else if (kk === 'akzent'){
+        const mk = aktuelleMk(), fd = mk && feldFuer(mk.art);
+        const teil = fd ? zerlege(fd.lies()).slice(mk.von, mk.bis) : [];
+        formatiere({c: (teil.length && teil.every(x => x.f.c === 'akzent')) ? undefined : 'akzent'});
+      }
+      else formatiere({[kk]: 'um'});
+    };
+  });
+  const wf = document.getElementById('wFarbe');
+  wf.oninput = () => formatiere({c: wf.value});
+  const ws = document.getElementById('wSchrift');
+  werkzeugSchriftenFuellen();
+  ws.onchange = () => formatiere({f: ws.value || undefined});
+})();
+document.addEventListener('mouseup', () => setTimeout(werkzeugeZeigen, 10));
+document.addEventListener('keyup', () => setTimeout(werkzeugeZeigen, 10));
+document.addEventListener('keydown', e => {
+  const tg = (e.target.tagName || '').toLowerCase();
+  const tippt = tg === 'input' || tg === 'textarea' || tg === 'select' || e.target.isContentEditable;
+  if (document.querySelector('.dlg[style*="flex"]')){
+    if (e.key === 'Escape' && document.getElementById('elemente').style.display === 'flex') elementeZu();
+    if (e.key === 'Escape' && document.getElementById('schriften').style.display === 'flex') schriftenZu();
+    return;
+  }
+  if ((e.key === 'Escape' || e.key === 'Enter') && zuschnitt && !tippt){ e.preventDefault(); zuschnittEnde(); return; }
+  if (e.key === 'Escape'){
+    if (textModus){ textModus = null; gemerkteMk = null;
+      document.getElementById('werkzeuge').style.display = 'none'; zielSetzen(); return; }
+    abwaehlen(); return;
+  }
+  if (e.key === ' ' && !tippt){
+    e.preventDefault();
+    if (!leertaste){ leertaste = true; document.getElementById('buehne').classList.add('pan'); }
+    return;
+  }
+  const frei_ = !tippt && !textModus;
+  if (frei_ && auswahl.length && !(e.ctrlKey || e.metaKey)){
+    if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); loeschen(); return; }
+    const p = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]}[e.key];
+    if (p){ e.preventDefault(); const s = e.shiftKey ? 10 : 1; verschieben(p[0] * s, p[1] * s); return; }
+  }
+  if (!(e.ctrlKey || e.metaKey)) return;
+  const kk = e.key.toLowerCase();
+  if (kk === 'z' && !e.shiftKey){
+    if (tippt) return;
+    e.preventDefault(); springe(historie, zukunft);
+  } else if (kk === 'y' || (kk === 'z' && e.shiftKey)){
+    e.preventDefault(); springe(zukunft, historie);
+  } else if (!frei_){
+    return;                                   // im Text: Strg+C/V gehoeren dem Browser
+  } else if (kk === 'c'){ e.preventDefault(); kopieren(); }
+  else if (kk === 'x'){ e.preventDefault(); kopieren(); loeschen(); }
+  else if (kk === 'v'){                      // eigentlich das paste-Ereignis; Safari schickt es
+    pasteKam = false;                         // ausserhalb von Textfeldern nicht immer
+    setTimeout(() => { if (!pasteKam && ablage && !document.querySelector('.dlg[style*="flex"]')) einfuegen(); }, 100);
+  }
+  else if (kk === 'd'){ e.preventDefault(); duplizieren(); }
+  else if (kk === 'a'){ e.preventDefault(); waehle(bloecke().map(b => b.id)); }
+  else if (kk === 'g'){ e.preventDefault(); if (e.shiftKey) entgruppieren(); else gruppieren(); }
+  else if (kk === 'l'){ e.preventDefault(); sperren(); }
+});
+document.addEventListener('keyup', e => {
+  if (e.key === ' '){ leertaste = false; document.getElementById('buehne').classList.remove('pan'); }
+});
+document.getElementById('zurueck').onclick = () => springe(historie, zukunft);
+document.getElementById('vor').onclick     = () => springe(zukunft, historie);
+document.getElementById('speichern').onclick = async () => {
+  await speichern(); knopfStand();
+};
+let letzteArt = 'bilder';
+async function fertigstellen(art, knopf, wartetext, schlusstext){
+  const b1 = document.getElementById('rBilder'), b2 = document.getElementById('rPptx'),
+        b3 = document.getElementById('rPdf');
+  b1.disabled = b2.disabled = b3.disabled = true;
+  document.getElementById('fertig').style.display = 'none';
+  melde(wartetext, 0);
+  await speichern();
+  const r = await fetch(mitProjekt('rendern'), {method: 'POST', body: art});
+  const txt = (await r.text()).trim();
+  melde('', 0);
+  letzteArt = art;
+  document.getElementById('fText').textContent = txt + schlusstext;
+  document.getElementById('fZip').style.display = (art === 'bilder') ? '' : 'none';
+  document.getElementById('fPdf').style.display = (art === 'pdf' && /^PDF fertig/.test(txt)) ? '' : 'none';
+  document.getElementById('fertig').style.display = 'flex';
+  b1.disabled = b2.disabled = b3.disabled = false;
+}
+document.getElementById('rBilder').onclick = () =>
+  fertigstellen('bilder', 'rBilder', 'baue die Bilder, etwa 20 Sekunden ...', ', bereit zum Posten.');
+document.getElementById('rPptx').onclick = () =>
+  fertigstellen('pptx', 'rPptx', 'baue die Canva-Datei, etwa 15 Sekunden ...',
+                '. In Canva einfach auf die Startseite ziehen.');
+document.getElementById('fOrdner').onclick = async () => {
+  const r = await fetch(mitProjekt('ordner'), {method: 'POST', body: letzteArt});
+  melde((await r.text()).trim() === 'geoeffnet' ? 'Ordner ist offen.' : 'Ordner liess sich nicht oeffnen.', 4000);
+};
+document.getElementById('rPdf').onclick = () =>
+  fertigstellen('pdf', 'rPdf', 'baue das PDF, etwa 10 Sekunden ...', '.');
+document.getElementById('fZip').onclick = () => { location.href = mitProjekt('karussell.zip'); };
+document.getElementById('fPdf').onclick = () => { location.href = mitProjekt('karussell.pdf'); };
+document.getElementById('fZu').onclick = () => { document.getElementById('fertig').style.display = 'none'; };
+document.getElementById('kUeber').onclick = async () => {
+  await vonDatei();
+  melde('Uebernommen. Oben auf Zurueck holt deine Fassung wieder.', 9000);
+};
+document.getElementById('kMeins').onclick = async () => {
+  konflikt(false);
+  await speichern(); knopfStand();
+  melde('Deine Fassung gilt.', 5000);
+};
+// Zoom: Mausrad zoomt auf den Zeiger, Regler und Prozentfeld unten
+(function(){
+  const buehne = document.getElementById('buehne');
+  // Mausrad: eine Raste = ein Zoomschritt. Trackpad: kleine Schritte sammeln,
+  // waagerechtes Wischen zoomt nicht, Pinch (ctrlKey in Chrome) staerker.
+  let rad = 0;
+  buehne.addEventListener('wheel', e => {
+    e.preventDefault();
+    const d = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1);
+    if (!d) return;
+    rad += e.ctrlKey ? d * 5 : d;
+    if (Math.abs(rad) < 20) return;
+    const s = Math.max(-100, Math.min(100, rad)) / 100; rad = 0;
+    if (zuschnitt){ zuschnittZoom(Math.pow(1.08, -s)); return; }
+    zoomSetzen(zoom * Math.pow(1.12, -s), e.clientX, e.clientY);
+  }, {passive: false});
+  let gStart = 1;                                       // Safari: Pinch als gesture-Ereignis
+  buehne.addEventListener('gesturestart', e => { e.preventDefault(); gStart = zoom; });
+  buehne.addEventListener('gesturechange', e => { e.preventDefault(); zoomSetzen(gStart * e.scale, e.clientX, e.clientY); });
+  const mitte = () => {
+    const r = buehne.getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2];
+  };
+  document.getElementById('zPlus').onclick  = () => zoomSetzen(zoom * 1.25, ...mitte());
+  document.getElementById('zMinus').onclick = () => zoomSetzen(zoom / 1.25, ...mitte());
+  document.getElementById('zFit').onclick   = () => { zoomSetzen(100); buehne.scrollTo(0, 0); };
+  document.getElementById('zBalken').oninput = e => zoomSetzen(+e.target.value, ...mitte());
+  document.getElementById('zZahl').onchange  = e => zoomSetzen(+e.target.value, ...mitte());
+})();
+window.addEventListener('resize', zeichne);
+(function(){
+  document.querySelectorAll('#elemente .reiter button').forEach(b => b.onclick = () => elementeTab(b.dataset.tab));
+  document.getElementById('eZu').onclick = elementeZu;
+  document.getElementById('elemente').addEventListener('mousedown', e => { if (e.target.id === 'elemente') elementeZu(); });
+  let t = null;
+  document.getElementById('eSuche').addEventListener('input', () => { clearTimeout(t); t = setTimeout(iconsZeigen, 150); });
+  document.getElementById('eSatz').onchange = iconsZeigen;
+})();
+(function(){
+  const buehne = document.getElementById('buehne');
+  const mitDateien = e => e.dataTransfer && [].slice.call(e.dataTransfer.types || []).indexOf('Files') >= 0;
+  buehne.addEventListener('dragover', e => {
+    if (!mitDateien(e)) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+    buehne.classList.add('ablegen');
+  });
+  buehne.addEventListener('dragleave', e => {
+    if (!buehne.contains(e.relatedTarget)) buehne.classList.remove('ablegen');
+  });
+  buehne.addEventListener('drop', e => {
+    buehne.classList.remove('ablegen');
+    if (!mitDateien(e)) return;
+    e.preventDefault();
+    const dateien = [].slice.call(e.dataTransfer.files).filter(istBilddatei);
+    if (!dateien.length){ melde('Nur Bilder lassen sich ablegen (PNG, JPG, WEBP, GIF, SVG).', 5000); return; }
+    const auf = e.target.closest && e.target.closest('#flaeche .box.bild');
+    bilderEinsetzen(dateien, folienPunkt(e.clientX, e.clientY), auf ? auf.dataset.art : null);
+  });
+  // Strg+V: Bild aus der Zwischenablage (Screenshot, kopiertes Bild) oder eigene Ablage
+  document.addEventListener('beforepaste', e => {     // Safari: Einfuegen auch ohne Textfeld erlauben
+    const tg = (e.target.tagName || '').toLowerCase();
+    if (!(tg === 'input' || tg === 'textarea' || e.target.isContentEditable || textModus)) e.preventDefault();
+  });
+  document.addEventListener('paste', e => {
+    pasteKam = true;
+    const tg = (e.target.tagName || '').toLowerCase();
+    if (tg === 'input' || tg === 'textarea' || e.target.isContentEditable || textModus) return;
+    if (document.querySelector('.dlg[style*="flex"]')) return;
+    const dateien = [].slice.call((e.clipboardData && e.clipboardData.files) || []).filter(istBilddatei);
+    if (dateien.length){ e.preventDefault(); bilderEinsetzen(dateien, null, null); return; }
+    if (ablage){ e.preventDefault(); einfuegen(); }
+  });
+})();
+
+// --------------------------------------------------------------- Projekte
+
+function formatName(p){
+  const b = +p.breite || 0, h = +p.hoehe || 0;     // immer Zahlen, nie Text ins HTML
+  return h === 1350 ? '4:5' : h === 1440 ? '3:4' : b + 'x' + h;
+}
+async function projekteFuellen(){
+  let j;
+  try { j = await (await fetch('projekte', {cache: 'no-store'})).json(); }
+  catch (e) { return null; }
+  document.getElementById('projekt').innerHTML = j.projekte.map(p =>
+    '<option value="' + esc(p.name) + '"' + (p.name === PROJEKT ? ' selected' : '') + '>' +
+    esc(p.name) + ' (' + p.slides + ' Slides, ' + formatName(p) + ')</option>').join('');
+  return j;
+}
+
+// Oeffnet ein Projekt im Cockpit. Ungesicherte Arbeit geht vorher ins alte.
+async function projektLaden(name){
+  wechseltGerade = true;
+  try {
+    clearTimeout(sicherTimer);
+    const streit = document.getElementById('konflikt').style.display === 'flex';
+    if (D && PROJEKT && !streit && schmutzig()) await speichern();
+    PROJEKT = name;
+    BASIS = 'projekte/' + encodeURIComponent(name) + '/';
+    D = await datenHolen();
+    await schriftBereit(D);                    // Google-Schriften dieses Karussells
+    akt = 0; sel = null; gemerkteMk = null; letzteLayout = {};
+    historie.length = 0; zukunft.length = 0;   // Zurueck holt nie ein anderes Projekt herein
+    try { meinStand = (await (await fetch('stand', {cache: 'no-store'})).text()).trim(); } catch (e) {}
+    konflikt(false);
+    document.getElementById('fertig').style.display = 'none';
+    document.getElementById('werkzeuge').style.display = 'none';
+    alles();
+    gesicherterStand = JSON.stringify(D);
+    knoepfe(); knopfStand();
+    document.title = name + ' - Karussell Cockpit';
+    await projekteFuellen();
+  } finally { wechseltGerade = false; }
+}
+
+// aktion: oeffnen | neu | duplizieren. Der Server merkt sich das Projekt.
+async function projektWechsel(a){
+  wechseltGerade = true;
+  try {
+    clearTimeout(sicherTimer);
+    const streit = document.getElementById('konflikt').style.display === 'flex';
+    if (D && PROJEKT && !streit && schmutzig()) await speichern();   // Duplikat bekommt den neuesten Stand
+    let j;
+    try { j = await (await fetch('projekt', {method: 'POST', body: JSON.stringify(a)})).json(); }
+    catch (e) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+    if (j.ok) await projektLaden(j.name);
+    return j;
+  } finally { wechseltGerade = false; }
+}
+
+let dialogArt = 'neu';
+let gewaehlteVorlage = '';
+async function galerieZeigen(){
+  const g = document.getElementById('dGalerie');
+  g.innerHTML = '';
+  let liste = [];
+  try { liste = await (await fetch('vorlagen', {cache: 'no-store'})).json(); } catch (e) {}
+  const karte = (name, titel, bild) => {
+    const k = q('button', {class: 'vorlagekarte' + (gewaehlteVorlage === name ? ' an' : ''), title: titel});
+    if (bild){ const i = document.createElement('img'); i.src = bild; i.alt = ''; k.appendChild(i); }
+    else k.appendChild(q('div', {class: 'leerkarte', html: '+'}));
+    k.appendChild(q('span', {html: esc(titel)}));
+    k.onclick = () => {
+      gewaehlteVorlage = name;
+      document.getElementById('dFormat').style.display = name ? 'none' : '';
+      galerieZeigen();
+    };
+    g.appendChild(k);
+  };
+  karte('', 'Leer', null);
+  liste.forEach(v => { if (/^[a-z0-9][a-z0-9-]*$/.test(v.name)) karte(v.name, v.name, v.vorschau ? 'vorlagen/' + v.name + '/.vorschau.png?' + Date.now() : null); });
+}
+function dialogAuf(art){
+  dialogArt = art;
+  const neu = art === 'neu', vorl = art === 'vorlage';
+  document.getElementById('dTitel').textContent = neu ? 'Neues Karussell' : vorl ? 'Als Vorlage speichern' : 'Karussell duplizieren';
+  document.getElementById('dUnter').textContent = neu
+    ? 'Name eingeben, dann leer starten oder eine Vorlage waehlen.'
+    : vorl ? 'Look, Texte und Bilder von „' + PROJEKT + '“ werden zur Vorlage. Neue Karussells koennen damit starten.'
+    : 'Gleicher Look, gleiche Texte und Bilder wie „' + PROJEKT + '“. Das Original bleibt, wie es ist.';
+  const n = document.getElementById('dName');
+  n.value = neu ? '' : vorl ? PROJEKT : PROJEKT + '-kopie';
+  gewaehlteVorlage = '';
+  document.getElementById('dFormat').style.display = neu ? '' : 'none';
+  document.getElementById('dGalerie').style.display = neu ? '' : 'none';
+  if (neu) galerieZeigen();
+  document.getElementById('dOk').textContent = neu ? 'Anlegen' : vorl ? 'Speichern' : 'Duplizieren';
+  document.getElementById('dFehler').textContent = '';
+  document.getElementById('dialog').style.display = 'flex';
+  n.focus(); n.select();
+}
+function dialogZu(){ document.getElementById('dialog').style.display = 'none'; }
+async function dialogOk(){
+  const name = document.getElementById('dName').value.trim();
+  const fehler = document.getElementById('dFehler');
+  if (!name){ fehler.textContent = 'Bitte einen Namen eingeben.'; return; }
+  const ok = document.getElementById('dOk');
+  if (dialogArt === 'vorlage'){
+    ok.disabled = true;
+    await speichern();
+    let v;
+    try { v = await (await fetch('projekt', {method: 'POST', body: JSON.stringify({aktion: 'vorlage', name: name, von: PROJEKT})})).json(); }
+    catch (e) { v = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+    ok.disabled = false;
+    if (!v.ok){ fehler.textContent = v.fehler || 'Das ging nicht.'; return; }
+    dialogZu();
+    melde('Vorlage gespeichert: ' + v.vorlage + '. Sie steht jetzt bei Neu zur Wahl.', 6000);
+    return;
+  }
+  const a = dialogArt === 'neu'
+    ? Object.assign({aktion: 'neu', name: name, format: document.querySelector('input[name=fmt]:checked').value},
+                    gewaehlteVorlage ? {vorlage: gewaehlteVorlage} : {})
+    : {aktion: 'duplizieren', name: name, von: PROJEKT};
+  ok.disabled = true;
+  const j = await projektWechsel(a);
+  ok.disabled = false;
+  if (!j.ok){ fehler.textContent = j.fehler || 'Das ging nicht.'; return; }
+  dialogZu();
+  melde((dialogArt === 'neu' ? 'Angelegt: ' : 'Dupliziert: ') + j.name, 5000);
+}
+// ------------------------------------------------------------- An Claude
+// Markieren, Wunsch schreiben, Claude liest beides mit
+// `python k.py auftrag` in wenigen Zeilen. Keine Rueckfrage, welches Element gemeint ist.
+function auftragAuf(){
+  const n = auswahl.length;
+  document.getElementById('aUnter').textContent = 'Folie ' + (akt + 1) + ', ' + (n
+    ? (n === 1 ? 'markiert: ' + nameVon(blockVon(auswahl[0])) : n + ' Elemente markiert')
+    : 'nichts markiert, also die ganze Folie');
+  document.getElementById('aText').value = '';
+  document.getElementById('aFehler').textContent = '';
+  document.getElementById('auftrag').style.display = 'flex';
+  document.getElementById('aText').focus();
+}
+function auftragZu(){ document.getElementById('auftrag').style.display = 'none'; }
+async function auftragSenden(){
+  const text = document.getElementById('aText').value.trim();
+  if (!text){ document.getElementById('aFehler').textContent = 'Schreib kurz, was Claude machen soll.'; return; }
+  await speichern();                       // Claude sieht den Stand, den du siehst
+  let ok = false;
+  try {
+    const r = await fetch(mitProjekt('auftrag'), {method: 'POST',
+      body: JSON.stringify({folie: akt + 1, ids: auswahl.slice(), text: text})});
+    ok = r.ok;
+  } catch (e) {}
+  if (!ok){ document.getElementById('aFehler').textContent = 'Das Cockpit antwortet nicht.'; return; }
+  auftragZu();
+  melde('Liegt bei Claude. Sag ihm einfach: Auftrag.', 12000);
+}
+document.getElementById('pClaude').onclick = auftragAuf;
+document.getElementById('aAb').onclick = auftragZu;
+document.getElementById('aOk').onclick = auftragSenden;
+document.getElementById('aText').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); auftragSenden(); }
+  if (e.key === 'Escape'){ e.stopPropagation(); auftragZu(); }
+});
+document.getElementById('auftrag').addEventListener('mousedown', e => {
+  if (e.target.id === 'auftrag') auftragZu();
+});
+
+document.getElementById('pNeu').onclick = () => dialogAuf('neu');
+document.getElementById('pDup').onclick = () => { if (PROJEKT) dialogAuf('duplizieren'); };
+document.getElementById('pVorlage').onclick = () => { if (PROJEKT) dialogAuf('vorlage'); };
+document.getElementById('sZu').onclick = schriftenZu;
+document.getElementById('schriften').addEventListener('mousedown', e => { if (e.target.id === 'schriften') schriftenZu(); });
+document.getElementById('sSuche').addEventListener('input', () => { clearTimeout(schriftenZeigen.t); schriftenZeigen.t = setTimeout(schriftenZeigen, 120); });
+document.getElementById('sArt').onchange = schriftenZeigen;
+document.getElementById('dAb').onclick = dialogZu;
+document.getElementById('dOk').onclick = dialogOk;
+document.getElementById('dName').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); dialogOk(); }
+  if (e.key === 'Escape'){ e.stopPropagation(); dialogZu(); }
+});
+document.getElementById('dialog').addEventListener('mousedown', e => {
+  if (e.target.id === 'dialog') dialogZu();
+});
+document.getElementById('projekt').onchange = async e => {
+  const name = e.target.value;
+  if (name === PROJEKT) return;
+  const j = await projektWechsel({aktion: 'oeffnen', name: name});
+  if (j.ok) melde('Geoeffnet: ' + j.name, 3000);
+  else { melde(j.fehler || 'Ging nicht.', 6000); projekteFuellen(); }
+};
+
+(async () => {
+  await schriftenLaden();
+  await schriftBereit();
+  const j = await projekteFuellen();
+  if (j && j.aktuell) await projektLaden(j.aktuell);
+  else { melde('Noch kein Karussell da. Leg oben mit Neu eins an.', 0); dialogAuf('neu'); }
+  setInterval(pruefeDatei, 1500);
+})();
+</script>

@@ -1,0 +1,11 @@
+Mitgelieferte Schriften, alle unter der SIL Open Font License 1.1
+(https://openfontlicense.org), frei nutzbar und weitergebbar, auch kommerziell.
+Die Lizenz und das Copyright stehen zusaetzlich in jeder TTF-Datei.
+
+Montserrat (The Montserrat Project Authors)
+Poppins (Indian Type Foundry)
+Inter (The Inter Project Authors)
+Oswald (The Oswald Project Authors)
+Playfair Display (The Playfair Display Project Authors)
+Lora (The Lora Project Authors)
+Bebas Neue (Dharma Type)

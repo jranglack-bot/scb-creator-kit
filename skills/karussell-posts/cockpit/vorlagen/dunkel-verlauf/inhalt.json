@@ -1,0 +1,233 @@
+{
+  "stil": {
+    "breite": 1080,
+    "hoehe": 1350,
+    "randX": 110,
+    "randOben": 300,
+    "randUnten": 94,
+    "titel": 88,
+    "textgroesse": 40,
+    "titelAbstand": 1.1,
+    "textAbstand": 1.42,
+    "bg": "#0F1226",
+    "text": "#FFFFFF",
+    "akzent": "#7CF5C9",
+    "schrift": "Poppins",
+    "palette": [
+      "#7CF5C9",
+      "#FF7AB6",
+      "#0F1226",
+      "#FFFFFF"
+    ]
+  },
+  "slides": [
+    {
+      "bloecke": [
+        {
+          "id": "b1",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/sparkles",
+          "x": 110,
+          "y": 160,
+          "w": 110,
+          "h": 110,
+          "fuellung": "#7CF5C9",
+          "schatten": {
+            "abstand": 0,
+            "weich": 24,
+            "deck": 90,
+            "farbe": "#7CF5C9"
+          }
+        },
+        {
+          "id": "b2",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>So nutzt du KI richtig</b>",
+          "x": 110,
+          "y": 320,
+          "w": 860,
+          "groesse": 100,
+          "abstand": 1.05,
+          "schatten": {
+            "abstand": 0,
+            "weich": 22,
+            "deck": 70,
+            "farbe": "#7CF5C9"
+          }
+        },
+        {
+          "id": "b3",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Drei Dinge, die dir keiner erklärt.",
+          "x": 110,
+          "y": 640,
+          "w": 760,
+          "groesse": 40,
+          "farbe": "#C9C3E6"
+        },
+        {
+          "id": "b4",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 110,
+          "y": 1000,
+          "w": 860,
+          "h": 170,
+          "fuellung": "#FFFFFF",
+          "deckkraft": 9,
+          "ecken": 36
+        },
+        {
+          "id": "b5",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Wisch weiter →</b>",
+          "x": 160,
+          "y": 1058,
+          "w": 760,
+          "groesse": 36,
+          "farbe": "#7CF5C9"
+        }
+      ],
+      "hg": {
+        "art": "verlauf",
+        "farbe": "#0F1226",
+        "farbe2": "#3B1E5A",
+        "winkel": 160
+      }
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b6",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 90,
+          "y": 150,
+          "w": 900,
+          "h": 640,
+          "fuellung": "#FFFFFF",
+          "deckkraft": 7,
+          "ecken": 48
+        },
+        {
+          "id": "b7",
+          "typ": "form",
+          "form": "kreis",
+          "x": 150,
+          "y": 220,
+          "w": 110,
+          "h": 110,
+          "fuellung": "#7CF5C9"
+        },
+        {
+          "id": "b8",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>1</b>",
+          "x": 150,
+          "y": 244,
+          "w": 110,
+          "groesse": 52,
+          "farbe": "#0F1226",
+          "aus": "center"
+        },
+        {
+          "id": "b9",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/message-square",
+          "x": 820,
+          "y": 225,
+          "w": 100,
+          "h": 100,
+          "fuellung": "#FF7AB6"
+        },
+        {
+          "id": "b10",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Gib Kontext</b>",
+          "x": 150,
+          "y": 400,
+          "w": 780,
+          "groesse": 76
+        },
+        {
+          "id": "b11",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Sag der KI, wer du bist und für wen du schreibst. Ohne Kontext rät sie nur.",
+          "x": 150,
+          "y": 520,
+          "w": 780,
+          "groesse": 40,
+          "farbe": "#D6D1F0"
+        }
+      ],
+      "hg": {
+        "art": "verlauf",
+        "farbe": "#0F1226",
+        "farbe2": "#3B1E5A",
+        "winkel": 160
+      }
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b12",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Willst du die Vorlage?</b>",
+          "x": 110,
+          "y": 360,
+          "w": 860,
+          "groesse": 92,
+          "abstand": 1.05,
+          "schatten": {
+            "abstand": 0,
+            "weich": 22,
+            "deck": 70,
+            "farbe": "#7CF5C9"
+          }
+        },
+        {
+          "id": "b13",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Kommentiere KI</b>",
+          "x": 110,
+          "y": 640,
+          "w": 460,
+          "groesse": 40,
+          "farbe": "#0F1226",
+          "flaeche": {
+            "farbe": "#7CF5C9",
+            "rund": 40,
+            "innen": 24
+          }
+        },
+        {
+          "id": "b14",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/arrow-down",
+          "x": 110,
+          "y": 860,
+          "w": 120,
+          "h": 120,
+          "fuellung": "#7CF5C9"
+        }
+      ],
+      "hg": {
+        "art": "verlauf",
+        "farbe": "#0F1226",
+        "farbe2": "#3B1E5A",
+        "winkel": 160
+      }
+    }
+  ]
+}

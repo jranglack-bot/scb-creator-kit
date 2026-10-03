@@ -1,0 +1,65 @@
+<!doctype html><meta charset="utf-8"><title>Karussell</title>
+<link rel="stylesheet" href="stil.css">
+<link rel="stylesheet" href="fonts/google.css">
+<style>
+body{margin:0;background:#8f9698;font-family:Mont,system-ui,sans-serif}
+body.vorschau{display:flex;flex-wrap:wrap;gap:18px;padding:24px;background:#6f7678}
+.kachel{position:relative;box-shadow:0 4px 14px #0004;background:#fff;overflow:hidden}
+.kachel .slide{transform-origin:top left}
+.kachel::after{content:attr(data-nr);position:absolute;top:6px;right:8px;
+  font:600 13px Mont;color:#fff;background:#0009;border-radius:10px;padding:2px 9px}
+</style>
+<script src="render.js"></script>
+<script>
+async function bilderBereit(){
+  // Hintergrundbilder (Fotos, Folienhintergrund) und Masken (Icons)
+  const quellen=[];
+  document.querySelectorAll('.slide, .slide *').forEach(el=>{
+    const cs=getComputedStyle(el);
+    [cs.backgroundImage, cs.webkitMaskImage, cs.maskImage].forEach(v=>{
+      const m=String(v||'').match(/url\("?([^"')]+)"?\)/);
+      if(m && quellen.indexOf(m[1])<0) quellen.push(m[1]);
+    });
+  });
+  await Promise.all(quellen.map(u=>new Promise(fertig=>{
+    const bild=new Image();
+    bild.onload=bild.onerror=fertig;
+    bild.src=u;
+    if(bild.complete) fertig();
+  })));
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+}
+(async()=>{
+  // ?projekt=<name> vom Export, ohne Angabe das aktuelle Projekt
+  // ?vorlage=<name> fuer die Vorschaubilder der Vorlagen
+  const vl=new URLSearchParams(location.search).get('vorlage');
+  let pr=new URLSearchParams(location.search).get('projekt');
+  if(vl) BASIS='vorlagen/'+encodeURIComponent(vl)+'/';
+  else {
+    if(!pr) pr=(await (await fetch('projekte',{cache:'no-store'})).json()).aktuell;
+    BASIS='projekte/'+encodeURIComponent(pr)+'/';
+  }
+  const d=await (await fetch(BASIS+'inhalt.json?'+Date.now())).json();
+  await schriftenLaden();
+  await schriftBereit(d);
+  const nr=new URLSearchParams(location.search).get('render');
+  if(nr!==null){
+    window.MASSE=renderSlide(d.slides[+nr],d.stil,document.body).masse;
+  }else{
+    document.body.className='vorschau';
+    const st={...STIL_STD,...(d.stil||{})}, k=270/st.breite;
+    d.slides.forEach((s,i)=>{
+      const kach=document.createElement('div'); kach.className='kachel';
+      kach.style.width='270px'; kach.style.height=Math.round(st.hoehe*k)+'px';
+      kach.dataset.nr=(i+1)+'/'+d.slides.length;
+      document.body.appendChild(kach);
+      renderSlide(s,d.stil,kach).el.style.transform='scale('+k+')';
+    });
+  }
+  // Bilder sind CSS-Hintergruende und laden asynchron nach. Ohne dieses
+  // Warten schiesst der Renderer die Slide, bevor die Kacheln da sind, und
+  // sie bleiben leer (gemessen am 10.09.2026).
+  await bilderBereit();
+  window.FERTIG=true;
+})();
+</script>

@@ -1,0 +1,107 @@
+@font-face{font-family:Montserrat;src:url("fonts/Montserrat.ttf");font-weight:100 900;font-display:block}
+@font-face{font-family:Inter;src:url("fonts/Inter.ttf");font-weight:100 900;font-display:block}
+@font-face{font-family:Oswald;src:url("fonts/Oswald.ttf");font-weight:200 700;font-display:block}
+@font-face{font-family:"Playfair Display";src:url("fonts/PlayfairDisplay.ttf");font-weight:400 900;font-display:block}
+@font-face{font-family:Lora;src:url("fonts/Lora.ttf");font-weight:400 700;font-display:block}
+@font-face{font-family:"Bebas Neue";src:url("fonts/BebasNeue.ttf");font-display:block}
+@font-face{font-family:Poppins;src:url("fonts/Poppins-400.ttf");font-weight:400;font-display:block}
+@font-face{font-family:Poppins;src:url("fonts/Poppins-600.ttf");font-weight:600;font-display:block}
+@font-face{font-family:Poppins;src:url("fonts/Poppins-700.ttf");font-weight:700;font-display:block}
+
+.slide{
+  --bg:#dee3e7; --text:#313538; --akzent:#718d81; --schrift:'Montserrat';
+  --randX:132px; --randOben:377px; --randUnten:100px;
+  --titel:84px; --textgroesse:40px; --titelAbstand:1.17; --textAbstand:1.42;
+  --breite:1080px; --hoehe:1440px;
+  width:var(--breite);height:var(--hoehe);background:var(--bg);color:var(--text);
+  position:relative;overflow:hidden;
+  font-family:var(--schrift),system-ui,sans-serif;box-sizing:border-box;
+}
+.slide *{margin:0;padding:0;box-sizing:border-box}
+.slide .box{position:absolute}
+.slide .box.bild{overflow:hidden}
+.slide .box.bild .spiegel,.slide .box.bild .bildflaeche{position:absolute;inset:0}
+.slide .box.bild .bildflaeche{background-size:cover;background-position:center;background-repeat:no-repeat}
+.slide .box.form .formsvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.slide .box.form .zeichen{position:absolute;inset:0;
+  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center}
+.slide .box.text{font-weight:400}
+.slide .box.b-titel{font-weight:500;letter-spacing:-.015em}
+.slide .box.fett{font-weight:700}
+.slide .body{font-size:inherit;line-height:inherit}
+.slide .body p+p{margin-top:.85em}
+.slide .body p.li+p.li{margin-top:.1em}
+.slide .body p.li{padding-left:1.35em;text-indent:-1.35em}
+
+/* Auszeichnungen, beliebig kombinierbar */
+.slide .box .f-b{font-weight:700}
+.slide .box.b-titel .f-b{font-weight:800}
+.slide .f-i{font-style:italic}
+.slide .f-u{text-decoration:underline}
+.slide .f-m{background:var(--akzent);color:#fff;padding:.1em .28em;
+            box-decoration-break:clone;-webkit-box-decoration-break:clone}
+
+/* ---------------------------------------------------------------- Deko
+   Wird nur sichtbar, wenn im Stil "dekoAn": 1 gesetzt ist. Ohne die
+   Variable ist alles auf Deckkraft 0, bestehende Karussells bleiben
+   unveraendert. Fuer den Tech-Look nach ele_obo (99 Viral Prompts). */
+
+.slide::before,
+.slide::after{
+  content:"";position:absolute;pointer-events:none;z-index:0;
+  opacity:var(--dekoAn,0);
+}
+
+/* oben rechts: Schraegstreifen in Akzentfarbe plus feines Punktraster */
+.slide::before{
+  top:0;right:0;width:56%;height:34%;
+  background:
+    repeating-linear-gradient(115deg,
+      var(--akzent) 0 3px, transparent 3px 13px) top right/62% 40% no-repeat,
+    repeating-linear-gradient(115deg,
+      var(--akzent) 0 6px, transparent 6px 26px) top right/86% 22% no-repeat,
+    radial-gradient(var(--akzent) 1.1px, transparent 1.2px) top right/13px 13px;
+  -webkit-mask-image:linear-gradient(220deg,#000 8%,transparent 62%);
+  mask-image:linear-gradient(220deg,#000 8%,transparent 62%);
+}
+
+/* unten rechts: drei kraeftige Schraegbalken plus Punktfeld */
+.slide::after{
+  bottom:0;right:0;width:46%;height:15%;
+  background:
+    repeating-linear-gradient(115deg,
+      var(--akzent) 0 17px, transparent 17px 40px) bottom right/44% 62% no-repeat,
+    radial-gradient(var(--akzent) 1.1px, transparent 1.2px) bottom right/12px 12px;
+  -webkit-mask-image:linear-gradient(300deg,#000 10%,transparent 70%);
+  mask-image:linear-gradient(300deg,#000 10%,transparent 70%);
+}
+
+/* Inhalt liegt immer ueber der Deko */
+.slide .box{z-index:1}
+
+/* Akzentrahmen nur auf die Prompt-Kacheln aus bilder/, nicht auf Icons,
+   Pfeile oder Vollflaechen-Hintergruende. */
+.slide .box.bild[data-datei*="bilder/"]{
+  box-shadow:0 0 0 var(--bildRahmen,0px) var(--akzent);
+}
+
+/* <m> als Nummernplakette: kompakter, mit Leuchten statt nur Flaeche */
+.slide .f-m{
+  border-radius:var(--mRadius,0px);
+  box-shadow:var(--mLeuchten,none);
+}
+
+/* <d> = 3D-Extrusion wie auf dem Cover der Vorlage. Gestapelte Schatten
+   erzeugen die Tiefe, Richtung nach unten rechts. Farbe ueber --tiefe,
+   Standard ist ein sattes Schwarz. */
+.slide .f-d{
+  text-shadow:
+    2px 2px 0 var(--tiefe,#111), 4px 4px 0 var(--tiefe,#111),
+    6px 6px 0 var(--tiefe,#111), 8px 8px 0 var(--tiefe,#111),
+    10px 10px 0 var(--tiefe,#111), 12px 12px 0 var(--tiefe,#111),
+    14px 14px 0 var(--tiefe,#111), 16px 16px 0 var(--tiefe,#111),
+    18px 18px 0 var(--tiefe,#111), 20px 20px 0 var(--tiefe,#111),
+    22px 22px 0 var(--tiefe,#111), 24px 24px 0 var(--tiefe,#111),
+    26px 26px 34px rgba(0,0,0,.45);
+}
