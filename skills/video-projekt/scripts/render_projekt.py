@@ -29,6 +29,8 @@ AC = os.path.join(PRO, 'animated_captions.py')
 TO = os.path.join(PRO, 'text_overlays.py')
 PL = os.path.join(PRO, 'prolook.py')
 sys.path.insert(0, PRO)
+sys.path.insert(0, HERE)
+import bildformat  # noqa: E402  (liegt neben diesem Script)
 
 
 def standard_schrift():
@@ -353,11 +355,18 @@ def main():
         if (not gleich or schnell.returncode != 0
                 or not os.path.exists('r_source.mp4')):
             parts = []
+            m = bildformat.quelle_masse(videos[0]) or (1080, 1920)
+            grund = (bildformat.gerade(m[0]), bildformat.gerade(m[1]))
             for i, v in enumerate(videos):
                 p = 'r_clip{}.mp4'.format(i)
+                # Auf das Bild des ERSTEN Clips angleichen (nicht mehr fest
+                # 1080x1920): das Zielformat macht erst prolook — sonst waeren
+                # bei Querformat schwarze Hochkant-Raender schon eingebrannt.
+                gw, gh = grund
                 run(['ffmpeg', '-y', '-v', 'error', '-i', v, '-vf',
-                     'scale=1080:1920:force_original_aspect_ratio=decrease,'
-                     'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1,'
+                     'scale={0}:{1}:force_original_aspect_ratio=decrease,'
+                     'pad={0}:{1}:(ow-iw)/2:(oh-ih)/2,setsar=1,'.format(gw, gh)
+                     +
                      # einheitliche Farbkennung, sonst stolpert das
                      # Schneiden wieder am Clipwechsel (siehe oben)
                      'scale=out_color_matrix=bt709:out_range=tv,'
@@ -408,11 +417,12 @@ def main():
     master_lane = main_lane
     master_cuts = to_source_cuts(master_lane)
 
-    # Ausgabeformat: Reel-Standard, per "render": {"width", "height"}
-    # umstellbar (z. B. Querformat-Material, das nicht beschnitten werden soll).
-    cfg = {'input': input_file, 'output': out_name,
-           'width': int(render.get('width', 1080)),
-           'height': int(render.get('height', 1920))}
+    # Ausgabeformat aus "format" (9:16, 16:9, 1:1, 4:5) — Altprojekte ohne
+    # Angabe bleiben 9:16 mit schwarzen Raendern wie bisher; "render":
+    # {"width", "height"} ueberstimmt (Sonderfaelle). Siehe bildformat.py.
+    W, H, _fmt = bildformat.ziel(pj)
+    cfg = {'input': input_file, 'output': out_name, 'width': W, 'height': H,
+           'einpassen': bildformat.render_einstellung(pj)}
     for k in ('crf', 'preset'):
         if render.get(k):
             cfg[k] = render[k]
@@ -461,7 +471,8 @@ def main():
                (str(cap.get('primary', 'FFFFFF'))
                 if cap.get('highlight_on') is False
                 else str(cap.get('highlight', 'FFD400'))).lstrip('#'),
-               '--group', str(int(cap.get('group', 3)))]
+               '--group', str(int(cap.get('group', 3))),
+               '--playresx', str(W), '--playresy', str(H)]
         if cap.get('bold') is False:
             cmd.append('--no-bold')
         if cap.get('box'):
@@ -471,7 +482,8 @@ def main():
                     '--box-style', cap.get('box_style', 'line')]
         run(cmd)
         # Untertitel faehrt mit, wenn das Bild fuer eine Grafik wegfaehrt
-        untertitel_y_regionen('untertitel.ass', cap.get('y_regions') or [])
+        untertitel_y_regionen('untertitel.ass', cap.get('y_regions') or [],
+                              playresx=W, playresy=H)
         cfg['captions'] = 'untertitel.ass'
 
     # --- Freie Text-Overlays ----------------------------------------------

@@ -131,15 +131,19 @@ def zusammenfuegen(clips, ziel):
         print("    Schnellweg (ohne Neuberechnung)")
         return True
 
-    # Formate unterschiedlich: jeden Clip auf 1080x1920/30fps bringen.
+    # Formate unterschiedlich: jeden Clip auf das Bild des ERSTEN Clips
+    # bringen (30 fps). Das Zielformat setzt erst der Render.
     print("    Clips haben verschiedene Formate - werden angeglichen")
+    import bildformat
+    m = bildformat.quelle_masse(clips[0]) or (1080, 1920)
+    gw, gh = bildformat.gerade(m[0]), bildformat.gerade(m[1])
     teile = []
     for i, c in enumerate(clips):
         p = os.path.join(os.path.dirname(ziel), 's_clip{}.mp4'.format(i))
         r = subprocess.run(
             ['ffmpeg', '-y', '-v', 'error', '-i', c, '-vf',
-             'scale=1080:1920:force_original_aspect_ratio=decrease,'
-             'pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1,'
+             'scale={0}:{1}:force_original_aspect_ratio=decrease,'
+             'pad={0}:{1}:(ow-iw)/2:(oh-ih)/2,setsar=1,'.format(gw, gh) +
              'scale=out_color_matrix=bt709:out_range=tv,'
              'setparams=range=tv:colorspace=bt709:'
              'color_primaries=bt709:color_trc=bt709', '-r', '30']
@@ -253,6 +257,14 @@ def main():
         "texts": [],
         "render": {"crf": 20, "output": "final.mp4"},
     }
+    # Format aus dem Material: Querformat bleibt Querformat, Hochkant bleibt
+    # Hochkant. Umstellen jederzeit im Cockpit (Reiter Bild → Format) oder
+    # per cockpit_befehl.py --format 9:16.
+    import bildformat
+    masse = bildformat.quelle_masse(quelle)
+    projekt["format"] = (bildformat.passendes_format(*masse) if masse
+                         else bildformat.STANDARD)
+    print("--- Format: {} ({}x{})".format(projekt["format"], *(masse or (0, 0))))
     with open(pj_pfad, 'w', encoding='utf-8') as f:
         json.dump(projekt, f, ensure_ascii=False, indent=2)
     print("--- projekt.json angelegt ({:.2f}s Material)".format(dauer))

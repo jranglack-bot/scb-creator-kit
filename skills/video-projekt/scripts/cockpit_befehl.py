@@ -17,11 +17,15 @@ nach ~3 s.
              [--laut 60] [--vor 0.1] [--laenge 1.5]
     <python> cockpit_befehl.py <projekt> --filter sw --von 1:10 --bis 1:20 [--staerke 70]
     <python> cockpit_befehl.py <projekt> --filter warm --wort Sonne --dauer 3
+    <python> cockpit_befehl.py <projekt> --filter kino --von 0 --bis 5   (Looks: kino film golden moody bleach)
+    <python> cockpit_befehl.py <projekt> --filter farbe --farben rot,blau --wort Turm --dauer 4 [--toleranz 30]
     <python> cockpit_befehl.py <projekt> --text "Kurz erklärt" --von 0 --bis 3
     <python> cockpit_befehl.py <projekt> --zoom 1.2 --wort Turm --dauer 2 [--x 0.5 --y 0.35]
     <python> cockpit_befehl.py <projekt> --cut --wort äh --alle
     <python> cockpit_befehl.py <projekt> --cut --von 1:10 --bis 1:12,5
     <python> cockpit_befehl.py <projekt> --loeschen effekt 3     (cut|effekt|filter|text|zoom)
+    <python> cockpit_befehl.py <projekt> --format 16:9 [--einpassen fuellen|unscharf|balken]
+             [--ausschnitt 0.3] [--ausschnitt-y 0.5]      (Formate: 9:16 16:9 1:1 4:5)
 
 <projekt> = Projektordner oder projekt.json.
 
@@ -55,6 +59,12 @@ FILTER_NAMEN = {
     'kräftig': 'kraeftig', 'bunt': 'kraeftig', 'matt': 'matt',
     'verblasst': 'matt', 'heller': 'heller', 'hell': 'heller',
     'dunkler': 'dunkler', 'dunkel': 'dunkler',
+    'kino': 'kino', 'teal': 'kino', 'tealorange': 'kino', 'teal-orange': 'kino',
+    'cinematic': 'kino', 'film': 'film', 'vintage': 'film', 'golden': 'golden',
+    'goldenhour': 'golden', 'golden-hour': 'golden', 'moody': 'moody',
+    'bleach': 'bleach', 'bleachbypass': 'bleach', 'farbe': 'farbe',
+    'sincity': 'farbe', 'sin-city': 'farbe', 'farbebehalten': 'farbe',
+    'colorkey': 'farbe',
 }
 ARTEN = {'cut': 'cuts', 'cuts': 'cuts', 'schnitt': 'cuts', 'effekt': 'sfx',
          'sfx': 'sfx', 'filter': 'filter', 'text': 'texts', 'texte': 'texts',
@@ -386,23 +396,39 @@ def befehl_filter(pj, pfad):
     cuts = aktive_cuts(pj)
     name = norm(arg('--filter')).replace('_', '')
     preset = FILTER_NAMEN.get(arg('--filter').strip().lower()) \
-        or FILTER_NAMEN.get(name) or (name if name in filter_presets.PRESETS else None)
+        or FILTER_NAMEN.get(name) or (name if filter_presets.bekannt(name) else None)
     if not preset:
         fehler('Filter „{}" gibt es nicht. Möglich: {}'.format(
-            arg('--filter'), ', '.join(filter_presets.PRESETS)))
+            arg('--filter'), ', '.join(list(filter_presets.PRESETS)
+                                       + list(filter_presets.LOOKS) + ['farbe'])))
     start, wende, beschr = anker(pj, cuts)
     ende = bis_zeit(pj, cuts, start, wende, 3.0)
     if ende - start < 0.2:
         fehler('Der Abschnitt ist kürzer als 0,2 s.')
     f = {'start': round(start, 2), 'end': round(ende, 2), 'preset': preset,
          'staerke': round(max(0.1, min(1.0, float(arg('--staerke', '100')) / 100)), 2)}
+    if preset == 'farbe':
+        farben = []
+        for x in (arg('--farben') or 'rot').split(','):
+            x = x.strip()
+            h = filter_presets.FARB_NAMEN.get(x.lower(), x)
+            if not re.match(r'^#?[0-9a-fA-F]{6}$', h):
+                fehler('Farbe „{}" unbekannt. Möglich: rot, blau, gelb, gruen, '
+                       'orange, pink, lila, tuerkis oder #rrggbb'.format(x))
+            farben.append('#' + h.lstrip('#').lower())
+        f['farben'] = farben
+        f['toleranz'] = int(arg('--toleranz', '25'))
     liste = pj.setdefault('filter', [])
     liste.append(f)
     liste.sort(key=lambda x: float(x['start']))
     speichern(pfad, pj)
     bauen(pfad)
+    name = (filter_presets.PRESETS[preset][0] if preset in filter_presets.PRESETS
+            else filter_presets.LOOKS.get(preset) or filter_presets.FARBE_NAME)
+    if preset == 'farbe':
+        name += ' (' + ', '.join(f['farben']) + ')'
     print('OK Filter {}: {} {}% von {} bis {}{}'.format(
-        nummer(liste, f, 'start'), filter_presets.PRESETS[preset][0],
+        nummer(liste, f, 'start'), name,
         int(f['staerke'] * 100), wo(f['start'], cuts), wo(f['end'], cuts),
         ' · ' + beschr if beschr else ''))
 
@@ -485,6 +511,43 @@ def befehl_cut(pj, pfad):
                                           c['reason']))
 
 
+def befehl_format(pj, pfad):
+    import bildformat
+    fmt = arg('--format').replace('x', ':').replace('/', ':').strip()
+    if fmt not in bildformat.FORMATE:
+        fehler('Format „{}" gibt es nicht. Möglich: {}'.format(
+            arg('--format'), ', '.join(bildformat.FORMATE)))
+    pj['format'] = fmt
+    ein = arg('--einpassen')
+    if ein:
+        ein = {'zuschneiden': 'fuellen', 'füllen': 'fuellen', 'fill': 'fuellen',
+               'blur': 'unscharf', 'unschaerfe': 'unscharf', 'schwarz': 'balken',
+               'raender': 'balken'}.get(ein.lower(), ein.lower())
+        if ein not in bildformat.EINPASSEN:
+            fehler('Einpassen „{}" gibt es nicht. Möglich: fuellen, unscharf, balken'
+                   .format(arg('--einpassen')))
+        pj['einpassen'] = ein
+    if arg('--ausschnitt') is not None or arg('--ausschnitt-y') is not None:
+        a = pj.get('ausschnitt') or {}
+        if arg('--ausschnitt') is not None:
+            a['x'] = max(0.0, min(1.0, float(arg('--ausschnitt').replace(',', '.'))))
+        if arg('--ausschnitt-y') is not None:
+            a['y'] = max(0.0, min(1.0, float(arg('--ausschnitt-y').replace(',', '.'))))
+        pj['ausschnitt'] = {'x': a.get('x', 0.5), 'y': a.get('y', 0.5)}
+    speichern(pfad, pj)
+    bauen(pfad)
+    w, h, _ = bildformat.ziel(pj)
+    q = bildformat.quelle_masse(os.path.join(os.path.dirname(pfad),
+                                             (pj.get('videos') or [pj.get('video', '')])[0]))
+    passt = q and abs(q[0] / q[1] - w / h) < 0.01
+    x, y = bildformat.ausschnitt(pj)
+    print('OK Format {} ({}×{}){}'.format(
+        fmt, w, h, ' · Video passt genau' if passt else ' · Einpassen: {}{}'.format(
+            bildformat.EINPASSEN[bildformat.einpassen(pj)],
+            ' · Ausschnitt x={} y={}'.format(x, y)
+            if bildformat.einpassen(pj) == 'fuellen' else '')))
+
+
 def befehl_loeschen(pj, pfad):
     i = sys.argv.index('--loeschen')
     if len(sys.argv) < i + 3:
@@ -537,6 +600,8 @@ def main():
         befehl_zoom(pj, pfad)
     elif '--cut' in sys.argv:
         befehl_cut(pj, pfad)
+    elif '--format' in sys.argv:
+        befehl_format(pj, pfad)
     elif '--loeschen' in sys.argv:
         befehl_loeschen(pj, pfad)
     else:

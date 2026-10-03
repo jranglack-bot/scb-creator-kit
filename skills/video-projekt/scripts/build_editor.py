@@ -547,11 +547,31 @@ def main():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import filter_presets
     projekt['_filterlib'] = filter_presets.bibliothek()
+    # Look-Tabellen (Kino, Film, …) fuers Cockpit — nur neu, wenn sich die
+    # Rezepte geaendert haben (gleiche Zahlen nimmt der Render)
+    luts_js = os.path.join(projdir, 'filter_luts.js')
+    quelle = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          'filter_presets.py')
+    if (not os.path.exists(luts_js)
+            or os.path.getmtime(luts_js) < os.path.getmtime(quelle)):
+        with open(luts_js, 'w', encoding='utf-8') as f:
+            f.write(filter_presets.filter_luts_js())
     # Arbeitsordner: Weg vom Arbeitsordner zum Projekt, damit das Cockpit
     # direkt in DIESE projekt.json speichern kann (Anzeige-Feld, wird beim
     # Speichern nicht zurueckgeschrieben)
     import arbeitsordner
     projekt['_arbeit'] = arbeitsordner.cockpit_info(projdir)
+    # Format: Tabelle + Masse des ersten Clips (gedreht wie angezeigt) —
+    # das Cockpit zeigt damit, ob das Video ins Format passt
+    import bildformat
+    projekt['_formate'] = {
+        'formate': {k: list(v) for k, v in bildformat.FORMATE.items()},
+        'einpassen': dict(bildformat.EINPASSEN)}
+    erster = os.path.join(projdir, (vids or [''])[0]) if vids else ''
+    masse = bildformat.quelle_masse(erster) if erster and os.path.isfile(erster) else None
+    projekt['_quelle'] = ({'w': masse[0], 'h': masse[1],
+                           'format': bildformat.passendes_format(*masse)}
+                          if masse else None)
     # Bauzeit: Das Cockpit laedt beim Oeffnen die gespeicherte projekt.json,
     # wenn sie NEUER ist als dieser Stand (Nutzer hat nach dem letzten Bau
     # weitergearbeitet). Zeit in UTC, wie das _gespeichert des Cockpits.

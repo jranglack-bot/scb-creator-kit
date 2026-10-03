@@ -129,6 +129,36 @@ def ffprobe_duration(path):
     return float(json.loads(out.stdout)['format']['duration'])
 
 
+def einpass_kette(modus, W, H, ax=0.5, ay=0.5, alpha=False):
+    """Ein Bild ins Zielformat bringen (ein Strom rein, einer raus)."""
+    if modus == 'fuellen':
+        return ('scale={w}:{h}:force_original_aspect_ratio=increase,'
+                'crop={w}:{h}:(in_w-out_w)*{x}:(in_h-out_h)*{y},setsar=1'
+                .format(w=W, h=H, x=ax, y=ay))
+    return ('{f}scale={w}:{h}:force_original_aspect_ratio=decrease,'
+            'pad={w}:{h}:(ow-iw)/2:(oh-ih)/2{c},setsar=1'
+            .format(w=W, h=H, f='format=rgba,' if alpha else '',
+                    c=':color=black@0' if alpha else ''))
+
+
+def ebenen_groesse(datei):
+    """(Breite, Hoehe) einer Ebene — Datei oder Ordner mit PNG-Sequenz."""
+    try:
+        if os.path.isdir(datei):
+            pngs = sorted(f for f in os.listdir(datei) if f.lower().endswith('.png'))
+            if not pngs:
+                return None
+            datei = os.path.join(datei, pngs[0])
+        out = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+                              '-show_entries', 'stream=width,height',
+                              '-of', 'csv=p=0', datei],
+                             capture_output=True, text=True).stdout.strip()
+        w, h = out.split(',')[:2]
+        return int(w), int(h)
+    except Exception:
+        return None
+
+
 def main():
     with open(sys.argv[1], encoding='utf-8') as f:
         cfg = json.load(f)
@@ -143,9 +173,31 @@ def main():
     vlabel = '[0:v]'
 
     # --- Basis: auf Zielformat bringen -------------------------------------
-    fc.append('{}scale={}:{}:force_original_aspect_ratio=decrease,'
-              'pad={}:{}:(ow-iw)/2:(oh-ih)/2,setsar=1[base]'
-              .format(vlabel, W, H, W, H))
+    # cfg['einpassen'] = {'modus': fuellen|unscharf|balken, 'x', 'y'}
+    #   fuellen  = zuschneiden; x/y waehlen den Ausschnitt (0 = links/oben)
+    #              — dieselbe Rechnung wie CSS object-position im Cockpit
+    #   unscharf = ganzes Bild, Rand = unscharfe Vergroesserung
+    #   balken   = ganzes Bild, schwarze Raender (bisheriges Verhalten und
+    #              Standard, wenn nichts angegeben ist)
+    ep = cfg.get('einpassen') or {}
+    modus = ep.get('modus', 'balken')
+    ax, ay = float(ep.get('x', 0.5)), float(ep.get('y', 0.5))
+    if modus == 'unscharf':
+        # Hintergrund klein rechnen, weichzeichnen, wieder hochziehen — so
+        # kostet die Unschaerfe fast nichts (gblur auf 1080x1920 waere teuer)
+        fc.append('{}split=2[ubg][ufg]'.format(vlabel))
+        fc.append('[ubg]scale={w}:{h}:force_original_aspect_ratio=increase,'
+                  'crop={w}:{h},scale={kw}:{kh},gblur=sigma=6,'
+                  # abdunkeln per FAKTOR wie die Cockpit-Vorschau (brightness)
+                  'colorchannelmixer=rr=0.88:gg=0.88:bb=0.88,'
+                  'scale={w}:{h},setsar=1[ubgb]'
+                  .format(w=W, h=H, kw=max(2, W // 8 // 2 * 2),
+                          kh=max(2, H // 8 // 2 * 2)))
+        fc.append('[ufg]scale={}:{}:force_original_aspect_ratio=decrease,'
+                  'setsar=1[ufgs]'.format(W, H))
+        fc.append('[ubgb][ufgs]overlay=(W-w)/2:(H-h)/2,setsar=1[base]')
+    else:
+        fc.append('{}{}[base]'.format(vlabel, einpass_kette(modus, W, H, ax, ay)))
     vlabel = '[base]'
 
     # --- Picture-in-Picture ------------------------------------------------
@@ -390,8 +442,18 @@ def main():
             hat_dauer = o.get('duration') is not None
             trim = 'trim=0:{},'.format(float(o['duration'])) if hat_dauer else ''
             if o.get('fullframe'):
-                fc.append('[{}:v]{}setpts=PTS-STARTPTS+{}/TB[ov{}]'
-                          .format(oidx, trim, st, oi))
+                # Liegt die Ebene NICHT schon in Zielgroesse vor (z. B. die
+                # freigestellte Person aus dem Quellvideo), bekommt sie exakt
+                # denselben Zuschnitt wie das Video — sonst saesse sie versetzt.
+                # Ebenen in Zielgroesse (Motion-Canvas-Grafik) bleiben, wie sie sind.
+                passen = ''
+                gr = ebenen_groesse(datei)
+                if gr and gr != (W, H):
+                    passen = einpass_kette('balken' if modus == 'unscharf'
+                                           else modus, W, H, ax, ay,
+                                           alpha=True) + ','
+                fc.append('[{}:v]{}{}setpts=PTS-STARTPTS+{}/TB[ov{}]'
+                          .format(oidx, passen, trim, st, oi))
                 ox, oy = '0', '0'
             else:
                 ow = int(W * float(o.get('scale', 0.35)) // 2 * 2)

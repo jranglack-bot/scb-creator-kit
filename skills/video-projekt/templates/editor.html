@@ -267,7 +267,7 @@ footer { padding:9px 20px 16px; border-top:1px solid #000;
    paar Pixel uebersteht. */
 #tlwrap { position:relative; overflow-x:hidden; overflow-y:hidden;
   padding-top:14px; overscroll-behavior-x:contain; }
-#tlwrap::-webkit-scrollbar { height:8px; }
+#tlwrap::-webkit-scrollbar { height:14px; }
 #tlwrap::-webkit-scrollbar-thumb { background:#3a3f4d; border-radius:8px;
   border:2px solid transparent; background-clip:padding-box; }
 #tlwrap::-webkit-scrollbar-thumb:hover { background:#4a5162;
@@ -530,6 +530,37 @@ footer { background:var(--panel); border-top:1px solid var(--line); box-shadow:n
 #phgrab::after { border-top-color:var(--acc); }
 #songwrap { background:var(--lane); border:1px solid var(--line); }
 #tlinfo { color:var(--txt2); opacity:1; }
+#tlwrap.schiebt, #tlwrap.schiebt * { cursor:grabbing !important; }
+#tlwrap::-webkit-scrollbar-thumb { background:#4a4a52; border-radius:8px;
+  border:3px solid transparent; background-clip:padding-box; min-width:60px; }
+#tlwrap::-webkit-scrollbar-thumb:hover { background:var(--acc); background-clip:padding-box;
+  border:3px solid transparent; }
+#tlwrap::-webkit-scrollbar-track { background:rgba(255,255,255,.03); border-radius:8px; }
+/* Format: unscharfer Hintergrund (nur bei „Unscharfer Hintergrund") */
+#fmtbg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  pointer-events:none; display:none; z-index:0; }
+#v { z-index:1; }                       /* Video liegt UEBER dem unscharfen Rand */
+.fmtwahl { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px; }
+.fmtwahl button { flex-direction:column; gap:4px; padding:8px 4px 6px; font-size:11px;
+  justify-content:center; }
+.fmtwahl button .form { border:1.5px solid currentColor; border-radius:2px; opacity:.8; }
+.fmtwahl button.on { border-color:var(--acc); background:var(--acc-weich); }
+.fmtwahl button.on .form { color:var(--acc); opacity:1; }
+.fmtwahl button small { font-size:9.5px; color:var(--txt2); white-space:normal;
+  line-height:1.2; text-align:center; }
+/* Filter-Vorschau fuer Looks und „Farbe behalten": das Cockpit faerbt
+   jedes Bild selbst ein (Canvas) und legt es genau ueber das Video */
+#fxcanvas { position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; pointer-events:none; display:none; z-index:2; }
+.farbwahl { margin:2px 0 8px; }
+.farbwahl .fz { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:6px; }
+.farbwahl .chip { position:relative; display:inline-flex; }
+.farbwahl .chip input[type=color] { width:30px; height:24px; }
+.farbwahl .chip .weg { position:absolute; top:-7px; right:-7px; width:16px; height:16px;
+  min-width:0; min-height:0; padding:0; border-radius:50%; font-size:10px;
+  justify-content:center; line-height:1; background:var(--card); }
+.farbwahl button.klein { padding:4px 8px; font-size:11.5px; }
+body.pipette #stage, body.pipette #stage * { cursor:crosshair !important; }
 /* Speichern-Knopf: ruhig, solange alles gespeichert ist */
 #bSave.ruhig { background:transparent; color:var(--txt2); }
 /* Dialog beim ersten Speichern eines Projekts */
@@ -632,6 +663,7 @@ header > .spacer { flex:1; }
 • Leertaste = Abspielen · ← → ein Bild · Umschalt + ← → eine Sekunde
 • I / O = Schnitt-Anfang / -Ende an der Läuferstelle · Strg+Z / Strg+Y (Mac: ⌘Z / ⌘⇧Z) = rückgängig / wiederholen
 • Mausrad über der Zeitleiste = zoomen · Umschalt + Mausrad = Spuren
+• Rechte Maustaste gedrückt halten und ziehen = gezoomte Zeitleiste verschieben
 • Änderungen von Claude erscheinen hier automatisch"></button>
   <button id="bSave" class="primary">Speichern für Claude</button>
 </header>
@@ -644,6 +676,8 @@ header > .spacer { flex:1; }
       <video id="v"></video>
       <div id="pipbox"><video id="pv" muted></video>
         <span class="lbl" id="piplbl"></span><span class="rs"></span></div>
+      <canvas id="fmtbg"></canvas>
+      <canvas id="fxcanvas"></canvas>
       <div id="fxtint"></div>
     </div>
     <div id="bigplay">▶</div>
@@ -683,9 +717,17 @@ header > .spacer { flex:1; }
       <div class="row"><span style="font-size:11px;opacity:.55">Im Video ziehen = Position · auf der 📝-Spur ziehen = Timing · Aufziehen auf der 📝-Spur = neuer Text</span></div>
       <div id="textlist"></div>
     </details>
-    <details class="card" id="cardFilter" open><summary>Filter (Farbe) <span id="filtcount"></span></summary>
+    <details class="card" id="cardFormat" open><summary>Format</summary>
+      <div class="fmtwahl" id="fmtWahl"></div>
+      <div class="row" id="fmtEinRow"><label>Einpassen</label><select id="fmtEin"></select></div>
+      <div class="row" id="fmtXRow"><label>Ausschnitt ↔</label><input type="range" id="fmtX" min="0" max="100" value="50"><span id="fmtXV" style="font-size:11px;min-width:34px">Mitte</span></div>
+      <div class="row" id="fmtYRow"><label>Ausschnitt ↕</label><input type="range" id="fmtY" min="0" max="100" value="50"><span id="fmtYV" style="font-size:11px;min-width:34px">Mitte</span></div>
+      <div class="row"><span id="fmtQuelle" style="font-size:11px;opacity:.6"></span></div>
+    </details>
+    <details class="card" id="cardFilter" open><summary>Filter &amp; Looks <span id="filtcount"></span></summary>
       <div id="filtctl">
       <div class="row"><label>Filter</label><select id="filtPreset"></select></div>
+      <div id="filtFarbeNeu" class="farbwahl" style="display:none"></div>
       <div class="row"><label>Stärke</label><input type="range" id="filtStaerke" min="10" max="100" value="100"><span id="filtStaerkeV" style="font-size:11px;min-width:34px">100%</span></div>
       <div class="row"><button id="bAddFilter" style="flex:1">＋ Filter ab Läufer (3 s)</button></div>
       <div class="row"><span style="font-size:11px;opacity:.55">Oder auf der 🎨-Spur aufziehen. Ränder ziehen = Dauer. Gerendert wird genau, was die Vorschau zeigt.</span></div>
@@ -769,6 +811,7 @@ header > .spacer { flex:1; }
 <audio id="mus" preload="auto"></audio>
 <audio id="vo" preload="auto"></audio>
 <script src="waveform_data.js"></script>
+<script src="filter_luts.js"></script>
 <script src="projekt_data.js"></script>
 <script>
 let P = window.PROJEKT || {};
@@ -911,7 +954,7 @@ function currentProjectJSON(){
   delete out._dateien; delete out._audiodateien; delete out._neueAudios;
   delete out._sfxlib;              // Anzeige-Info, baut build_editor.py neu
   delete out._dateidauern; delete out._filterlib; delete out._arbeit;
-  delete out._gebaut;
+  delete out._gebaut; delete out._formate; delete out._quelle;
   // Herkunft mitschreiben: sonst weiss Claude beim Sammelordner-Speichern
   // nicht, WOHIN die Datei gehoert (Projektordner kann ueberall liegen),
   // und bei mehreren Projekten nicht, welches zuletzt bearbeitet wurde.
@@ -1028,6 +1071,7 @@ function applyProjekt(data){
   lastState = JSON.stringify(P);
   dirty = false;
   document.getElementById('banner').classList.remove('show');
+  formatAnwenden();                    // Format kann sich geaendert haben
 }
 
 // ---------- Live-Verbindung: projekt_data.js alle 2,5s nachladen ----------
@@ -1140,7 +1184,7 @@ cap.addEventListener('dblclick', () => {
     if (inp) { inp.scrollIntoView({ block: 'center' }); inp.focus();
       inp.select(); } }
 });
-function scaleFactor(){ return stage.clientWidth / 1080; }
+function scaleFactor(){ return stage.clientWidth / fmtInfo().W; }
 function boxRgba(){
   const h = String(C.box_color || '000000').replace('#', '');
   return 'rgba(' + parseInt(h.slice(0,2),16) + ',' + parseInt(h.slice(2,4),16)
@@ -1181,7 +1225,7 @@ function computeLines(tx){
   if (!tx.width) { tx.lines = String(tx.text || '').split('\n'); return; }
   measCtx.font = (tx.bold === false ? '500 ' : '800 ') + tx.size
     + "px '" + (tx.font || 'Segoe UI') + "'";
-  const maxW = tx.width * 1080;
+  const maxW = tx.width * fmtInfo().W;
   const lines = [];
   String(tx.text || '').split('\n').forEach(par => {
     let cur = '';
@@ -1557,7 +1601,10 @@ function applyTlZoom(zeit, ankerPx){
   const maxZoom = Math.max(2, 16000 / Math.max(200, tlwrap.clientWidth));
   tlZoom = Math.max(1, Math.min(maxZoom, tlZoom));
   const breite = (tlZoom * 100) + '%';
-  tl.style.width = breite; tlv.style.width = breite;
+  // Nur der Rahmen #tlv waechst; #tl fuellt ihn (100 %). Setzte man beide auf
+  // die Zoom-Breite, wuerde #tl doppelt vergroessert (Prozent vom bereits
+  // vergroesserten Rahmen) — der Zoom landete dann nicht unter der Maus.
+  tl.style.width = '100%'; tlv.style.width = breite;
   document.getElementById('ruler').style.width = breite;
   tlwrap.style.overflowX = tlZoom > 1.001 ? 'auto' : 'hidden';
   tlZoomLbl.textContent = Math.round(tlZoom * 100) + '%';
@@ -1570,6 +1617,24 @@ function applyTlZoom(zeit, ankerPx){
 tzIn.onclick = () => { tlZoom *= 1.6; applyTlZoom(); };
 tzOut.onclick = () => { tlZoom /= 1.6; applyTlZoom(); };
 tlZoomLbl.onclick = () => { tlZoom = 1; applyTlZoom(); };
+// Rechte oder mittlere Maustaste gedrueckt halten und ziehen = die
+// gezoomte Zeitleiste verschieben (waagrecht und durch die Spuren).
+tlwrap.addEventListener('contextmenu', e => e.preventDefault());
+tlwrap.addEventListener('pointerdown', e => {
+  if (e.button !== 2 && e.button !== 1) return;
+  e.preventDefault(); e.stopPropagation();
+  const x0 = e.clientX, y0 = e.clientY, l0 = tlwrap.scrollLeft, o0 = tlv.scrollTop;
+  tlwrap.classList.add('schiebt');
+  const move = ev => {
+    tlwrap.scrollLeft = l0 - (ev.clientX - x0);
+    tlv.scrollTop = o0 - (ev.clientY - y0);
+  };
+  const up = () => { tlwrap.classList.remove('schiebt');
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up); };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+}, true);
 tlwrap.addEventListener('wheel', e => {
   if (!dur) return;
   e.preventDefault();
@@ -2423,8 +2488,12 @@ document.getElementById('phgrab').addEventListener('pointerdown', e => {
 });
 
 // ---------- Zonen / Zeit --------------------------------------------------
-function drawZones(){ document.querySelectorAll('.zone').forEach(z =>
-  z.style.display = zonesOn ? 'block' : 'none');
+// Instagram-Zonen gibt es nur im Reel-Format (9:16) — sonst ausgeblendet
+function drawZones(){
+  const reel = fmtInfo().key === '9:16';
+  bGuides.style.display = reel ? '' : 'none';
+  document.querySelectorAll('.zone').forEach(z =>
+    z.style.display = zonesOn && reel ? 'block' : 'none');
   bGuides.classList.toggle('on', zonesOn); }
 bGuides.onclick = () => { zonesOn = !zonesOn; drawZones(); };
 // Nur wenn ALLE aktiven Schnitte beide Videos treffen, laufen die Timelines
@@ -2682,7 +2751,7 @@ const KARTE_REITER = { cardCuts: 'schnitt', cardVols: 'schnitt',
   cardZooms: 'schnitt', cardVideos: 'schnitt', cardTL: 'schnitt',
   cardCap: 'text', cardCues: 'text', cardTexts: 'text',
   cardAudio: 'ton', musSec: 'ton', cardGain: 'ton', cardSfx: 'ton',
-  cardFilter: 'bild' };
+  cardFilter: 'bild', cardFormat: 'bild' };
 const asideEl = document.querySelector('aside');
 const reiterNav = document.createElement('nav');
 reiterNav.id = 'reiter';
@@ -2713,6 +2782,108 @@ let startReiter = 'schnitt';
 try { startReiter = localStorage.getItem('cockpit_reiter') || 'schnitt'; } catch (e) {}
 reiterZeigen(REITER.some(r => r[0] === startReiter) ? startReiter : 'schnitt');
 
+// ---------- Format (9:16, 16:9, 1:1, 4:5) ----------------------------------
+// Tabelle und Regeln kommen aus bildformat.py (build_editor.py legt sie als
+// P._formate bei) — dieselben nimmt der Render. Altprojekte ohne "format":
+// 9:16 mit schwarzen Raendern, genau wie bisher.
+const FORMAT_STANDARD = { formate: { '9:16': [1080, 1920, 'Reel · TikTok · Story'],
+  '16:9': [1920, 1080, 'YouTube · Querformat'], '1:1': [1080, 1080, 'Quadrat'],
+  '4:5': [1080, 1350, 'Instagram-Feed'] },
+  einpassen: { fuellen: 'Füllen (zuschneiden)', unscharf: 'Unscharfer Hintergrund',
+    balken: 'Schwarze Balken' } };
+function fmtInfo(){
+  const tab = P._formate || FORMAT_STANDARD;
+  const key = tab.formate[P.format] ? P.format : '9:16';
+  const [W, H] = tab.formate[key];
+  const modus = tab.einpassen[P.einpassen] ? P.einpassen
+    : (('format' in P) ? 'unscharf' : 'balken');
+  const a = P.ausschnitt || {};
+  const k = x => Math.max(0, Math.min(1, x == null ? 0.5 : +x));
+  return { key, W, H, modus, ax: k(a.x), ay: k(a.y), tab };
+}
+/** Buehne so gross wie moeglich im Seitenverhaeltnis des Formats. */
+function stageAnpassen(){
+  const f = fmtInfo(), r = stagewrap.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  let h = r.height * 0.92, w = h * f.W / f.H;
+  if (w > r.width * 0.94) { w = r.width * 0.94; h = w * f.H / f.W; }
+  stage.style.aspectRatio = f.W + ' / ' + f.H;
+  stage.style.width = Math.round(w) + 'px';
+  stage.style.height = Math.round(h) + 'px';
+}
+function formatAnwenden(){
+  const f = fmtInfo();
+  stageAnpassen();
+  // Fuellen = zuschneiden: object-position rechnet exakt wie der Render-
+  // Zuschnitt ((Quelle - Ziel) * Anteil)
+  const fit = f.modus === 'fuellen' ? 'cover' : 'contain';
+  const pos = (f.ax * 100) + '% ' + (f.ay * 100) + '%';
+  [v, fxcanvas].forEach(el => { el.style.objectFit = fit; el.style.objectPosition = pos; });
+  // Unscharfer Rand nur, wenn das Video wirklich nicht ins Format passt
+  const q = P._quelle;
+  const passt = q && Math.abs(q.w / q.h - f.W / f.H) < 0.01;
+  fmtbg.style.display = f.modus === 'unscharf' && !passt ? 'block' : 'none';
+  drawZones();
+  if (typeof rebuildStageTexts === 'function') rebuildStageTexts();
+  try { fxLetzt = ''; } catch (e) { /* Filter-Teil noch nicht geladen */ }
+  formatKarte();
+}
+let fmtBgZeit = -1;
+function drawFormatBg(){
+  if (fmtbg.style.display !== 'block' || !v.videoWidth) return;
+  if (!playing && Math.abs(v.currentTime - fmtBgZeit) < 0.001) return;
+  fmtBgZeit = v.currentTime;
+  const f = fmtInfo();
+  const w = Math.max(2, Math.round(f.W / 8)), h = Math.max(2, Math.round(f.H / 8));
+  if (fmtbg.width !== w || fmtbg.height !== h) { fmtbg.width = w; fmtbg.height = h; }
+  const x = fmtbg.getContext('2d');
+  // wie der Render: Video auf das Format zuschneiden, klein, weich, etwas dunkler
+  const s = Math.max(w / v.videoWidth, h / v.videoHeight);
+  const dw = v.videoWidth * s, dh = v.videoHeight * s;
+  x.filter = 'blur(6px) brightness(0.88)';   // wie prolook: gblur sigma 6, Faktor 0,88
+  x.drawImage(v, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  x.filter = 'none';
+}
+function formatKarte(){
+  const f = fmtInfo(), tab = f.tab;
+  fmtWahl.innerHTML = Object.keys(tab.formate).map(k => {
+    const [W, H, text] = tab.formate[k];
+    const g = 22, bw = W >= H ? g : Math.round(g * W / H), bh = H >= W ? g : Math.round(g * H / W);
+    return '<button data-f="' + k + '" class="' + (k === f.key ? 'on' : '') + '" title="'
+      + W + '×' + H + '"><span class="form" style="width:' + bw + 'px;height:' + bh
+      + 'px"></span><b>' + k + '</b><small>' + esc(text) + '</small></button>';
+  }).join('');
+  fmtWahl.querySelectorAll('button').forEach(b => b.onclick = () => {
+    if (P.format === b.dataset.f && ('format' in P)) return;
+    P.format = b.dataset.f; touch(); formatAnwenden();
+    toast('Format ' + b.dataset.f + ' — so wird auch gerendert');
+  });
+  fmtEin.innerHTML = Object.keys(tab.einpassen).map(k => '<option value="' + k + '"'
+    + (k === f.modus ? ' selected' : '') + '>' + esc(tab.einpassen[k]) + '</option>').join('');
+  const q = P._quelle;
+  const anders = q && Math.abs(q.w / q.h - f.W / f.H) > 0.01;
+  fmtEinRow.style.display = !q || anders ? '' : 'none';
+  // Ausschnitt nur, wo beim Fuellen wirklich etwas abgeschnitten wird
+  const breiter = q && q.w / q.h > f.W / f.H + 0.01, hoeher = q && q.w / q.h < f.W / f.H - 0.01;
+  fmtXRow.style.display = f.modus === 'fuellen' && (!q || breiter) ? '' : 'none';
+  fmtYRow.style.display = f.modus === 'fuellen' && hoeher ? '' : 'none';
+  fmtX.value = Math.round(f.ax * 100); fmtY.value = Math.round(f.ay * 100);
+  const lage = (wert, a, b) => wert < 0.02 ? a : wert > 0.98 ? b
+    : Math.abs(wert - 0.5) < 0.02 ? 'Mitte' : Math.round(wert * 100) + '%';
+  fmtXV.textContent = lage(f.ax, 'links', 'rechts');
+  fmtYV.textContent = lage(f.ay, 'oben', 'unten');
+  fmtQuelle.textContent = q ? 'Video: ' + q.w + '×' + q.h + ' (' + q.format + ')'
+    + (anders ? ' — passt nicht genau, siehe „Einpassen"' : ' — passt genau') : '';
+}
+fmtEin.onchange = () => { P.einpassen = fmtEin.value;
+  if (!('format' in P)) P.format = fmtInfo().key;
+  touch(); formatAnwenden(); };
+const ausschnittSetzen = () => {
+  P.ausschnitt = { x: fmtX.value / 100, y: fmtY.value / 100 };
+  if (!('format' in P)) P.format = fmtInfo().key;
+  touch(); formatAnwenden(); };
+fmtX.oninput = ausschnittSetzen; fmtY.oninput = ausschnittSetzen;
+new ResizeObserver(() => { stageAnpassen(); if (typeof rebuildStageTexts === 'function') rebuildStageTexts(); }).observe(stagewrap);
 // ---------- Spurenleiste links (wie Ordner) ---------------------------------
 // Name klicken = zur Spur springen · ▾/▸ = auf-/zuklappen · ‹ › = zum
 // vorigen/naechsten Element dieser Spur (Cut, Effekt, Text, Filter).
@@ -2794,21 +2965,36 @@ bAlleZu.onclick = () => {
 // auf laufendem Video nicht an.)
 const filterLib = () => P._filterlib || {};
 const filterName = k => (filterLib()[k] || {}).n || k;
+const filterArt = k => (filterLib()[k] || {}).art || 'matrix';
+const GRUPPEN = [['matrix', 'Farbe & Licht'], ['lut', 'Looks'], ['farbe', 'Spezial']];
+function filterOptionen(aktiv){
+  const lib = filterLib();
+  return GRUPPEN.map(([art, titel]) => {
+    const keys = Object.keys(lib).filter(k => (lib[k].art || 'matrix') === art);
+    return keys.length ? '<optgroup label="' + titel + '">' + keys.map(k =>
+      '<option value="' + k + '"' + (k === aktiv ? ' selected' : '') + '>'
+      + esc(lib[k].n) + '</option>').join('') + '</optgroup>' : '';
+  }).join('');
+}
+// Farben + Farbbereich fuer einen NEUEN „Farbe behalten"-Filter
+const neuFarbe = { farben: ['#d02020'], toleranz: 25 };
 function filterInit(){
   const lib = filterLib(), keys = Object.keys(lib);
   filtctl.style.display = keys.length ? '' : 'none';
   filtfehlt.style.display = keys.length ? 'none' : '';
   const alt = filtPreset.value;
-  filtPreset.innerHTML = keys.map(k => '<option value="' + k + '">'
-    + esc(lib[k].n) + '</option>').join('');
-  if (alt && lib[alt]) filtPreset.value = alt;
+  filtPreset.innerHTML = filterOptionen(alt && lib[alt] ? alt : keys[0]);
+  farbwahlZeigen(filtFarbeNeu, neuFarbe, filtPreset.value === 'farbe',
+    neu => { if (neu) filterInit(); });
 }
+filtPreset.onchange = () => filterInit();
 filtStaerke.oninput = () => { filtStaerkeV.textContent = filtStaerke.value + '%'; };
 function filterNeu(von, bis){
   if (!filtPreset.value) { toast('Filter-Liste fehlt — Claude „Cockpit neu bauen" sagen'); return; }
-  (P.filter = P.filter || []).push({ start: Math.round(von * 10) / 10,
-    end: Math.round(bis * 10) / 10, preset: filtPreset.value,
-    staerke: filtStaerke.value / 100 });
+  const f = { start: Math.round(von * 10) / 10, end: Math.round(bis * 10) / 10,
+    preset: filtPreset.value, staerke: filtStaerke.value / 100 };
+  if (f.preset === 'farbe') { f.farben = neuFarbe.farben.slice(); f.toleranz = neuFarbe.toleranz; }
+  (P.filter = P.filter || []).push(f);
   P.filter.sort((a, b) => a.start - b.start);
   touch(); renderTL();
   toast('🎨 ' + filterName(filtPreset.value) + ' gesetzt — Ränder ziehen = Dauer');
@@ -2841,12 +3027,133 @@ function filterSchritte(f){
     : [op[0]].concat(op.slice(1).map(w => 1 + s * (w - 1))));
 }
 const CSSNAME = { sat: 'saturate', con: 'contrast', mul: 'brightness', sepia: 'sepia' };
+
+// ---- Looks und „Farbe behalten": 3D-Farbtabelle (LUT), trilinear ------
+// Dieselbe Tabelle nimmt der Render (ffmpeg lut3d, trilinear). Looks kommen
+// fertig aus filter_luts.js (berechnet von filter_presets.py), „Farbe
+// behalten" wird hier mit derselben Formel wie farbe_rgb() berechnet.
+const LUT_N = 33;
+const FARB_NAMEN = { rot: '#d02020', blau: '#2050d0', gelb: '#e0c020',
+  gruen: '#20a040', 'grün': '#20a040', orange: '#e07020', pink: '#e040a0',
+  lila: '#8040c0', tuerkis: '#20b0b0', 'türkis': '#20b0b0' };
+const clip01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
+function hexRgb(h){
+  h = (FARB_NAMEN[String(h).toLowerCase()] || String(h)).replace('#', '');
+  return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16) / 255);
+}
+function chroma(r, g, b){
+  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return [y, (b - y) / 1.8556 * 224, (r - y) / 1.5748 * 224];
+}
+/** Gleiche Formel wie filter_presets.farbe_rgb(). */
+function farbeRgb(r, g, b, ziele, toleranz, staerke){
+  const [y, u, v] = chroma(r, g, b);
+  const ton = Math.atan2(v, u), sat = Math.hypot(u, v);
+  const weich = 12 * Math.PI / 180, tol = toleranz * Math.PI / 180;
+  let w = 0;
+  for (const z of ziele) {
+    let d = (ton - z.ton + 3 * Math.PI) % (2 * Math.PI);
+    if (d < 0) d += 2 * Math.PI;
+    d = Math.abs(d - Math.PI);
+    w = Math.max(w, clip01((tol + weich - d) / weich) * clip01((sat - z.smin) / 8));
+  }
+  const f = 1 - staerke * (1 - w);
+  return [clip01(y + f * (r - y)), clip01(y + f * (g - y)), clip01(y + f * (b - y))];
+}
+const lutCache = new Map();
+function lutFuer(f){
+  const art = filterArt(f.preset);
+  const st = Math.max(0, Math.min(1, f.staerke != null ? +f.staerke : 1));
+  const key = f.preset + '|' + st + '|' + (f.farben || []).join(',') + '|' + (f.toleranz || 25);
+  if (lutCache.has(key)) return lutCache.get(key);
+  const n = LUT_N, t = new Float32Array(n * n * n * 3);
+  if (art === 'farbe') {
+    const ziele = (f.farben && f.farben.length ? f.farben : ['#d02020']).map(h => {
+      const [, fu, fv] = chroma(...hexRgb(h));
+      return { ton: Math.atan2(fv, fu), smin: Math.max(6, 0.5 * Math.hypot(fu, fv)) };
+    });
+    let i = 0;
+    for (let bi = 0; bi < n; bi++) for (let gi = 0; gi < n; gi++) for (let ri = 0; ri < n; ri++) {
+      const o = farbeRgb(ri / (n - 1), gi / (n - 1), bi / (n - 1), ziele, +(f.toleranz || 25), st);
+      t[i++] = o[0]; t[i++] = o[1]; t[i++] = o[2];
+    }
+  } else {
+    const roh = (window.FILTER_LUTS || {})[f.preset];
+    if (!roh) return null;
+    const bin = atob(roh.d);
+    let i = 0;
+    for (let bi = 0; bi < n; bi++) for (let gi = 0; gi < n; gi++) for (let ri = 0; ri < n; ri++) {
+      const ein = [ri / (n - 1), gi / (n - 1), bi / (n - 1)];
+      for (let c = 0; c < 3; c++, i++) {
+        const l = bin.charCodeAt(i) / 255;
+        t[i] = ein[c] + st * (l - ein[c]);            // Staerke wie im Render
+      }
+    }
+  }
+  if (lutCache.size > 20) lutCache.clear();
+  lutCache.set(key, t);
+  return t;
+}
+/** Tabelle trilinear auf ein ImageData anwenden (wie ffmpeg lut3d trilinear). */
+function lutAnwenden(img, t){
+  const d = img.data, n = LUT_N, m = n - 1, s1 = 3, s2 = n * 3, s3 = n * n * 3;
+  for (let p = 0; p < d.length; p += 4) {
+    const rf = d[p] / 255 * m, gf = d[p + 1] / 255 * m, bf = d[p + 2] / 255 * m;
+    const r0 = rf | 0, g0 = gf | 0, b0 = bf | 0;
+    const r1 = r0 < m ? r0 + 1 : m, g1 = g0 < m ? g0 + 1 : m, b1 = b0 < m ? b0 + 1 : m;
+    const dr = rf - r0, dg = gf - g0, db = bf - b0;
+    const i000 = b0 * s3 + g0 * s2 + r0 * s1, i100 = b0 * s3 + g0 * s2 + r1 * s1,
+          i010 = b0 * s3 + g1 * s2 + r0 * s1, i110 = b0 * s3 + g1 * s2 + r1 * s1,
+          i001 = b1 * s3 + g0 * s2 + r0 * s1, i101 = b1 * s3 + g0 * s2 + r1 * s1,
+          i011 = b1 * s3 + g1 * s2 + r0 * s1, i111 = b1 * s3 + g1 * s2 + r1 * s1;
+    for (let c = 0; c < 3; c++) {
+      const c00 = t[i000 + c] + (t[i100 + c] - t[i000 + c]) * dr,
+            c10 = t[i010 + c] + (t[i110 + c] - t[i010 + c]) * dr,
+            c01 = t[i001 + c] + (t[i101 + c] - t[i001 + c]) * dr,
+            c11 = t[i011 + c] + (t[i111 + c] - t[i011 + c]) * dr,
+            c0 = c00 + (c10 - c00) * dg, c1 = c01 + (c11 - c01) * dg;
+      d[p + c] = (c0 + (c1 - c0) * db) * 255;   // Uint8ClampedArray rundet selbst
+    }
+  }
+}
+const fxOff = document.createElement('canvas');
+const fxOffCtx = fxOff.getContext('2d', { willReadFrequently: true });
+let fxLetzt = '';
+function fxCanvasZeichnen(f, key){
+  if (!v.videoWidth || v.readyState < 2) return;
+  const breite = playing ? 360 : 720;          // beim Abspielen flott, sonst scharf
+  const hoehe = Math.round(breite * v.videoHeight / v.videoWidth);
+  const marke = key + '|' + v.currentTime.toFixed(3) + '|' + breite;
+  if (marke === fxLetzt) return;                // Standbild schon gerechnet
+  const t = lutFuer(f);
+  if (!t) { fxcanvas.style.display = 'none'; return; }
+  fxLetzt = marke;
+  if (fxOff.width !== breite || fxOff.height !== hoehe) {
+    fxOff.width = breite; fxOff.height = hoehe; }
+  fxOffCtx.drawImage(v, 0, 0, breite, hoehe);
+  let img;
+  try { img = fxOffCtx.getImageData(0, 0, breite, hoehe); }
+  catch (e) { fxcanvas.style.display = 'none'; return; }   // Browser sperrt
+  lutAnwenden(img, t);
+  if (fxcanvas.width !== breite || fxcanvas.height !== hoehe) {
+    fxcanvas.width = breite; fxcanvas.height = hoehe; }
+  fxcanvas.getContext('2d').putImageData(img, 0, 0);
+  fxcanvas.style.display = 'block';
+}
 let filterAktivKey = '';
 function drawFilterFx(){
   const f = filterBei(masterTime());
-  const key = f ? f.preset + '|' + (f.staerke != null ? f.staerke : 1) : '';
+  const key = f ? [f.preset, f.staerke != null ? f.staerke : 1,
+    (f.farben || []).join(','), f.toleranz || 25].join('|') : '';
+  if (f && filterArt(f.preset) !== 'matrix') {
+    if (key !== filterAktivKey) { filterAktivKey = key;
+      zoomwrap.style.filter = ''; fxtint.style.display = 'none'; fxLetzt = ''; }
+    fxCanvasZeichnen(f, key);                  // jedes Bild neu einfaerben
+    return;
+  }
   if (key === filterAktivKey) return;
   filterAktivKey = key;
+  fxcanvas.style.display = 'none'; fxLetzt = '';
   zoomwrap.style.filter = ''; fxtint.style.display = 'none';
   if (!f) return;
   const css = [];
@@ -2858,6 +3165,73 @@ function drawFilterFx(){
     } else if (CSSNAME[op[0]]) css.push(CSSNAME[op[0]] + '(' + (+op[1]).toFixed(4) + ')');
   });
   zoomwrap.style.filter = css.join(' ');
+}
+
+// ---- Farbauswahl fuer „Farbe behalten" (mehrere Farben + Pipette) -------
+function farbwahlZeigen(box, f, sichtbar, geaendert){
+  box.style.display = sichtbar ? '' : 'none';
+  if (!sichtbar) return;
+  f.farben = f.farben && f.farben.length ? f.farben : ['#d02020'];
+  const tol = f.toleranz || 25;
+  box.innerHTML = '<div class="fz"></div>'
+    + '<div class="row"><label style="font-size:11px">Farbbereich</label>'
+    + '<input type="range" class="ftol" min="8" max="60" value="' + tol + '">'
+    + '<span style="font-size:11px;min-width:34px">' + tol + '°</span></div>';
+  const fz = box.querySelector('.fz');
+  f.farben.forEach((h, i) => {
+    const c = document.createElement('span'); c.className = 'chip';
+    c.innerHTML = '<input type="color" title="Diese Farbe bleibt farbig">'
+      + (f.farben.length > 1 ? '<button class="weg" title="Farbe entfernen">×</button>' : '');
+    const inp = c.querySelector('input');
+    inp.value = '#' + hexRgb(h).map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+    inp.oninput = () => { f.farben[i] = inp.value; geaendert(); };
+    const weg = c.querySelector('.weg');
+    if (weg) weg.onclick = () => { f.farben.splice(i, 1); geaendert(true); };
+    fz.appendChild(c);
+  });
+  const plus = document.createElement('button'); plus.className = 'klein';
+  plus.textContent = '+ Farbe'; plus.title = 'Noch eine Farbe behalten';
+  plus.onclick = () => { if (f.farben.length < 4) { f.farben.push('#2050d0'); geaendert(true); } };
+  const pip = document.createElement('button'); pip.className = 'klein';
+  pip.textContent = 'Aus dem Video'; pip.title = 'Danach ins Video klicken — z. B. auf das rote Shirt';
+  pip.onclick = () => pipetteStarten(hex => { f.farben.push(hex);
+    if (f.farben.length > 4) f.farben.shift(); geaendert(true); });
+  fz.appendChild(plus); fz.appendChild(pip);
+  box.querySelector('.ftol').oninput = e => { f.toleranz = +e.target.value;
+    e.target.nextElementSibling.textContent = e.target.value + '°'; geaendert(); };
+}
+/** Pipette: naechster Klick ins Video liefert die Farbe dort (5×5 gemittelt,
+ *  aus dem ORIGINALbild, nicht aus der Filter-Vorschau). */
+function pipetteStarten(fertig){
+  document.body.classList.add('pipette');
+  toast('Jetzt ins Video klicken — auf die Farbe, die bleiben soll (Esc = abbrechen)');
+  const ende = () => { document.body.classList.remove('pipette');
+    stagewrap.removeEventListener('pointerdown', klick, true);
+    document.removeEventListener('keydown', taste, true); };
+  const taste = e => { if (e.key === 'Escape') { ende(); toast('Pipette abgebrochen'); } };
+  const klick = e => {
+    e.preventDefault(); e.stopPropagation(); ende();
+    panSuppress = e.target === v;    // der folgende Klick aufs Video soll NICHT abspielen
+    const r = v.getBoundingClientRect(), vw = v.videoWidth, vh = v.videoHeight;
+    if (!vw) return;
+    const skala = Math.min(r.width / vw, r.height / vh);       // object-fit: contain
+    const x0 = r.left + (r.width - vw * skala) / 2, y0 = r.top + (r.height - vh * skala) / 2;
+    const px = Math.round((e.clientX - x0) / skala), py = Math.round((e.clientY - y0) / skala);
+    if (px < 0 || py < 0 || px >= vw || py >= vh) { toast('Bitte direkt ins Videobild klicken'); return; }
+    const c = document.createElement('canvas'); c.width = vw; c.height = vh;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(v, 0, 0, vw, vh);
+    let px5;
+    try { px5 = ctx.getImageData(Math.max(0, px - 2), Math.max(0, py - 2), 5, 5).data; }
+    catch (err) { toast('Der Browser erlaubt hier kein Farbe-Picken'); return; }
+    const sum = [0, 0, 0]; let n = 0;
+    for (let i = 0; i < px5.length; i += 4) { sum[0] += px5[i]; sum[1] += px5[i + 1]; sum[2] += px5[i + 2]; n++; }
+    const hex = '#' + sum.map(x => Math.round(x / n).toString(16).padStart(2, '0')).join('');
+    fertig(hex);
+    toast('Farbe übernommen: ' + hex);
+  };
+  stagewrap.addEventListener('pointerdown', klick, true);
+  document.addEventListener('keydown', taste, true);
 }
 function filterBalken(f, lane, nr){
   const d = document.createElement('div');
@@ -2942,14 +3316,18 @@ function renderFilterList(){
         <button class="del" title="Filter löschen">🗑</button>
       </div>
       <div class="row" style="margin:7px 0 0"><label style="font-size:11px">Filter</label>
-        <select class="fp">${Object.keys(lib).map(k => '<option value="' + k + '"'
-          + (k === f.preset ? ' selected' : '') + '>' + esc(lib[k].n) + '</option>').join('')
+        <select class="fp">${filterOptionen(f.preset)
           + (lib[f.preset] ? '' : '<option selected>' + esc(f.preset) + ' (unbekannt)</option>')}</select></div>
+      <div class="farbwahl ffw"></div>
       <div class="row"><label style="font-size:11px">Stärke</label>
         <input type="range" class="fs" min="10" max="100" value="${st}">
         <span style="font-size:11px;min-width:34px">${st}%</span></div>`;
     d.querySelector('.fp').onchange = e => { f.preset = e.target.value;
+      if (f.preset === 'farbe' && !f.farben) { f.farben = ['#d02020']; f.toleranz = 25; }
       filterAktivKey = ''; touch(); renderTL(); };
+    farbwahlZeigen(d.querySelector('.ffw'), f, f.preset === 'farbe', neuZeichnen => {
+      filterAktivKey = ''; fxLetzt = ''; touch();
+      if (neuZeichnen) renderTL(); });
     d.querySelector('.fs').oninput = e => { f.staerke = e.target.value / 100;
       e.target.nextElementSibling.textContent = e.target.value + '%';
       filterAktivKey = ''; touch(); };
@@ -4073,7 +4451,7 @@ function drawLaneRunners(){
 }
 // Zeichen-Schleife (60x/s): fluessige Anzeige fuer Zoom, Untertitel & Laeufer
 (function mainLoop(){
-  drawZoomFx(); drawFilterFx(); drawLaneRunners();
+  drawZoomFx(); drawFilterFx(); drawFormatBg(); drawLaneRunners();
   updPhLabel(); updTC(); drawCap(); drawTexts(); applyAudio(); applySfxPlay();
   requestAnimationFrame(mainLoop);
 })();

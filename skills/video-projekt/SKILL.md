@@ -89,8 +89,9 @@ zusammengefügt; Altbestand `video` = ein Clip), `duration`, `cuts`
 (start/end/reason/active, `track` `both`/`music`/`voice`), `words`
 (Transkript), `captions` (Stil inkl. box/box_style/group/highlight_on/bold),
 `gains` (`{main}` = Video-Lautstärke), `volumes` (Lautstärke-Abschnitte),
-`music`, `voiceover`, `zooms`, `texts`, `filter` (Farbfilter-Abschnitte,
-siehe 2b-Filter), `spuren_zu` (im Cockpit zugeklappte Spuren, z. B.
+`format` / `einpassen` / `ausschnitt` (Bildformat, siehe 2b-Format),
+`music`, `voiceover`, `zooms`, `texts`, `filter` (Filter- und Look-Abschnitte inkl.
+Sin City, siehe 2b-Filter), `spuren_zu` (im Cockpit zugeklappte Spuren, z. B.
 `["sfx","music"]`), `sfx_library` (optionaler Pfad zur
 Soundeffekt-Library), `render` (crf/preset/output),
 `freistellung` (`{von, bis}` in Output-Zeit — render_projekt.py stellt die
@@ -322,7 +323,7 @@ des Projekts einmal zu EINER Datei zusammengefügt** (`gesamt.mp4`), und
 printf "file 'clip1.mp4'\nfile 'clip2.mp4'\n" > c.txt
 ffmpeg -y -v error -f concat -safe 0 -i c.txt -c copy gesamt.mp4
 # (schlaegt -c copy fehl, weil die Clips unterschiedliche Formate haben:
-#  jeden Clip einzeln auf 1080x1920/30fps normalisieren, dann concat)
+#  jeden Clip auf die Groesse des ERSTEN Clips/30fps bringen, dann concat)
 ```
 
 NICHT mehrere Clips als Playlist im Cockpit lassen — die Wiedergabe über
@@ -450,8 +451,9 @@ wenn das Script mal nicht reicht.
 ### 2b. Videos zusammenfügen + Schnitte (macht render_projekt.py)
 
 `videos` = Liste von Clips, die NACHEINANDER laufen (Talking-Head 1, 2, …).
-render_projekt/vorschau fügen sie zusammen (ffmpeg concat, alle auf
-1080×1920 normalisiert) → EIN Quellvideo. Verlustfrei aneinandergehängt
+render_projekt/vorschau fügen sie zusammen (ffmpeg concat, bei
+unterschiedlichen Clips alle auf die Größe des ERSTEN Clips gebracht; das
+Zielformat setzt erst der Render, siehe 2b-Format) → EIN Quellvideo. Verlustfrei aneinandergehängt
 wird nur, wenn alle Clips in ALLEN Stream-Eigenschaften gleich sind (auch
 Farbkennung); sonst wird neu kodiert und die Farbkennung vereinheitlicht —
 sonst ging am Clipwechsel Bild verloren. Im Cockpit hängt der Nutzer Clips
@@ -622,23 +624,73 @@ der Stelle ziehen (`ffmpeg -ss <t> -frames:v 1`), ansehen, Gesichtszentrum
 als x/y schätzen (Anteile!), zooms-Eintrag in projekt.json setzen,
 build_editor — der User sieht den ⌖ im Cockpit und kann nachjustieren.
 
-### 2b-Filter. Farbfilter-Abschnitte (Cockpit-Spur „🎨 Filter")
+### 2b-Filter. Filter & Looks (Cockpit-Spur „🎨 Filter")
 
-`P.filter` = `[{start, end, preset, staerke}]` — Timeline-Zeiten wie
-Texte (Rohzeit, render_projekt.py verschiebt sie um die Schnitte),
-`staerke` 0.1–1. `preset`: `sw`, `noir`, `sepia`, `retro`, `warm`, `kalt`,
-`kraeftig`, `matt`, `heller`, `dunkler`. Die Rezepte stehen an EINER
-Stelle: `scripts/filter_presets.py` — build_editor.py gibt dem Cockpit
-dieselben Schritte mit (`_filterlib`), mit denen der Render rechnet. Die
-Vorschau nutzt nur CSS-Filter (saturate/contrast/brightness/sepia) plus
-eine Farbschicht „Multiplizieren" für warm/kalt — das kann auch Safari
-(SVG-Filter zeigt Safari auf laufendem Video NICHT an, deshalb keine).
-Vorschau und fertiges Video stimmen überein (gemessen 01.10.2026: Browser
-gegen ffmpeg höchstens 3/255 Abweichung). Neue Rezepte nur aus diesen
-Schritten bauen. Überlappen zwei Abschnitte, gewinnt der später
-beginnende — im Cockpit wie im Render. Per Zuruf („mach 3–6 s schwarz-weiß")
-einfach einen Eintrag setzen und build_editor laufen lassen. Ein neues
-Rezept = nur `PRESETS` in filter_presets.py ergänzen, sonst nichts.
+`P.filter` = `[{start, end, preset, staerke, farben?, toleranz?}]` —
+Timeline-Zeiten wie Texte (Rohzeit, render_projekt.py verschiebt sie um die
+Schnitte), `staerke` 0.1–1. Überlappen zwei Abschnitte, gewinnt der später
+beginnende — im Cockpit wie im Render. Per Zuruf IMMER über
+`cockpit_befehl.py --filter …` (siehe 2c).
+
+| Gruppe | `preset` | Technik |
+|---|---|---|
+| Farbe & Licht | `sw` `noir` `sepia` `retro` `warm` `kalt` `kraeftig` `matt` `heller` `dunkler` | Farbfaktoren: Vorschau per CSS-Filter, Render per colorchannelmixer |
+| Looks | `kino` (Teal & Orange) `film` (verblasst) `golden` (Golden Hour) `moody` `bleach` (Bleach Bypass) | 3D-Farbtabelle (LUT, 33³) |
+| Spezial | `farbe` = Farbe behalten (Sin City): `farben` = Liste #rrggbb (bis 4), `toleranz` in Grad (Standard 25) | 3D-Farbtabelle, je Abschnitt berechnet |
+
+**Eine Quelle:** `scripts/filter_presets.py`. Looks und „Farbe behalten"
+laufen über eine 3D-LUT — der Render schreibt sie als `r_filter_<n>.cube`
+und nimmt `lut3d=…:interp=trilinear`; das Cockpit wendet dieselbe Tabelle
+Pixel für Pixel auf einem Canvas an (Looks aus `filter_luts.js`, das
+build_editor.py ins Projekt legt; „Farbe behalten" rechnet das Cockpit mit
+derselben Formel). Gemessen 01.10.2026 mit identischen Pixeln: Cockpit vs
+ffmpeg höchstens 2/255. WebGL wäre schneller, ist bei lokal geöffneten
+Dateien aber gesperrt — Canvas 2D funktioniert. Beim Abspielen rechnet die
+Vorschau in 360 px Breite, im Stand in 720 px.
+
+**Sin City:** Haut liegt im Farbton mitten im Rot (103–138°). Getrennt wird
+über die Sättigung: jede Zielfarbe verlangt mindestens die halbe Sättigung
+der gewählten Farbe — ein knallrotes Shirt bleibt rot, Gesicht und Hände
+werden grau. Bei matten Farben deshalb im Cockpit **„Aus dem Video"**
+(Pipette) nehmen: das trifft Farbton und Sättigung des echten Kleidungsstücks;
+`toleranz` größer = mehr Nachbartöne bleiben farbig. Named colors im Befehl:
+rot, blau, gelb, gruen, orange, pink, lila, tuerkis.
+
+Ein neuer Look = nur `look_rgb()` + `LOOKS` in filter_presets.py ergänzen
+(build_editor erzeugt filter_luts.js dann neu). Ein neuer einfacher Filter =
+nur `PRESETS` (Schritte sat/con/mul/sepia/tint).
+
+### 2b-Format. Bildformat (9:16, 16:9, 1:1, 4:5)
+
+```
+"format":     "9:16" | "16:9" | "1:1" | "4:5"
+"einpassen":  "fuellen" (zuschneiden) | "unscharf" (unscharfer Hintergrund) | "balken"
+"ausschnitt": {"x": 0.5, "y": 0.5}     nur bei "fuellen": 0 = links/oben, 1 = rechts/unten
+```
+
+- **Neue Projekte** bekommen das Format automatisch aus dem ersten Clip
+  (`projekt_starten.py`, auch bei Handyvideos mit Drehungs-Markierung):
+  Querformat → 16:9, Hochkant → 9:16 oder 4:5, fast quadratisch → 1:1.
+- **Altprojekte ohne `format`** bleiben exakt wie bisher: 9:16 mit schwarzen
+  Rändern (gemessen 03.10.2026: Bild für Bild identisch zum alten Render).
+- Fehlt `einpassen`, gilt bei gesetztem Format „unscharf".
+- Der Nutzer stellt im Cockpit unter **Bild → Format** um (Bühne, Untertitel-
+  und Text-Maßstab, Instagram-Zonen nur bei 9:16 — alles passt sich an);
+  „Füllen" zeigt Regler für den Ausschnitt, und zwar nur in der Richtung, in
+  der wirklich etwas abgeschnitten wird. Per Zuruf:
+  `cockpit_befehl.py <projekt> --format 9:16 --einpassen fuellen --ausschnitt 0.3`.
+- Render: `bildformat.py` ist die eine Quelle (Größen, Regeln); prolook
+  bringt das Bild per „fuellen" (scale+crop, Ausschnitt wie CSS
+  object-position), „unscharf" (klein gerechnet, gblur σ 6, Faktor 0,88 —
+  das Cockpit rechnet denselben Rand im Canvas) oder „balken" ins Format.
+  **Vollbild-Ebenen** (Freisteller, `fullframe: true`) bekommen denselben
+  Zuschnitt, wenn ihre Größe vom Ziel abweicht — sonst säße die Person
+  versetzt. Ebenen, die schon in Zielgröße vorliegen (Motion-Canvas-Grafik),
+  bleiben unverändert. **Grafik für ein Projekt immer im Zielformat bauen**
+  (`render.width/height` = Format-Größe, siehe bildformat.FORMATE).
+- Mehrere Clips mit unterschiedlichem Format werden beim Zusammenfügen auf
+  das Bild des ERSTEN Clips gebracht; das Zielformat setzt erst der Render.
+- `render.width/height` überstimmt alles (nur für Sonderfälle).
 
 ### 2b-Spuren. Spurenleiste, Ebenen und Nummern im Cockpit
 
@@ -694,10 +746,13 @@ zeigt es nach ~3 s — kein F5, nicht neu öffnen.
 <python> scripts/cockpit_befehl.py <projekt> --effekt whoosh --wort Brieftaube [--nr 2] [--laut 60] [--vor 0.1]
 <python> scripts/cockpit_befehl.py <projekt> --effekt pop --bei 0:42 --fertig
 <python> scripts/cockpit_befehl.py <projekt> --filter sw --von 1:10 --bis 1:20 [--staerke 70]
+<python> scripts/cockpit_befehl.py <projekt> --filter kino --wort Turm --dauer 4
+<python> scripts/cockpit_befehl.py <projekt> --filter farbe --farben rot,blau --von 0:10 --bis 0:14
 <python> scripts/cockpit_befehl.py <projekt> --text "Hook" --von 0 --bis 3 --fertig
 <python> scripts/cockpit_befehl.py <projekt> --zoom 1.2 --wort Turm --dauer 2
 <python> scripts/cockpit_befehl.py <projekt> --cut --wort äh --alle
 <python> scripts/cockpit_befehl.py <projekt> --loeschen effekt 3
+<python> scripts/cockpit_befehl.py <projekt> --format 16:9 [--einpassen fuellen|unscharf|balken] [--ausschnitt 0.3]
 ```
 
 **Welche Zeit meint der Nutzer?** Das Cockpit zeigt Rohzeit (ungeschnitten)
