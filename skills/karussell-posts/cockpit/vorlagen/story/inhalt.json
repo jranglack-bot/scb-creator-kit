@@ -1,0 +1,686 @@
+{
+  "vorlage": {
+    "titel": "Geschichte in Etappen",
+    "beschreibung": "Deine Geschichte in vier Teilen, von damals über den Wendepunkt bis heute."
+  },
+  "stil": {
+    "breite": 1080,
+    "hoehe": 1350,
+    "randX": 96,
+    "randOben": 300,
+    "randUnten": 94,
+    "titel": 88,
+    "textgroesse": 40,
+    "titelAbstand": 1.1,
+    "textAbstand": 1.42,
+    "bg": "#EFE3D3",
+    "text": "#3B2A20",
+    "akzent": "#D9822B",
+    "schrift": "Inter",
+    "palette": [
+      "#D9822B",
+      "#3B2A20",
+      "#EFE3D3",
+      "#7A8450"
+    ]
+  },
+  "slides": [
+    {
+      "bloecke": [
+        {
+          "id": "b1",
+          "typ": "bild",
+          "x": 250,
+          "y": 100,
+          "w": 580,
+          "h": 700,
+          "maske": "bogen"
+        },
+        {
+          "id": "b2",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>EINE GESCHICHTE IN 4 TEILEN</b>",
+          "x": 96,
+          "y": 860,
+          "w": 888,
+          "groesse": 26,
+          "farbe": "#D9822B",
+          "aus": "center",
+          "zeichen": 200
+        },
+        {
+          "id": "b3",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Lora><b>Meine Geschichte mit [Thema]</b></f>",
+          "x": 96,
+          "y": 915,
+          "w": 888,
+          "groesse": 84,
+          "aus": "center",
+          "abstand": 1.08
+        },
+        {
+          "id": "b4",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Wisch weiter</b>",
+          "x": 96,
+          "y": 1215,
+          "w": 888,
+          "groesse": 30,
+          "farbe": "#D9822B",
+          "aus": "center"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b5",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 158,
+          "y": 120,
+          "w": 4,
+          "h": 1110,
+          "fuellung": "#3B2A20",
+          "deckkraft": 22
+        },
+        {
+          "id": "b6",
+          "typ": "form",
+          "form": "kreis",
+          "x": 140,
+          "y": 140,
+          "w": 40,
+          "h": 40,
+          "fuellung": "#D9822B"
+        },
+        {
+          "id": "b7",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 486,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b8",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 826,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b9",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 1166,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b10",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>TEIL 1 · DAMALS</b>",
+          "x": 230,
+          "y": 140,
+          "w": 760,
+          "groesse": 28,
+          "farbe": "#D9822B",
+          "zeichen": 160
+        },
+        {
+          "id": "b11",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Lora><b>[Wo du gestartet bist]</b></f>",
+          "x": 230,
+          "y": 195,
+          "w": 754,
+          "groesse": 68,
+          "abstand": 1.08
+        },
+        {
+          "id": "b12",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Erzähl die Szene: Wo warst du, was hast du gefühlt? Zwei, drei Sätze reichen.",
+          "x": 230,
+          "y": 470,
+          "w": 754,
+          "groesse": 38,
+          "farbe": "#6E5B4C"
+        },
+        {
+          "id": "b13",
+          "typ": "bild",
+          "x": 230,
+          "y": 720,
+          "w": 754,
+          "h": 470,
+          "ecken": 28
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b14",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 158,
+          "y": 120,
+          "w": 4,
+          "h": 1110,
+          "fuellung": "#3B2A20",
+          "deckkraft": 22
+        },
+        {
+          "id": "b15",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 146,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b16",
+          "typ": "form",
+          "form": "kreis",
+          "x": 140,
+          "y": 480,
+          "w": 40,
+          "h": 40,
+          "fuellung": "#D9822B"
+        },
+        {
+          "id": "b17",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 826,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b18",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 1166,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b19",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>TEIL 2 · DER WENDEPUNKT</b>",
+          "x": 230,
+          "y": 140,
+          "w": 760,
+          "groesse": 28,
+          "farbe": "#D9822B",
+          "zeichen": 160
+        },
+        {
+          "id": "b20",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Lora><b>[Der Moment, der alles geändert hat]</b></f>",
+          "x": 230,
+          "y": 195,
+          "w": 754,
+          "groesse": 68,
+          "abstand": 1.08
+        },
+        {
+          "id": "b21",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Erzähl die Szene: Wo warst du, was hast du gefühlt? Zwei, drei Sätze reichen.",
+          "x": 230,
+          "y": 470,
+          "w": 754,
+          "groesse": 38,
+          "farbe": "#6E5B4C"
+        },
+        {
+          "id": "b22",
+          "typ": "bild",
+          "x": 230,
+          "y": 720,
+          "w": 754,
+          "h": 470,
+          "ecken": 28
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b23",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 158,
+          "y": 120,
+          "w": 4,
+          "h": 1110,
+          "fuellung": "#3B2A20",
+          "deckkraft": 22
+        },
+        {
+          "id": "b24",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 146,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b25",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 486,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b26",
+          "typ": "form",
+          "form": "kreis",
+          "x": 140,
+          "y": 820,
+          "w": 40,
+          "h": 40,
+          "fuellung": "#D9822B"
+        },
+        {
+          "id": "b27",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 1166,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b28",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>TEIL 3 · DIE ÄNDERUNG</b>",
+          "x": 230,
+          "y": 140,
+          "w": 760,
+          "groesse": 28,
+          "farbe": "#D9822B",
+          "zeichen": 160
+        },
+        {
+          "id": "b29",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Lora><b>[Was du anders gemacht hast]</b></f>",
+          "x": 230,
+          "y": 195,
+          "w": 754,
+          "groesse": 68,
+          "abstand": 1.08
+        },
+        {
+          "id": "b30",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Erzähl die Szene: Wo warst du, was hast du gefühlt? Zwei, drei Sätze reichen.",
+          "x": 230,
+          "y": 470,
+          "w": 754,
+          "groesse": 38,
+          "farbe": "#6E5B4C"
+        },
+        {
+          "id": "b31",
+          "typ": "bild",
+          "x": 230,
+          "y": 720,
+          "w": 754,
+          "h": 470,
+          "ecken": 28
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b32",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 158,
+          "y": 120,
+          "w": 4,
+          "h": 1110,
+          "fuellung": "#3B2A20",
+          "deckkraft": 22
+        },
+        {
+          "id": "b33",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 146,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b34",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 486,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b35",
+          "typ": "form",
+          "form": "kreis",
+          "x": 146,
+          "y": 826,
+          "w": 28,
+          "h": 28,
+          "fuellung": "#EFE3D3",
+          "rand": {
+            "breite": 4,
+            "farbe": "#3B2A20"
+          },
+          "deckkraft": 60
+        },
+        {
+          "id": "b36",
+          "typ": "form",
+          "form": "kreis",
+          "x": 140,
+          "y": 1160,
+          "w": 40,
+          "h": 40,
+          "fuellung": "#D9822B"
+        },
+        {
+          "id": "b37",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>TEIL 4 · HEUTE</b>",
+          "x": 230,
+          "y": 140,
+          "w": 760,
+          "groesse": 28,
+          "farbe": "#D9822B",
+          "zeichen": 160
+        },
+        {
+          "id": "b38",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Lora><b>[Wo du heute stehst]</b></f>",
+          "x": 230,
+          "y": 195,
+          "w": 754,
+          "groesse": 68,
+          "abstand": 1.08
+        },
+        {
+          "id": "b39",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Erzähl die Szene: Wo warst du, was hast du gefühlt? Zwei, drei Sätze reichen.",
+          "x": 230,
+          "y": 470,
+          "w": 754,
+          "groesse": 38,
+          "farbe": "#6E5B4C"
+        },
+        {
+          "id": "b40",
+          "typ": "bild",
+          "x": 230,
+          "y": 720,
+          "w": 754,
+          "h": 470,
+          "ecken": 28
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b41",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Lora><b>Was ich daraus gelernt habe</b></f>",
+          "x": 96,
+          "y": 140,
+          "w": 888,
+          "groesse": 96,
+          "abstand": 1.05
+        },
+        {
+          "id": "b42",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 484,
+          "w": 68,
+          "h": 68,
+          "fuellung": "#D9822B"
+        },
+        {
+          "id": "b43",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>1</b>",
+          "x": 96,
+          "y": 495,
+          "w": 68,
+          "groesse": 34,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        },
+        {
+          "id": "b44",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Erkenntnis 1]</b>",
+          "x": 196,
+          "y": 480,
+          "w": 788,
+          "groesse": 52
+        },
+        {
+          "id": "b45",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Ein Satz, warum das wichtig ist.",
+          "x": 196,
+          "y": 556,
+          "w": 788,
+          "groesse": 38,
+          "farbe": "#6E5B4C"
+        },
+        {
+          "id": "b46",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 714,
+          "w": 68,
+          "h": 68,
+          "fuellung": "#D9822B"
+        },
+        {
+          "id": "b47",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>2</b>",
+          "x": 96,
+          "y": 725,
+          "w": 68,
+          "groesse": 34,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        },
+        {
+          "id": "b48",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Erkenntnis 2]</b>",
+          "x": 196,
+          "y": 710,
+          "w": 788,
+          "groesse": 52
+        },
+        {
+          "id": "b49",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Ein Satz, warum das wichtig ist.",
+          "x": 196,
+          "y": 786,
+          "w": 788,
+          "groesse": 38,
+          "farbe": "#6E5B4C"
+        },
+        {
+          "id": "b50",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 944,
+          "w": 68,
+          "h": 68,
+          "fuellung": "#D9822B"
+        },
+        {
+          "id": "b51",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>3</b>",
+          "x": 96,
+          "y": 955,
+          "w": 68,
+          "groesse": 34,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        },
+        {
+          "id": "b52",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Erkenntnis 3]</b>",
+          "x": 196,
+          "y": 940,
+          "w": 788,
+          "groesse": 52
+        },
+        {
+          "id": "b53",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Ein Satz, warum das wichtig ist.",
+          "x": 196,
+          "y": 1016,
+          "w": 788,
+          "groesse": 38,
+          "farbe": "#6E5B4C"
+        },
+        {
+          "id": "b54",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Kennst du das? Erzähl es mir in den Kommentaren.",
+          "x": 96,
+          "y": 1180,
+          "w": 888,
+          "groesse": 36,
+          "farbe": "#7A8450"
+        }
+      ]
+    }
+  ]
+}

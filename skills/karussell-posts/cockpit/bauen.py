@@ -110,29 +110,101 @@ def vorlagen_json():
             o = P.vorlage_ordner(n)
             d = json.loads((o / "inhalt.json").read_text(encoding="utf-8-sig"))
             st = P.stil(d)
+            eigen = o.parent == P.VORLAGEN
+            titel, text = _vorlagen_info(d, eigen)
             aus.append({"name": n, "slides": len(d.get("slides") or []), "breite": int(st["breite"]),
                         "hoehe": int(st["hoehe"]), "vorschau": (o / P.VORSCHAU).exists(),
-                        "eigen": o.parent == P.VORLAGEN})
+                        "folien": (o / P.FOLIEN).exists(), "titel": titel, "beschreibung": text,
+                        "eigen": eigen})
         except Exception:
             continue
     return json.dumps(aus, ensure_ascii=False)
 
 
-def vorschau_bauen(port, vorlage):
-    """Folie 1 der Vorlage als kleines Bild (270 px breit) fuer die Galerie."""
-    o = P.VORLAGEN / vorlage                      # nur eigene, mitgelieferte haben ihre Vorschau
-    st = P.stil(json.loads((o / "inhalt.json").read_text(encoding="utf-8-sig")))
-    B, H = format_ok(st)
+def _vorlagen_info(d, eigen):
+    """Titel und Beschreibung aus inhalt.json ("vorlage"), nur kurzer sichtbarer Text.
+    Eigene Vorlagen haben keine (als_vorlage nimmt sie heraus); traegt eine
+    trotzdem welche, gibt sie sich als Kit-Vorlage aus und bleibt beim Namen."""
+    i = d.get("vorlage") if isinstance(d, dict) else None
+    if eigen or not isinstance(i, dict):
+        return "", ""
+    return P.kurztext(i.get("titel"), 40), P.kurztext(i.get("beschreibung"), 140)
+
+
+def vorschau_bauen(port, vorlage, ordner=None):
+    """Folie 1 der Vorlage als kleines Bild (270 px breit) fuer die Galerie, dazu alle
+    Folien nebeneinander (.folien.png). Leere Bildrahmen erscheinen als ruhige Flaeche.
+    ordner: nur fuer die mitgelieferten Vorlagen im Kit, sonst die eigenen."""
+    o = ordner or (P.VORLAGEN / vorlage)
+    if ordner and P.vorlage_ordner(vorlage) != ordner:
+        # vorlage.html laedt dann die gleichnamige eigene Vorlage, und deren Bilder
+        # landeten in den Vorschaubildern des Kits, die an alle gehen
+        raise ValueError("Eine eigene Vorlage gleichen Namens verdeckt die Kit-Vorlage %s" % vorlage)
+    d = json.loads((o / "inhalt.json").read_text(encoding="utf-8-sig"))
+    B, H = format_ok(P.stil(d))
+    n = min(len(d.get("slides") or []), 20)
     with sync_playwright() as pw:
         b = _browser(pw)
         pg = b.new_page(viewport={"width": B, "height": H}, device_scale_factor=270 / B)
-        pg.goto(f"http://127.0.0.1:{port}/vorlage.html?vorlage={vorlage}&render=0")
+        pg.goto(f"http://127.0.0.1:{port}/vorlage.html?vorlage={vorlage}&render=0&platzhalter=1")
         pg.wait_for_function(FERTIG, timeout=20000)
         pg.screenshot(path=str(o / P.VORSCHAU))
+        pg = b.new_page(viewport={"width": max(300, 20 + n * 226), "height": 300})
+        pg.goto(f"http://127.0.0.1:{port}/vorlage.html?vorlage={vorlage}&platzhalter=1&streifen=1")
+        pg.wait_for_function(FERTIG, timeout=30000)
+        pg.screenshot(path=str(o / P.FOLIEN), full_page=True)
         b.close()
 
 
 FERTIG = "() => window.FERTIG === true"      # Funktionsform: die Seiten-CSP verbietet eval
+
+FORMAT_ZIEL = {"3:4": 1440, "34": 1440, "1440": 1440, "4:5": 1350, "45": 1350, "1350": 1350}
+
+
+def format_umstellen(port, name, ziel):
+    """Karussell auf 3:4 oder 4:5 umstellen (k.py format). Gerechnet wird mit
+    formatUmstellen aus render.js in vorlage.html, mit den echten Schriften,
+    damit k.py genau dasselbe tut wie die Formatwahl im Cockpit."""
+    hoehe = FORMAT_ZIEL.get(str(ziel).strip())
+    if not hoehe:
+        raise ValueError("Format bitte als 3:4 oder 4:5")
+    ordner = P.ordner(name)
+    ziel_datei = ordner / "inhalt.json"
+    if ziel_datei.is_symlink() or P._verknuepft(ordner):     # wie beim Speichern: nie durch Links schreiben
+        raise ValueError("inhalt.json oder der Projektordner ist eine Verknuepfung")
+    vorher = stand_von(name)
+    d = P.lesen(name)
+    B, H = format_ok(P.stil(d))
+    wort = "3:4" if hoehe == 1440 else "4:5"
+    if B != 1080:
+        raise ValueError("Umstellen geht nur bei Folien mit 1080 px Breite")
+    if len(d.get("slides") or []) > 100:
+        raise ValueError("Zu viele Folien (hoechstens 100)")
+    if H == hoehe:
+        return "Ist schon %s (%d x %d)." % (wort, B, H)
+    with sync_playwright() as pw:
+        b = _browser(pw)
+        try:
+            pg = b.new_page(viewport={"width": B, "height": H})
+            pg.goto(f"http://127.0.0.1:{port}/vorlage.html?projekt={name}&format={hoehe}")
+            pg.wait_for_function(FERTIG, timeout=60000)
+            e = pg.evaluate("() => window.ERGEBNIS")
+        finally:
+            b.close()
+    if not isinstance(e, dict) or e.get("fehler"):
+        raise ValueError("Umstellen ging nicht: %s" % " ".join(str((e or {}).get("fehler", "keine Antwort")).split())[:200])
+    neu, hinweise = e.get("daten"), e.get("hinweise")
+    if not isinstance(neu, dict) or not isinstance(neu.get("slides"), list) \
+            or len(neu["slides"]) != len(d.get("slides") or []) or P.stil(neu).get("hoehe") != hoehe:
+        raise ValueError("Umstellen ging nicht: unerwartetes Ergebnis")
+    if stand_von(name) != vorher:          # inzwischen im Cockpit gesichert: nichts ueberschreiben
+        raise ValueError("Das Karussell wurde gerade geaendert. Bitte noch einmal umstellen.")
+    P.schreiben(neu, name)
+    zeilen = ["Umgestellt auf %s (%d x %d)." % (wort, B, hoehe)]
+    hinweise = [h for h in (hinweise if isinstance(hinweise, list) else []) if isinstance(h, str)][:40]
+    # je Hinweis genau eine Zeile: Umbrueche aus Projektdaten duerfen keine eigenen Zeilen bauen
+    zeilen += ["Bitte ansehen:"] + ["  " + " ".join(h.split())[:200] for h in hinweise] if hinweise else ["Alles passt."]
+    return "\n".join(zeilen)
 
 
 def format_ok(st):
@@ -140,7 +212,7 @@ def format_ok(st):
     (fremde Dateien koennten sonst viele GB Speicher belegen)."""
     B, H = int(zahl(st.get("breite"), 0)), int(zahl(st.get("hoehe"), 0))
     if not (100 <= B <= 5000 and 100 <= H <= 8000):
-        raise ValueError("Format ungueltig: %sx%s" % (st.get("breite"), st.get("hoehe")))
+        raise ValueError("Format ungueltig: %r x %r" % (str(st.get("breite"))[:20], str(st.get("hoehe"))[:20]))
     return B, H
 
 
@@ -286,7 +358,9 @@ def projekte_json():
             d = P.lesen(n)
             st = P.stil(d)
             aus.append({"name": n, "slides": len(d.get("slides") or []),
-                        "breite": int(st["breite"]), "hoehe": int(st["hoehe"])})
+                        "breite": int(st["breite"]), "hoehe": int(st["hoehe"]),
+                        "geaendert": int((P.ordner(n) / "inhalt.json").stat().st_mtime),
+                        "groesse": (P.ordner(n) / "inhalt.json").stat().st_size})
         except Exception:
             aus.append({"name": n, "slides": 0, "breite": 0, "hoehe": 0})
     return json.dumps({"aktuell": P.aktuelles(), "projekte": aus}, ensure_ascii=False)
@@ -464,6 +538,9 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
             basis, rest = (o, teile[2:]) if o else (HIER / "__gibt_es_nicht__", [])
         elif teile[:1] == ["fonts"] and len(teile) > 1 and (teile[1] in ("google.css", "google.json") or teile[1] == "google"):
             basis, rest = P.SCHRIFTEN, teile[1:]
+        elif teile[:1] == ["marke"] and len(teile) == 2:          # Logos des Markenpakets
+            ok = Path(teile[1]).suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".svg"}
+            basis, rest = (P.DATEN / "marke", teile[1:]) if ok else (HIER / "__gibt_es_nicht__", [])
         return str(basis.joinpath(*rest))
 
     def do_HEAD(self):
@@ -519,6 +596,13 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
         if weg == "modelle":
             self._text(json.dumps(modelle_stand(), ensure_ascii=False), art="application/json")
             return
+        if weg == "marke":
+            import marke as MK
+            try:
+                self._text(json.dumps(MK.lesen()), art="application/json")
+            except (ValueError, OSError) as e:
+                self._text("Fehler: %s" % " ".join(str(e).split())[:200], 500)
+            return
         m = ICON_WEG.fullmatch(weg)
         if m and icon_paket():
             svg = icon_paket().get(m.group(1))
@@ -571,7 +655,7 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
         koerper = self.rfile.read(n)
         try:
             name = qs.get("projekt") or P.aktuelles()
-            if weg != "projekt":
+            if weg not in ("projekt", "marke", "markelogo", "schriftdatei"):
                 P.ordner(name)          # wirft bei unbekanntem Projekt
         except ValueError as e:
             self._text("Fehler: %s" % e, 404); return
@@ -634,6 +718,61 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
                 self._text("Fehler: %s" % e)
             finally:
                 SPERRE.release()
+        elif weg == "format":
+            if not SPERRE.acquire(blocking=False):
+                self._text("laeuft schon"); return
+            try:
+                self._text(format_umstellen(self.server.server_address[1], name,
+                                            koerper.decode("utf-8", "ignore")))
+            except Exception as e:
+                self._text("Fehler: %s" % e)
+            finally:
+                SPERRE.release()
+        elif weg == "marke":
+            # {"aktion": "speichern|logo-weg|logo-ins-projekt|anwenden", ...}
+            import marke as MK
+            try:
+                a = json.loads(koerper.decode("utf-8-sig") or "{}")
+                aktion = a.get("aktion")
+                if aktion == "speichern":
+                    aus = {"ok": True, "marke": MK.schreiben(a.get("marke"))}
+                elif aktion == "logo-weg":
+                    aus = {"ok": True, "marke": MK.logo_weg(str(a.get("datei", ""))[:100])}
+                elif aktion == "logo-ins-projekt":
+                    datei, v = MK.logo_ins_projekt(name, a.get("datei"))
+                    aus = {"ok": True, "datei": datei, "verhaeltnis": v}
+                elif aktion == "anwenden":
+                    # nur auf den Stand, den das Cockpit gerade gesichert hat (nichts von k.py ueberschreiben)
+                    if isinstance(a.get("stand"), str) and a["stand"] != stand_von(name):
+                        raise ValueError("Das Karussell wurde gerade geaendert. Bitte noch einmal anwenden.")
+                    meldung = MK.anwenden_auf_projekt(name, farben=a.get("farben") is not False,
+                                                      schriften=a.get("schriften") is not False,
+                                                      logo=a.get("logo") is True)
+                    aus = {"ok": True, "meldung": meldung}
+                else:
+                    aus = {"ok": False, "fehler": "unbekannte Aktion"}
+            except Exception as e:
+                aus = {"ok": False, "fehler": " ".join(str(e).split())[:200]}
+            self._text(json.dumps(aus), art="application/json")
+        elif weg == "markelogo":
+            import marke as MK
+            try:
+                aus = {"ok": True, "marke": MK.logo_ablegen(qs.get("name") or "logo.png", koerper, bild_ablegen)}
+            except Exception as e:
+                aus = {"ok": False, "fehler": " ".join(str(e).split())[:200]}
+            self._text(json.dumps(aus), art="application/json")
+        elif weg == "schriftdatei":
+            if not SCHRIFT_SPERRE.acquire(blocking=False):
+                self._text(json.dumps({"ok": False, "fehler": "es laedt schon eine Schrift"}),
+                           art="application/json"); return
+            try:
+                import schriften
+                aus = {"ok": True, "family": schriften.eigene_laden(koerper, qs.get("name") or "schrift.ttf")}
+            except Exception as e:
+                aus = {"ok": False, "fehler": " ".join(str(e).split())[:200]}
+            finally:
+                SCHRIFT_SPERRE.release()
+            self._text(json.dumps(aus), art="application/json")
         elif weg == "auftrag":
             # Wunsch aus dem Cockpit fuer Claude, gelesen mit `python k.py auftrag`
             try:
@@ -699,7 +838,14 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
                 if aktion == "oeffnen":
                     neu = P.setzen(a.get("name", ""))
                 elif aktion == "neu" and a.get("vorlage"):
-                    neu = P.setzen(P.neu_aus_vorlage(a.get("name", ""), a["vorlage"]))
+                    neu = P.neu_aus_vorlage(a.get("name", ""), a["vorlage"])
+                    if a.get("marke") is True:
+                        import marke as MK
+                        try:
+                            MK.anwenden_auf_projekt(neu)
+                        except Exception:
+                            pass                     # dann eben in den Farben der Vorlage
+                    neu = P.setzen(neu)
                 elif aktion == "neu":
                     neu = P.setzen(P.neu(a.get("name", ""), a.get("format", "45")))
                 elif aktion == "vorlage":
@@ -758,7 +904,7 @@ def server(port=8720):
 
 # Eine Bildebene freistellen: alles andere unsichtbar, Hintergrund durchsichtig.
 # Gibt das sichtbare Rechteck der Ebene auf der Slide zurueck (CSS-Pixel).
-_FREISTELLEN = """([id, rand]) => {
+_FREISTELLEN = """([id, rand, gast]) => {
   let st = document.getElementById('rasterStil');
   if (!st) {
     st = document.createElement('style'); st.id = 'rasterStil';
@@ -769,7 +915,7 @@ _FREISTELLEN = """([id, rand]) => {
   const slide = document.querySelector('.slide');
   let ziel = null;
   slide.querySelectorAll('.box').forEach(el => {
-    const an = el.dataset.art === id;
+    const an = el.dataset.art === id && el.classList.contains('gast') === !!gast;
     el.style.visibility = an ? 'visible' : 'hidden';
     if (an) ziel = el;
   });
@@ -788,6 +934,9 @@ _ZURUECK = """() => {
 
 
 FILTER_STD = {"hell": 100, "kontrast": 100, "saett": 100, "unschaerfe": 0, "grau": 0, "sepia": 0}
+# Wie MASKEN und GERAETE in render.js
+MASKEN = {"kreis", "bogen", "herz", "stern", "sechseck", "blob", "raute", "dreieck"}
+GERAETE = {"handy", "tablet", "laptop", "browser"}
 
 
 def zahl(v, std):
@@ -822,8 +971,20 @@ def braucht_raster(b):
     Schatten kann PowerPoint nicht so nachbauen, wie der Browser sie zeigt."""
     if b.get("typ") == "form":
         return True                     # Formen und Icons: der Browser zeichnet sie
-    if b.get("typ") != "bild":
-        return False
+    if b.get("typ") not in ("bild", "form"):
+        # Text mit Bild in der Schrift kann PowerPoint nicht. Nahtloser Text wird ein
+        # Bild, damit beide Haelften an der Folienkante exakt zusammenpassen (echter
+        # Text saesse in Canva ein paar Pixel anders als die gerasterte Haelfte).
+        # Der Rest bleibt echter, bearbeitbarer Text.
+        bf = b.get("bildfuellung")
+        frei = b.get("x") is not None and b.get("y") is not None
+        return (isinstance(bf, str) and bool(P.DATEI.fullmatch(bf))) or (bool(b.get("nahtlos")) and frei)
+    if isinstance(b.get("geraet"), str) and b["geraet"] in GERAETE:
+        return True                     # Geraete-Rahmen, auch leer (Bildschirm bleibt schwarz)
+    if not b.get("datei"):
+        return False                    # leerer Rahmen: auf der Folie nicht sichtbar
+    if isinstance(b.get("maske"), str) and b["maske"] in MASKEN:
+        return True
     if str(b.get("datei", "")).lower().endswith(".svg"):
         return True
     a = _dict(b.get("ausschnitt"))
@@ -847,22 +1008,52 @@ def _schattenrand(b):
     return int(min(400, abs(zahl(s.get("abstand"), 14)) + 3 * abs(zahl(s.get("weich"), 24)))) + 2
 
 
-def _rastern(pg, slide, nr, ordner):
+def _gaeste_pruefen(roh, anzahl):
+    """window.GAESTE aus vorlage.html: nur saubere Eintraege, hoechstens 200."""
+    aus, gesehen = [], set()
+    for g in (roh if isinstance(roh, list) else [])[:200]:
+        if not isinstance(g, dict):
+            continue
+        art, bid, folie, lage = g.get("art"), g.get("id"), g.get("folie"), g.get("lage")
+        if isinstance(art, str) and isinstance(bid, str) and type(folie) is int and \
+                1 <= folie <= anzahl and lage in ("unten", "oben") and len(art) <= 300 and \
+                len(bid) <= 200 and art not in gesehen:
+            gesehen.add(art)
+            aus.append({"art": art, "id": bid, "folie": folie, "lage": lage})
+    return aus
+
+
+def _rastern(pg, slide, nr, ordner, gaeste=(), alle=()):
     """Der Browser zeichnet jede Bildebene, die PowerPoint nicht nachbauen
     kann, so wie sie auf der Slide steht, als durchsichtiges PNG (siehe
     braucht_raster). Zuschnitt, Effekte und Drehung sind darin schon erledigt."""
     aus = {}
-    for j, b in enumerate(slide.get("bloecke", [])):
+    for j, b in enumerate(slide.get("bloecke", [])[:200]):     # wie MAX_BLOECKE in render.js
         if not braucht_raster(b):
             continue
         bid = b.get("id") or "b%d" % (j + 1)      # wie renderSlide in render.js
-        r = pg.evaluate(_FREISTELLEN, [bid, _schattenrand(b)])
+        r = pg.evaluate(_FREISTELLEN, [bid, _schattenrand(b), False])
         if not r:
             continue
         pfad = ordner / f"{nr:02d}-{j + 1:02d}.png"   # nie die ID aus inhalt.json im Pfad
         pg.screenshot(path=str(pfad), omit_background=True,
                       clip={"x": r["x"], "y": r["y"], "width": r["w"], "height": r["h"]})
         aus[bid] = {**r, "pfad": str(pfad)}
+    # Nahtlose Bloecke anderer Folien, soweit sie hier hineinragen: als Bild
+    for j, g in enumerate(gaeste):
+        heim = {}
+        if 1 <= g["folie"] <= len(alle):
+            for jj, b in enumerate(alle[g["folie"] - 1].get("bloecke", [])):
+                if str(b.get("id") or "b%d" % (jj + 1)) == g["id"]:
+                    heim = b
+                    break
+        r = pg.evaluate(_FREISTELLEN, [g["art"], _schattenrand(heim), True])
+        if not r:
+            continue
+        pfad = ordner / f"{nr:02d}-g{j + 1:02d}.png"
+        pg.screenshot(path=str(pfad), omit_background=True,
+                      clip={"x": r["x"], "y": r["y"], "width": r["w"], "height": r["h"]})
+        aus[("gast", g["art"])] = {**r, "pfad": str(pfad)}   # Tupel: kollidiert nie mit einer Block-ID
     if aus:
         pg.evaluate(_ZURUECK)
     return aus
@@ -882,6 +1073,8 @@ def messen(slides, stil, port, bilder=True, nur=None, name=None, raster=False):
     (ziel if bilder else aus).mkdir(parents=True, exist_ok=True)
     rordner = P.ordner(name) / ".raster"
     if raster:
+        if os.path.lexists(rordner) and P._verknuepft(rordner):
+            raise ValueError("projekte/%s/.raster ist eine Verknuepfung, Export abgebrochen" % P.ordner(name).name)
         rordner.mkdir(exist_ok=True)
         for alt in rordner.glob("*.png"):       # eigener Zwischenspeicher, immer frisch
             alt.unlink()
@@ -901,10 +1094,11 @@ def messen(slides, stil, port, bilder=True, nur=None, name=None, raster=False):
                     seite.goto(url)
                     seite.wait_for_function(FERTIG, timeout=20000)
             m = (pg or rp).evaluate("() => window.MASSE")
+            m["gaeste"] = _gaeste_pruefen((pg or rp).evaluate("() => (window.GAESTE || []).slice(0, 200)"), len(slides))
             if bilder:
                 pg.screenshot(path=str(ziel / f"slide-{i+1:02d}.png"))
             if raster:
-                m["raster"] = _rastern(rp, slides[i], i + 1, rordner)
+                m["raster"] = _rastern(rp, slides[i], i + 1, rordner, m["gaeste"], slides)
             masse.append(m)
         b.close()
     if bilder and not nur:
@@ -933,7 +1127,7 @@ def _run(p, txt, art, groesse, stil):
     art = art or {}
     r = p.add_run(); r.text = txt
     f = r.font
-    f.size = Pt(groesse * 0.75)
+    f.size = Pt(max(1.0, min(zahl(groesse, 40) * 0.75, 4000.0)))   # python-pptx erlaubt 1 bis 4000 pt
     f.name = art.get("f") or stil.get("schrift") or "Montserrat"
     f.bold = bool(art.get("b"))
     f.italic = bool(art.get("i"))
@@ -1155,24 +1349,29 @@ def pptx_bauen(slides, stil, masse, name=None):
         _hintergrund(sl, _dict(s.get("hg")), stil, quelle, B, H)
         L = m.get("layout") or {}
         karte = {b.get("id"): b for b in s.get("bloecke", [])}
+        gaeste, rastern = m.get("gaeste") or [], m.get("raster") or {}
+        for g in gaeste:                      # nahtlos von frueheren Folien: ganz unten
+            if g.get("lage") == "unten" and rastern.get(("gast", g.get("art"))):
+                _raster(sl, rastern[("gast", g["art"])])
 
         # Einfuegereihenfolge ist die Stapelung: zuerst = ganz hinten.
         for k in _ebenen(s):
             b, p = karte.get(k), L.get(k)
             if not b or not p:
                 continue
+            r = (m.get("raster") or {}).get(k)
+            if r:                                 # vom Browser gezeichnet, gleich welcher Art
+                _raster(sl, r)
+                continue
             if b.get("typ") in ("bild", "form"):
-                r = (m.get("raster") or {}).get(k)
-                if r:
-                    _raster(sl, r)
-                elif braucht_raster(b):
+                if braucht_raster(b):
                     pass                      # nicht sichtbar auf der Slide
                 elif b.get("datei") and P.DATEI.fullmatch(str(b["datei"])) and \
                         (quelle / b["datei"]).is_file() and (quelle / b["datei"]).suffix.lower() in FORMAT:
                     _bild(sl, quelle / b["datei"], p)
                 continue
-            if not b.get("text"):
-                continue
+            if not b.get("text") or (b.get("nahtlos") and b.get("x") is not None):
+                continue                      # nahtloser Text ohne Rasterbild liegt ganz neben der Folie
             tf = _textbox(sl, p, H)
             _fliesstext(tf, b["text"], p.get("groesse", stil["textgroesse"]),
                         p.get("abstand", stil["textAbstand"]),
@@ -1182,6 +1381,9 @@ def pptx_bauen(slides, stil, masse, name=None):
                 for pa in tf.paragraphs:
                     for r in pa.runs:
                         r.font.bold = True
+        for g in gaeste:                      # nahtlos von spaeteren Folien: oben
+            if g.get("lage") == "oben" and rastern.get(("gast", g.get("art"))):
+                _raster(sl, rastern[("gast", g["art"])])
 
     prs.save(str(P.export(name) / "karussell.pptx"))
 

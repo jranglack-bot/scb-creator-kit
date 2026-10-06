@@ -1,0 +1,334 @@
+{
+  "vorlage": {
+    "titel": "Nahtloses Panorama",
+    "beschreibung": "Formen laufen über die Folienkanten, beim Wischen wirkt es wie ein Bild."
+  },
+  "stil": {
+    "breite": 1080,
+    "hoehe": 1350,
+    "randX": 96,
+    "randOben": 300,
+    "randUnten": 94,
+    "titel": 88,
+    "textgroesse": 40,
+    "titelAbstand": 1.1,
+    "textAbstand": 1.42,
+    "bg": "#F1FAEE",
+    "text": "#1D3557",
+    "akzent": "#FF6F61",
+    "schrift": "Montserrat",
+    "palette": [
+      "#FF6F61",
+      "#1D3557",
+      "#F1FAEE",
+      "#A8DADC"
+    ]
+  },
+  "slides": [
+    {
+      "bloecke": [
+        {
+          "id": "b1",
+          "typ": "form",
+          "form": "linie",
+          "x": 96,
+          "y": 1180,
+          "w": 5208,
+          "h": 20,
+          "fuellung": "#1D3557",
+          "staerke": 6,
+          "nahtlos": true
+        },
+        {
+          "id": "b2",
+          "typ": "form",
+          "form": "kreis",
+          "x": 518,
+          "y": 1168,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6F61"
+        },
+        {
+          "id": "b7",
+          "typ": "form",
+          "form": "kreis",
+          "x": 700,
+          "y": 380,
+          "w": 760,
+          "h": 760,
+          "fuellung": "#FF6F61",
+          "nahtlos": true
+        },
+        {
+          "id": "b10",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[THEMA] IN 3 IDEEN</b>",
+          "x": 96,
+          "y": 150,
+          "w": 560,
+          "groesse": 28,
+          "farbe": "#FF6F61",
+          "zeichen": 160
+        },
+        {
+          "id": "b11",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Dein Titel] in drei Ideen</b>",
+          "x": 96,
+          "y": 210,
+          "w": 580,
+          "groesse": 92,
+          "abstand": 1.04,
+          "zeichen": -20
+        },
+        {
+          "id": "b12",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Ein Satz, worum es geht.",
+          "x": 96,
+          "y": 640,
+          "w": 560,
+          "groesse": 40,
+          "farbe": "#4A5B73"
+        },
+        {
+          "id": "b13",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Wisch weiter</b>",
+          "x": 96,
+          "y": 1060,
+          "w": 300,
+          "groesse": 32,
+          "farbe": "#1D3557"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b3",
+          "typ": "form",
+          "form": "kreis",
+          "x": 518,
+          "y": 1168,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1D3557"
+        },
+        {
+          "id": "b14",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>01</b>",
+          "x": 440,
+          "y": 200,
+          "w": 300,
+          "groesse": 150,
+          "farbe": "#FF6F61",
+          "abstand": 1
+        },
+        {
+          "id": "b15",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Idee 1]</b>",
+          "x": 440,
+          "y": 390,
+          "w": 544,
+          "groesse": 72,
+          "abstand": 1.05
+        },
+        {
+          "id": "b16",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Ein bis zwei Sätze, was dahinter steckt und wie man anfängt.",
+          "x": 440,
+          "y": 500,
+          "w": 544,
+          "groesse": 38,
+          "farbe": "#4A5B73"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b4",
+          "typ": "form",
+          "form": "kreis",
+          "x": 518,
+          "y": 1168,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1D3557"
+        },
+        {
+          "id": "b8",
+          "typ": "form",
+          "form": "kreis",
+          "x": 780,
+          "y": -220,
+          "w": 600,
+          "h": 600,
+          "fuellung": "#A8DADC",
+          "nahtlos": true
+        },
+        {
+          "id": "b17",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>02</b>",
+          "x": 96,
+          "y": 470,
+          "w": 300,
+          "groesse": 150,
+          "farbe": "#FF6F61",
+          "abstand": 1
+        },
+        {
+          "id": "b18",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Idee 2]</b>",
+          "x": 96,
+          "y": 660,
+          "w": 888,
+          "groesse": 72,
+          "abstand": 1.05
+        },
+        {
+          "id": "b19",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Ein bis zwei Sätze, was dahinter steckt und wie man anfängt.",
+          "x": 96,
+          "y": 770,
+          "w": 620,
+          "groesse": 38,
+          "farbe": "#4A5B73"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b5",
+          "typ": "form",
+          "form": "kreis",
+          "x": 518,
+          "y": 1168,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1D3557"
+        },
+        {
+          "id": "b9",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 860,
+          "y": 880,
+          "w": 440,
+          "h": 220,
+          "fuellung": "#FF6F61",
+          "ecken": 110,
+          "nahtlos": true
+        },
+        {
+          "id": "b20",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>03</b>",
+          "x": 380,
+          "y": 440,
+          "w": 300,
+          "groesse": 150,
+          "farbe": "#FF6F61",
+          "abstand": 1
+        },
+        {
+          "id": "b21",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Idee 3]</b>",
+          "x": 380,
+          "y": 630,
+          "w": 604,
+          "groesse": 72,
+          "abstand": 1.05
+        },
+        {
+          "id": "b22",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Ein bis zwei Sätze, was dahinter steckt und wie man anfängt.",
+          "x": 380,
+          "y": 740,
+          "w": 604,
+          "groesse": 38,
+          "farbe": "#4A5B73"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b6",
+          "typ": "form",
+          "form": "kreis",
+          "x": 518,
+          "y": 1168,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1D3557"
+        },
+        {
+          "id": "b23",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Welche Idee probierst du zuerst?</b>",
+          "x": 96,
+          "y": 200,
+          "w": 888,
+          "groesse": 96,
+          "abstand": 1.04,
+          "zeichen": -20
+        },
+        {
+          "id": "b24",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Schreib die Nummer in die Kommentare.",
+          "x": 96,
+          "y": 590,
+          "w": 800,
+          "groesse": 42,
+          "farbe": "#4A5B73"
+        },
+        {
+          "id": "b25",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>KOMMENTIERE [STICHWORT]</b>",
+          "x": 96,
+          "y": 730,
+          "w": 760,
+          "groesse": 32,
+          "farbe": "#FFFFFF",
+          "aus": "center",
+          "zeichen": 60,
+          "flaeche": {
+            "farbe": "#FF6F61",
+            "rund": 60,
+            "innen": 28
+          }
+        }
+      ]
+    }
+  ]
+}

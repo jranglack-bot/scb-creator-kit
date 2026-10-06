@@ -1,0 +1,439 @@
+{
+  "vorlage": {
+    "titel": "Anleitung mit Screenshots",
+    "beschreibung": "Schritt für Schritt mit Handy-Screenshots, je Folie ein Schritt."
+  },
+  "stil": {
+    "breite": 1080,
+    "hoehe": 1350,
+    "randX": 96,
+    "randOben": 300,
+    "randUnten": 94,
+    "titel": 88,
+    "textgroesse": 40,
+    "titelAbstand": 1.1,
+    "textAbstand": 1.42,
+    "bg": "#EEF2FF",
+    "text": "#111827",
+    "akzent": "#6366F1",
+    "schrift": "Poppins",
+    "palette": [
+      "#6366F1",
+      "#111827",
+      "#EEF2FF",
+      "#EC4899",
+      "#FCE7F3"
+    ]
+  },
+  "slides": [
+    {
+      "bloecke": [
+        {
+          "id": "b1",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>SCHRITT FÜR SCHRITT</b>",
+          "x": 96,
+          "y": 160,
+          "w": 420,
+          "groesse": 26,
+          "farbe": "#FFFFFF",
+          "aus": "center",
+          "zeichen": 120,
+          "flaeche": {
+            "farbe": "#6366F1",
+            "rund": 60,
+            "innen": 14
+          }
+        },
+        {
+          "id": "b2",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>So geht [Funktion] in [App]</b>",
+          "x": 96,
+          "y": 260,
+          "w": 480,
+          "groesse": 82,
+          "abstand": 1.06,
+          "zeichen": -15
+        },
+        {
+          "id": "b3",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Mit Screenshots zum Nachmachen.",
+          "x": 96,
+          "y": 760,
+          "w": 440,
+          "groesse": 38,
+          "farbe": "#4B5563"
+        },
+        {
+          "id": "b4",
+          "typ": "bild",
+          "x": 600,
+          "y": 220,
+          "w": 400,
+          "h": 816,
+          "geraet": "handy",
+          "dreh": 6
+        },
+        {
+          "id": "b5",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Wisch weiter</b>",
+          "x": 96,
+          "y": 1190,
+          "w": 300,
+          "groesse": 32,
+          "farbe": "#6366F1"
+        },
+        {
+          "id": "b6",
+          "typ": "form",
+          "form": "pfeil",
+          "x": 341,
+          "y": 1188.04,
+          "w": 130,
+          "h": 50,
+          "fuellung": "#6366F1",
+          "staerke": 6
+        }
+      ],
+      "hg": {
+        "art": "verlauf",
+        "farbe": "#EEF2FF",
+        "farbe2": "#FCE7F3",
+        "winkel": 135
+      }
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b7",
+          "typ": "bild",
+          "x": 560,
+          "y": 170,
+          "w": 430,
+          "h": 878,
+          "geraet": "handy"
+        },
+        {
+          "id": "b8",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 190,
+          "w": 120,
+          "h": 120,
+          "fuellung": "#6366F1"
+        },
+        {
+          "id": "b9",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>1</b>",
+          "x": 96,
+          "y": 214,
+          "w": 120,
+          "groesse": 60,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        },
+        {
+          "id": "b10",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Tipp auf [Knopf]</b>",
+          "x": 96,
+          "y": 360,
+          "w": 430,
+          "groesse": 60,
+          "abstand": 1.08
+        },
+        {
+          "id": "b11",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wo du ihn findest und was danach passiert.",
+          "x": 96,
+          "y": 590,
+          "w": 420,
+          "groesse": 36,
+          "farbe": "#4B5563"
+        },
+        {
+          "id": "b12",
+          "typ": "form",
+          "form": "pfeil",
+          "x": 136,
+          "y": 835,
+          "w": 360,
+          "h": 50,
+          "fuellung": "#EC4899",
+          "staerke": 8
+        },
+        {
+          "id": "b13",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Schritt 1 von 3</b>",
+          "x": 96,
+          "y": 1190,
+          "w": 420,
+          "groesse": 30,
+          "farbe": "#6366F1"
+        }
+      ],
+      "hg": {
+        "art": "verlauf",
+        "farbe": "#EEF2FF",
+        "farbe2": "#FCE7F3",
+        "winkel": 135
+      }
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b14",
+          "typ": "bild",
+          "x": 560,
+          "y": 170,
+          "w": 430,
+          "h": 878,
+          "geraet": "handy"
+        },
+        {
+          "id": "b15",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 190,
+          "w": 120,
+          "h": 120,
+          "fuellung": "#6366F1"
+        },
+        {
+          "id": "b16",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>2</b>",
+          "x": 96,
+          "y": 214,
+          "w": 120,
+          "groesse": 60,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        },
+        {
+          "id": "b17",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Tipp auf [Knopf]</b>",
+          "x": 96,
+          "y": 360,
+          "w": 430,
+          "groesse": 60,
+          "abstand": 1.08
+        },
+        {
+          "id": "b18",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wo du ihn findest und was danach passiert.",
+          "x": 96,
+          "y": 590,
+          "w": 420,
+          "groesse": 36,
+          "farbe": "#4B5563"
+        },
+        {
+          "id": "b19",
+          "typ": "form",
+          "form": "pfeil",
+          "x": 136,
+          "y": 835,
+          "w": 360,
+          "h": 50,
+          "fuellung": "#EC4899",
+          "staerke": 8
+        },
+        {
+          "id": "b20",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Schritt 2 von 3</b>",
+          "x": 96,
+          "y": 1190,
+          "w": 420,
+          "groesse": 30,
+          "farbe": "#6366F1"
+        }
+      ],
+      "hg": {
+        "art": "verlauf",
+        "farbe": "#EEF2FF",
+        "farbe2": "#FCE7F3",
+        "winkel": 135
+      }
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b21",
+          "typ": "bild",
+          "x": 560,
+          "y": 170,
+          "w": 430,
+          "h": 878,
+          "geraet": "handy"
+        },
+        {
+          "id": "b22",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 190,
+          "w": 120,
+          "h": 120,
+          "fuellung": "#6366F1"
+        },
+        {
+          "id": "b23",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>3</b>",
+          "x": 96,
+          "y": 214,
+          "w": 120,
+          "groesse": 60,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        },
+        {
+          "id": "b24",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Tipp auf [Knopf]</b>",
+          "x": 96,
+          "y": 360,
+          "w": 430,
+          "groesse": 60,
+          "abstand": 1.08
+        },
+        {
+          "id": "b25",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wo du ihn findest und was danach passiert.",
+          "x": 96,
+          "y": 590,
+          "w": 420,
+          "groesse": 36,
+          "farbe": "#4B5563"
+        },
+        {
+          "id": "b26",
+          "typ": "form",
+          "form": "pfeil",
+          "x": 136,
+          "y": 835,
+          "w": 360,
+          "h": 50,
+          "fuellung": "#EC4899",
+          "staerke": 8
+        },
+        {
+          "id": "b27",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Schritt 3 von 3</b>",
+          "x": 96,
+          "y": 1190,
+          "w": 420,
+          "groesse": 30,
+          "farbe": "#6366F1"
+        }
+      ],
+      "hg": {
+        "art": "verlauf",
+        "farbe": "#EEF2FF",
+        "farbe2": "#FCE7F3",
+        "winkel": 135
+      }
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b28",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 190,
+          "w": 200,
+          "h": 200,
+          "fuellung": "#6366F1"
+        },
+        {
+          "id": "b29",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/party-popper",
+          "x": 141,
+          "y": 235,
+          "w": 110,
+          "h": 110,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b30",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Geschafft!</b>",
+          "x": 96,
+          "y": 450,
+          "w": 888,
+          "groesse": 120,
+          "zeichen": -20
+        },
+        {
+          "id": "b31",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Speicher dir die Anleitung und probier es gleich aus.",
+          "x": 96,
+          "y": 640,
+          "w": 800,
+          "groesse": 44,
+          "farbe": "#4B5563"
+        },
+        {
+          "id": "b32",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>KOMMENTIERE [STICHWORT]</b>",
+          "x": 96,
+          "y": 900,
+          "w": 760,
+          "groesse": 32,
+          "farbe": "#FFFFFF",
+          "aus": "center",
+          "zeichen": 60,
+          "flaeche": {
+            "farbe": "#6366F1",
+            "rund": 60,
+            "innen": 28
+          }
+        }
+      ],
+      "hg": {
+        "art": "verlauf",
+        "farbe": "#EEF2FF",
+        "farbe2": "#FCE7F3",
+        "winkel": 135
+      }
+    }
+  ]
+}

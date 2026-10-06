@@ -1,0 +1,1129 @@
+{
+  "vorlage": {
+    "titel": "Vergleich A gegen B",
+    "beschreibung": "Zwei Möglichkeiten Punkt für Punkt, am Ende ein klares Fazit."
+  },
+  "stil": {
+    "breite": 1080,
+    "hoehe": 1350,
+    "randX": 96,
+    "randOben": 300,
+    "randUnten": 94,
+    "titel": 88,
+    "textgroesse": 40,
+    "titelAbstand": 1.1,
+    "textAbstand": 1.42,
+    "bg": "#FFFFFF",
+    "text": "#1A1A2E",
+    "akzent": "#FF6B35",
+    "schrift": "Montserrat",
+    "palette": [
+      "#FF6B35",
+      "#1B998B",
+      "#1A1A2E",
+      "#FFFFFF",
+      "#FFF1EB",
+      "#E8F6F4"
+    ]
+  },
+  "slides": [
+    {
+      "bloecke": [
+        {
+          "id": "b1",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 0,
+          "y": 0,
+          "w": 540,
+          "h": 1350,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b2",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 540,
+          "y": 0,
+          "w": 540,
+          "h": 1350,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b3",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>WAS PASST BESSER?</b>",
+          "x": 96,
+          "y": 150,
+          "w": 888,
+          "groesse": 30,
+          "farbe": "#FFFFFF",
+          "aus": "center",
+          "zeichen": 220
+        },
+        {
+          "id": "b4",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[A]</b>",
+          "x": 40,
+          "y": 430,
+          "w": 460,
+          "groesse": 140,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        },
+        {
+          "id": "b5",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[B]</b>",
+          "x": 580,
+          "y": 430,
+          "w": 460,
+          "groesse": 140,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        },
+        {
+          "id": "b6",
+          "typ": "form",
+          "form": "kreis",
+          "x": 430,
+          "y": 700,
+          "w": 220,
+          "h": 220,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b7",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>VS</b>",
+          "x": 430,
+          "y": 760,
+          "w": 220,
+          "groesse": 84,
+          "farbe": "#1A1A2E",
+          "aus": "center"
+        },
+        {
+          "id": "b8",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Der ehrliche Vergleich in 4 Punkten</b>",
+          "x": 140,
+          "y": 1030,
+          "w": 800,
+          "groesse": 48,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b9",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>PUNKT 1 VON 4</b>",
+          "x": 96,
+          "y": 115,
+          "w": 500,
+          "groesse": 28,
+          "farbe": "#FF6B35",
+          "zeichen": 160
+        },
+        {
+          "id": "b10",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Kriterium 1], z. B. Preis</b>",
+          "x": 96,
+          "y": 165,
+          "w": 888,
+          "groesse": 72,
+          "abstand": 1.05
+        },
+        {
+          "id": "b11",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 420,
+          "w": 420,
+          "h": 640,
+          "fuellung": "#FFF1EB",
+          "ecken": 32
+        },
+        {
+          "id": "b12",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[A]</b>",
+          "x": 136,
+          "y": 460,
+          "w": 340,
+          "groesse": 56,
+          "farbe": "#FF6B35"
+        },
+        {
+          "id": "b13",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wie [A] hier abschneidet, in ein bis zwei Sätzen.",
+          "x": 136,
+          "y": 570,
+          "w": 340,
+          "groesse": 36,
+          "farbe": "#1A1A2E"
+        },
+        {
+          "id": "b14",
+          "typ": "form",
+          "form": "kreis",
+          "x": 136,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b15",
+          "typ": "form",
+          "form": "kreis",
+          "x": 198,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b16",
+          "typ": "form",
+          "form": "kreis",
+          "x": 260,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b17",
+          "typ": "form",
+          "form": "kreis",
+          "x": 322,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b18",
+          "typ": "form",
+          "form": "kreis",
+          "x": 384,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#FF6B35"
+          }
+        },
+        {
+          "id": "b19",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 564,
+          "y": 420,
+          "w": 420,
+          "h": 640,
+          "fuellung": "#E8F6F4",
+          "ecken": 32
+        },
+        {
+          "id": "b20",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[B]</b>",
+          "x": 604,
+          "y": 460,
+          "w": 340,
+          "groesse": 56,
+          "farbe": "#1B998B"
+        },
+        {
+          "id": "b21",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wie [B] hier abschneidet, in ein bis zwei Sätzen.",
+          "x": 604,
+          "y": 570,
+          "w": 340,
+          "groesse": 36,
+          "farbe": "#1A1A2E"
+        },
+        {
+          "id": "b22",
+          "typ": "form",
+          "form": "kreis",
+          "x": 604,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b23",
+          "typ": "form",
+          "form": "kreis",
+          "x": 666,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b24",
+          "typ": "form",
+          "form": "kreis",
+          "x": 728,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b25",
+          "typ": "form",
+          "form": "kreis",
+          "x": 790,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#1B998B"
+          }
+        },
+        {
+          "id": "b26",
+          "typ": "form",
+          "form": "kreis",
+          "x": 852,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#1B998B"
+          }
+        },
+        {
+          "id": "b27",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 1110,
+          "w": 888,
+          "h": 120,
+          "fuellung": "#1A1A2E",
+          "ecken": 28
+        },
+        {
+          "id": "b28",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Punkt geht an:</b> [A oder B]",
+          "x": 96,
+          "y": 1146,
+          "w": 888,
+          "groesse": 38,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b29",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>PUNKT 2 VON 4</b>",
+          "x": 96,
+          "y": 115,
+          "w": 500,
+          "groesse": 28,
+          "farbe": "#FF6B35",
+          "zeichen": 160
+        },
+        {
+          "id": "b30",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Kriterium 2], z. B. Preis</b>",
+          "x": 96,
+          "y": 165,
+          "w": 888,
+          "groesse": 72,
+          "abstand": 1.05
+        },
+        {
+          "id": "b31",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 420,
+          "w": 420,
+          "h": 640,
+          "fuellung": "#FFF1EB",
+          "ecken": 32
+        },
+        {
+          "id": "b32",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[A]</b>",
+          "x": 136,
+          "y": 460,
+          "w": 340,
+          "groesse": 56,
+          "farbe": "#FF6B35"
+        },
+        {
+          "id": "b33",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wie [A] hier abschneidet, in ein bis zwei Sätzen.",
+          "x": 136,
+          "y": 570,
+          "w": 340,
+          "groesse": 36,
+          "farbe": "#1A1A2E"
+        },
+        {
+          "id": "b34",
+          "typ": "form",
+          "form": "kreis",
+          "x": 136,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b35",
+          "typ": "form",
+          "form": "kreis",
+          "x": 198,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b36",
+          "typ": "form",
+          "form": "kreis",
+          "x": 260,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b37",
+          "typ": "form",
+          "form": "kreis",
+          "x": 322,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b38",
+          "typ": "form",
+          "form": "kreis",
+          "x": 384,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#FF6B35"
+          }
+        },
+        {
+          "id": "b39",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 564,
+          "y": 420,
+          "w": 420,
+          "h": 640,
+          "fuellung": "#E8F6F4",
+          "ecken": 32
+        },
+        {
+          "id": "b40",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[B]</b>",
+          "x": 604,
+          "y": 460,
+          "w": 340,
+          "groesse": 56,
+          "farbe": "#1B998B"
+        },
+        {
+          "id": "b41",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wie [B] hier abschneidet, in ein bis zwei Sätzen.",
+          "x": 604,
+          "y": 570,
+          "w": 340,
+          "groesse": 36,
+          "farbe": "#1A1A2E"
+        },
+        {
+          "id": "b42",
+          "typ": "form",
+          "form": "kreis",
+          "x": 604,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b43",
+          "typ": "form",
+          "form": "kreis",
+          "x": 666,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b44",
+          "typ": "form",
+          "form": "kreis",
+          "x": 728,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b45",
+          "typ": "form",
+          "form": "kreis",
+          "x": 790,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#1B998B"
+          }
+        },
+        {
+          "id": "b46",
+          "typ": "form",
+          "form": "kreis",
+          "x": 852,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#1B998B"
+          }
+        },
+        {
+          "id": "b47",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 1110,
+          "w": 888,
+          "h": 120,
+          "fuellung": "#1A1A2E",
+          "ecken": 28
+        },
+        {
+          "id": "b48",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Punkt geht an:</b> [A oder B]",
+          "x": 96,
+          "y": 1146,
+          "w": 888,
+          "groesse": 38,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b49",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>PUNKT 3 VON 4</b>",
+          "x": 96,
+          "y": 115,
+          "w": 500,
+          "groesse": 28,
+          "farbe": "#FF6B35",
+          "zeichen": 160
+        },
+        {
+          "id": "b50",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Kriterium 3], z. B. Preis</b>",
+          "x": 96,
+          "y": 165,
+          "w": 888,
+          "groesse": 72,
+          "abstand": 1.05
+        },
+        {
+          "id": "b51",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 420,
+          "w": 420,
+          "h": 640,
+          "fuellung": "#FFF1EB",
+          "ecken": 32
+        },
+        {
+          "id": "b52",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[A]</b>",
+          "x": 136,
+          "y": 460,
+          "w": 340,
+          "groesse": 56,
+          "farbe": "#FF6B35"
+        },
+        {
+          "id": "b53",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wie [A] hier abschneidet, in ein bis zwei Sätzen.",
+          "x": 136,
+          "y": 570,
+          "w": 340,
+          "groesse": 36,
+          "farbe": "#1A1A2E"
+        },
+        {
+          "id": "b54",
+          "typ": "form",
+          "form": "kreis",
+          "x": 136,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b55",
+          "typ": "form",
+          "form": "kreis",
+          "x": 198,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b56",
+          "typ": "form",
+          "form": "kreis",
+          "x": 260,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b57",
+          "typ": "form",
+          "form": "kreis",
+          "x": 322,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b58",
+          "typ": "form",
+          "form": "kreis",
+          "x": 384,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#FF6B35"
+          }
+        },
+        {
+          "id": "b59",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 564,
+          "y": 420,
+          "w": 420,
+          "h": 640,
+          "fuellung": "#E8F6F4",
+          "ecken": 32
+        },
+        {
+          "id": "b60",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[B]</b>",
+          "x": 604,
+          "y": 460,
+          "w": 340,
+          "groesse": 56,
+          "farbe": "#1B998B"
+        },
+        {
+          "id": "b61",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wie [B] hier abschneidet, in ein bis zwei Sätzen.",
+          "x": 604,
+          "y": 570,
+          "w": 340,
+          "groesse": 36,
+          "farbe": "#1A1A2E"
+        },
+        {
+          "id": "b62",
+          "typ": "form",
+          "form": "kreis",
+          "x": 604,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b63",
+          "typ": "form",
+          "form": "kreis",
+          "x": 666,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b64",
+          "typ": "form",
+          "form": "kreis",
+          "x": 728,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b65",
+          "typ": "form",
+          "form": "kreis",
+          "x": 790,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#1B998B"
+          }
+        },
+        {
+          "id": "b66",
+          "typ": "form",
+          "form": "kreis",
+          "x": 852,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#1B998B"
+          }
+        },
+        {
+          "id": "b67",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 1110,
+          "w": 888,
+          "h": 120,
+          "fuellung": "#1A1A2E",
+          "ecken": 28
+        },
+        {
+          "id": "b68",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Punkt geht an:</b> [A oder B]",
+          "x": 96,
+          "y": 1146,
+          "w": 888,
+          "groesse": 38,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b69",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>PUNKT 4 VON 4</b>",
+          "x": 96,
+          "y": 115,
+          "w": 500,
+          "groesse": 28,
+          "farbe": "#FF6B35",
+          "zeichen": 160
+        },
+        {
+          "id": "b70",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Kriterium 4], z. B. Preis</b>",
+          "x": 96,
+          "y": 165,
+          "w": 888,
+          "groesse": 72,
+          "abstand": 1.05
+        },
+        {
+          "id": "b71",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 420,
+          "w": 420,
+          "h": 640,
+          "fuellung": "#FFF1EB",
+          "ecken": 32
+        },
+        {
+          "id": "b72",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[A]</b>",
+          "x": 136,
+          "y": 460,
+          "w": 340,
+          "groesse": 56,
+          "farbe": "#FF6B35"
+        },
+        {
+          "id": "b73",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wie [A] hier abschneidet, in ein bis zwei Sätzen.",
+          "x": 136,
+          "y": 570,
+          "w": 340,
+          "groesse": 36,
+          "farbe": "#1A1A2E"
+        },
+        {
+          "id": "b74",
+          "typ": "form",
+          "form": "kreis",
+          "x": 136,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b75",
+          "typ": "form",
+          "form": "kreis",
+          "x": 198,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b76",
+          "typ": "form",
+          "form": "kreis",
+          "x": 260,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b77",
+          "typ": "form",
+          "form": "kreis",
+          "x": 322,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#FF6B35"
+        },
+        {
+          "id": "b78",
+          "typ": "form",
+          "form": "kreis",
+          "x": 384,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#FF6B35"
+          }
+        },
+        {
+          "id": "b79",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 564,
+          "y": 420,
+          "w": 420,
+          "h": 640,
+          "fuellung": "#E8F6F4",
+          "ecken": 32
+        },
+        {
+          "id": "b80",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[B]</b>",
+          "x": 604,
+          "y": 460,
+          "w": 340,
+          "groesse": 56,
+          "farbe": "#1B998B"
+        },
+        {
+          "id": "b81",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Wie [B] hier abschneidet, in ein bis zwei Sätzen.",
+          "x": 604,
+          "y": 570,
+          "w": 340,
+          "groesse": 36,
+          "farbe": "#1A1A2E"
+        },
+        {
+          "id": "b82",
+          "typ": "form",
+          "form": "kreis",
+          "x": 604,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b83",
+          "typ": "form",
+          "form": "kreis",
+          "x": 666,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b84",
+          "typ": "form",
+          "form": "kreis",
+          "x": 728,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "#1B998B"
+        },
+        {
+          "id": "b85",
+          "typ": "form",
+          "form": "kreis",
+          "x": 790,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#1B998B"
+          }
+        },
+        {
+          "id": "b86",
+          "typ": "form",
+          "form": "kreis",
+          "x": 852,
+          "y": 950,
+          "w": 44,
+          "h": 44,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 4,
+            "farbe": "#1B998B"
+          }
+        },
+        {
+          "id": "b87",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 1110,
+          "w": 888,
+          "h": 120,
+          "fuellung": "#1A1A2E",
+          "ecken": 28
+        },
+        {
+          "id": "b88",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Punkt geht an:</b> [A oder B]",
+          "x": 96,
+          "y": 1146,
+          "w": 888,
+          "groesse": 38,
+          "farbe": "#FFFFFF",
+          "aus": "center"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b89",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Mein Fazit</b>",
+          "x": 96,
+          "y": 140,
+          "w": 888,
+          "groesse": 104
+        },
+        {
+          "id": "b90",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 390,
+          "w": 888,
+          "h": 310,
+          "fuellung": "#FF6B35",
+          "ecken": 32
+        },
+        {
+          "id": "b91",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Nimm [A], wenn …</b>",
+          "x": 144,
+          "y": 440,
+          "w": 792,
+          "groesse": 52,
+          "farbe": "#FFFFFF"
+        },
+        {
+          "id": "b92",
+          "typ": "text",
+          "rolle": "text",
+          "text": "dein Grund in einem Satz.",
+          "x": 144,
+          "y": 540,
+          "w": 792,
+          "groesse": 38,
+          "farbe": "#FFFFFF"
+        },
+        {
+          "id": "b93",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 96,
+          "y": 760,
+          "w": 888,
+          "h": 310,
+          "fuellung": "#1B998B",
+          "ecken": 32
+        },
+        {
+          "id": "b94",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Nimm [B], wenn …</b>",
+          "x": 144,
+          "y": 810,
+          "w": 792,
+          "groesse": 52,
+          "farbe": "#FFFFFF"
+        },
+        {
+          "id": "b95",
+          "typ": "text",
+          "rolle": "text",
+          "text": "dein Grund in einem Satz.",
+          "x": 144,
+          "y": 910,
+          "w": 792,
+          "groesse": 38,
+          "farbe": "#FFFFFF"
+        },
+        {
+          "id": "b96",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Was nutzt du? Schreib es in die Kommentare.",
+          "x": 96,
+          "y": 1150,
+          "w": 888,
+          "groesse": 38,
+          "farbe": "#55556A"
+        }
+      ]
+    }
+  ]
+}

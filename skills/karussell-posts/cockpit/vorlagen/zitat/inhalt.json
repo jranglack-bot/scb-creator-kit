@@ -1,0 +1,598 @@
+{
+  "vorlage": {
+    "titel": "Zitate und Gedanken",
+    "beschreibung": "Ein Satz pro Folie, ruhig und edel, zum Speichern und Teilen."
+  },
+  "stil": {
+    "breite": 1080,
+    "hoehe": 1350,
+    "randX": 96,
+    "randOben": 300,
+    "randUnten": 94,
+    "titel": 88,
+    "textgroesse": 40,
+    "titelAbstand": 1.1,
+    "textAbstand": 1.42,
+    "bg": "#F5EFE6",
+    "text": "#2B2118",
+    "akzent": "#C8553D",
+    "schrift": "Lora",
+    "palette": [
+      "#C8553D",
+      "#2B2118",
+      "#F5EFE6",
+      "#E3D5C3"
+    ]
+  },
+  "slides": [
+    {
+      "bloecke": [
+        {
+          "id": "b1",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 44,
+          "y": 44,
+          "w": 992,
+          "h": 1262,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 2,
+            "farbe": "#C8553D"
+          },
+          "deckkraft": 55
+        },
+        {
+          "id": "b2",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>“</f>",
+          "x": 96,
+          "y": 40,
+          "w": 400,
+          "groesse": 420,
+          "farbe": "#C8553D",
+          "abstand": 0.75
+        },
+        {
+          "id": "b3",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display><i>Gedanken über [Thema], die bleiben</i></f>",
+          "x": 96,
+          "y": 430,
+          "w": 888,
+          "groesse": 100,
+          "abstand": 1.1
+        },
+        {
+          "id": "b4",
+          "typ": "text",
+          "rolle": "text",
+          "text": "[Anzahl] Sätze zum Speichern",
+          "x": 96,
+          "y": 860,
+          "w": 760,
+          "groesse": 40,
+          "farbe": "#6B5B4E"
+        },
+        {
+          "id": "b5",
+          "typ": "form",
+          "form": "linie",
+          "x": 96,
+          "y": 1186,
+          "w": 80,
+          "h": 20,
+          "fuellung": "#C8553D",
+          "staerke": 3
+        },
+        {
+          "id": "b6",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>WISCH WEITER</b>",
+          "x": 201,
+          "y": 1182,
+          "w": 400,
+          "groesse": 26,
+          "farbe": "#C8553D",
+          "zeichen": 200
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b7",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 44,
+          "y": 44,
+          "w": 992,
+          "h": 1262,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 2,
+            "farbe": "#C8553D"
+          },
+          "deckkraft": 55
+        },
+        {
+          "id": "b8",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>01</b>",
+          "x": 96,
+          "y": 120,
+          "w": 120,
+          "groesse": 32,
+          "farbe": "#C8553D",
+          "zeichen": 100
+        },
+        {
+          "id": "b9",
+          "typ": "form",
+          "form": "linie",
+          "x": 176,
+          "y": 130,
+          "w": 220,
+          "h": 20,
+          "fuellung": "#C8553D",
+          "staerke": 2
+        },
+        {
+          "id": "b10",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>“</f>",
+          "x": 96,
+          "y": 190,
+          "w": 300,
+          "groesse": 280,
+          "farbe": "#C8553D",
+          "abstand": 0.75
+        },
+        {
+          "id": "b11",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display><i>Hier steht der Satz, der hängen bleibt. Kurz, klar und ehrlich.</i></f>",
+          "x": 96,
+          "y": 430,
+          "w": 888,
+          "groesse": 82,
+          "abstand": 1.2
+        },
+        {
+          "id": "b12",
+          "typ": "form",
+          "form": "linie",
+          "x": 96,
+          "y": 1000,
+          "w": 60,
+          "h": 20,
+          "fuellung": "#2B2118",
+          "staerke": 3
+        },
+        {
+          "id": "b13",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Name, Quelle",
+          "x": 176,
+          "y": 992,
+          "w": 600,
+          "groesse": 36,
+          "farbe": "#6B5B4E"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b14",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 44,
+          "y": 44,
+          "w": 992,
+          "h": 1262,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 2,
+            "farbe": "#C8553D"
+          },
+          "deckkraft": 55
+        },
+        {
+          "id": "b15",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>02</b>",
+          "x": 96,
+          "y": 120,
+          "w": 120,
+          "groesse": 32,
+          "farbe": "#C8553D",
+          "zeichen": 100
+        },
+        {
+          "id": "b16",
+          "typ": "form",
+          "form": "linie",
+          "x": 176,
+          "y": 130,
+          "w": 220,
+          "h": 20,
+          "fuellung": "#C8553D",
+          "staerke": 2
+        },
+        {
+          "id": "b17",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>“</f>",
+          "x": 96,
+          "y": 190,
+          "w": 300,
+          "groesse": 280,
+          "farbe": "#C8553D",
+          "abstand": 0.75
+        },
+        {
+          "id": "b18",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display><i>Hier steht der Satz, der hängen bleibt. Kurz, klar und ehrlich.</i></f>",
+          "x": 96,
+          "y": 430,
+          "w": 888,
+          "groesse": 82,
+          "abstand": 1.2
+        },
+        {
+          "id": "b19",
+          "typ": "form",
+          "form": "linie",
+          "x": 96,
+          "y": 1000,
+          "w": 60,
+          "h": 20,
+          "fuellung": "#2B2118",
+          "staerke": 3
+        },
+        {
+          "id": "b20",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Name, Quelle",
+          "x": 176,
+          "y": 992,
+          "w": 600,
+          "groesse": 36,
+          "farbe": "#6B5B4E"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b21",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 44,
+          "y": 44,
+          "w": 992,
+          "h": 1262,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 2,
+            "farbe": "#C8553D"
+          },
+          "deckkraft": 55
+        },
+        {
+          "id": "b22",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>03</b>",
+          "x": 96,
+          "y": 120,
+          "w": 120,
+          "groesse": 32,
+          "farbe": "#C8553D",
+          "zeichen": 100
+        },
+        {
+          "id": "b23",
+          "typ": "form",
+          "form": "linie",
+          "x": 176,
+          "y": 130,
+          "w": 220,
+          "h": 20,
+          "fuellung": "#C8553D",
+          "staerke": 2
+        },
+        {
+          "id": "b24",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>“</f>",
+          "x": 96,
+          "y": 190,
+          "w": 300,
+          "groesse": 280,
+          "farbe": "#C8553D",
+          "abstand": 0.75
+        },
+        {
+          "id": "b25",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display><i>Hier steht der Satz, der hängen bleibt. Kurz, klar und ehrlich.</i></f>",
+          "x": 96,
+          "y": 430,
+          "w": 888,
+          "groesse": 82,
+          "abstand": 1.2
+        },
+        {
+          "id": "b26",
+          "typ": "form",
+          "form": "linie",
+          "x": 96,
+          "y": 1000,
+          "w": 60,
+          "h": 20,
+          "fuellung": "#2B2118",
+          "staerke": 3
+        },
+        {
+          "id": "b27",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Name, Quelle",
+          "x": 176,
+          "y": 992,
+          "w": 600,
+          "groesse": 36,
+          "farbe": "#6B5B4E"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b28",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 44,
+          "y": 44,
+          "w": 992,
+          "h": 1262,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 2,
+            "farbe": "#C8553D"
+          },
+          "deckkraft": 55
+        },
+        {
+          "id": "b29",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>04</b>",
+          "x": 96,
+          "y": 120,
+          "w": 120,
+          "groesse": 32,
+          "farbe": "#C8553D",
+          "zeichen": 100
+        },
+        {
+          "id": "b30",
+          "typ": "form",
+          "form": "linie",
+          "x": 176,
+          "y": 130,
+          "w": 220,
+          "h": 20,
+          "fuellung": "#C8553D",
+          "staerke": 2
+        },
+        {
+          "id": "b31",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>“</f>",
+          "x": 96,
+          "y": 190,
+          "w": 300,
+          "groesse": 280,
+          "farbe": "#C8553D",
+          "abstand": 0.75
+        },
+        {
+          "id": "b32",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display><i>Hier steht der Satz, der hängen bleibt. Kurz, klar und ehrlich.</i></f>",
+          "x": 96,
+          "y": 430,
+          "w": 888,
+          "groesse": 82,
+          "abstand": 1.2
+        },
+        {
+          "id": "b33",
+          "typ": "form",
+          "form": "linie",
+          "x": 96,
+          "y": 1000,
+          "w": 60,
+          "h": 20,
+          "fuellung": "#2B2118",
+          "staerke": 3
+        },
+        {
+          "id": "b34",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Name, Quelle",
+          "x": 176,
+          "y": 992,
+          "w": 600,
+          "groesse": 36,
+          "farbe": "#6B5B4E"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b35",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 44,
+          "y": 44,
+          "w": 992,
+          "h": 1262,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 2,
+            "farbe": "#C8553D"
+          },
+          "deckkraft": 55
+        },
+        {
+          "id": "b36",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display><i>Welcher Satz trifft dich gerade?</i></f>",
+          "x": 96,
+          "y": 260,
+          "w": 888,
+          "groesse": 100,
+          "abstand": 1.1
+        },
+        {
+          "id": "b37",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Schreib die Nummer in die Kommentare und speicher dir die Sätze.",
+          "x": 96,
+          "y": 640,
+          "w": 820,
+          "groesse": 42,
+          "farbe": "#6B5B4E"
+        },
+        {
+          "id": "b38",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 880,
+          "w": 120,
+          "h": 120,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 3,
+            "farbe": "#C8553D"
+          }
+        },
+        {
+          "id": "b39",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>1</f>",
+          "x": 96,
+          "y": 902,
+          "w": 120,
+          "groesse": 56,
+          "farbe": "#C8553D",
+          "aus": "center"
+        },
+        {
+          "id": "b40",
+          "typ": "form",
+          "form": "kreis",
+          "x": 256,
+          "y": 880,
+          "w": 120,
+          "h": 120,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 3,
+            "farbe": "#C8553D"
+          }
+        },
+        {
+          "id": "b41",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>2</f>",
+          "x": 256,
+          "y": 902,
+          "w": 120,
+          "groesse": 56,
+          "farbe": "#C8553D",
+          "aus": "center"
+        },
+        {
+          "id": "b42",
+          "typ": "form",
+          "form": "kreis",
+          "x": 416,
+          "y": 880,
+          "w": 120,
+          "h": 120,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 3,
+            "farbe": "#C8553D"
+          }
+        },
+        {
+          "id": "b43",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>3</f>",
+          "x": 416,
+          "y": 902,
+          "w": 120,
+          "groesse": 56,
+          "farbe": "#C8553D",
+          "aus": "center"
+        },
+        {
+          "id": "b44",
+          "typ": "form",
+          "form": "kreis",
+          "x": 576,
+          "y": 880,
+          "w": 120,
+          "h": 120,
+          "fuellung": "keine",
+          "rand": {
+            "breite": 3,
+            "farbe": "#C8553D"
+          }
+        },
+        {
+          "id": "b45",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<f=Playfair Display>4</f>",
+          "x": 576,
+          "y": 902,
+          "w": 120,
+          "groesse": 56,
+          "farbe": "#C8553D",
+          "aus": "center"
+        }
+      ]
+    }
+  ]
+}

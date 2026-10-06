@@ -20,6 +20,10 @@
 .slide *{margin:0;padding:0;box-sizing:border-box}
 .slide .box{position:absolute}
 .slide .box.bild{overflow:hidden}
+.slide .box.bild .bildschirm{position:absolute;overflow:hidden}
+.slide .box.bild .geraetkoerper,.slide .box.bild .geraetoben,.slide .box.bild .maskenrand{
+  position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.slide .box.text.bildschrift{background-size:cover;background-position:center;background-repeat:no-repeat}
 .slide .box.bild .spiegel,.slide .box.bild .bildflaeche{position:absolute;inset:0}
 .slide .box.bild .bildflaeche{background-size:cover;background-position:center;background-repeat:no-repeat}
 .slide .box.form .formsvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}

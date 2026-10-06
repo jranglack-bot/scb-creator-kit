@@ -144,10 +144,14 @@ function abstandVon(b, st){
   if (b.abstand) return b.abstand;
   return (b.rolle === 'titel') ? st.titelAbstand : st.textAbstand;
 }
+// Nur gepruefte Werte, kurz und einzeilig: Namen landen auch in Hinweisen fuer k.py
 function nameVon(b){
-  if (b.typ === 'bild') return b.datei || 'Bild';
-  if (b.typ === 'form') return b.form === 'icon' ? 'Icon ' + String(b.icon || '').split('/').pop() : 'Form ' + (b.form || '');
-  const roh = String(b.text || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  if (b.typ === 'bild') return (typeof b.datei === 'string' && DATEI_OK.test(b.datei) && b.datei.slice(0, 40)) ||
+                               (istGeraet(b) ? GERAETE_NAMEN[b.geraet] + ' (leer)' : istMaske(b) ? 'Rahmen ' + MASKEN_NAMEN[b.maske] : 'Bild');
+  if (b.typ === 'form') return b.form === 'icon' ? 'Icon' + (ICON_OK.test(b.icon || '') ? ' ' + b.icon.split('/').pop() : '')
+                                                 : 'Form' + (FORMEN.indexOf(b.form) >= 0 ? ' ' + b.form : '');
+  // [^<>] statt [^>]: bleibt linear, auch bei Tausenden "<" ohne ">"
+  const roh = String(b.text || '').slice(0, 2000).replace(/<[^<>]*>/g, '').replace(/\s+/g, ' ').trim();
   return roh ? (roh.length > 24 ? roh.slice(0, 24) + '…' : roh) : 'leerer Text';
 }
 
@@ -180,14 +184,17 @@ function blockBauen(b){
   el.className = 'box ' + (b.typ === 'bild' ? 'bild' : 'text') +
                  (b.rolle === 'titel' ? ' b-titel' : '') + (b.fett ? ' fett' : '');
   el.dataset.art = b.id;
+  if (b.nahtlos && frei(b)) el.dataset.nahtlos = '1';   // je Box, nicht je ID (IDs koennen doppelt sein)
   if (b.typ === 'bild'){
     // Box (Rahmen, Ecken, Schatten, Deckkraft) > .spiegel (Spiegeln um die Mitte)
     // > .bildflaeche (Bild als cover, Ausschnitt, Filter)
     const sp = document.createElement('div'); sp.className = 'spiegel';
     const fl = document.createElement('div'); fl.className = 'bildflaeche';
-    fl.style.backgroundImage = bildUrl(b.datei);
+    if (b.datei) fl.style.backgroundImage = bildUrl(b.datei);   // leer: Platzhalter aus dem Cockpit-CSS
     sp.appendChild(fl); el.appendChild(sp);
     el.dataset.datei = b.datei || '';   // stil.css erkennt daran die Prompt-Kacheln
+    if (!b.datei) el.classList.add('leer');
+    if (istGeraet(b)) el.classList.add('geraet');
     bildWirkung(el, b);
   }
   else if (b.typ === 'form'){
@@ -213,11 +220,15 @@ function blockBauen(b){
 
 // ------------------------------------------------------------ Formen
 const FARBE_OK = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+const MAX_BLOECKE = 200;                         // je Folie, wie in bauen.py
 const ICON_OK = /^(lucide|tabler|tabler-voll)\/[a-z0-9-]{1,80}$/;
 const DATEI_OK = /^[A-Za-z0-9_][A-Za-z0-9_.\-]*(\/[A-Za-z0-9_][A-Za-z0-9_.\-]*)*$/;
 const FORMEN = ['rechteck', 'kreis', 'dreieck', 'raute', 'stern', 'linie', 'pfeil'];
 
-function farbeOder(v, std){ return FARBE_OK.test(String(v || '')) ? v : std; }
+function farbeOder(v, std){ return typeof v === 'string' && FARBE_OK.test(v) ? v : std; }
+// Nur echte Namen aus den Listen, nie Objekte oder Prototyp-Schluessel aus einer fremden Datei
+function istGeraet(b){ return !!b && typeof b.geraet === 'string' && Object.prototype.hasOwnProperty.call(GERAETE, b.geraet); }
+function istMaske(b){ return !!b && typeof b.maske === 'string' && MASKEN.indexOf(b.maske) >= 0; }
 function zahlOder(v, std){ const n = +v; return (v !== null && v !== '' && isFinite(n)) ? n : std; }
 // Bilddatei nur mit harmlosen Zeichen in eine CSS-url (wie P.DATEI in projekt.py)
 function bildUrl(d){ return DATEI_OK.test(String(d || '')) ? 'url("' + BASIS + d + '")' : 'none'; }
@@ -271,6 +282,160 @@ function formSvg(b, w, h){
   return '<svg class="formsvg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' + inhalt + '</svg>';
 }
 
+// ------------------------------------------------------------ Bild in Form, Geraete-Rahmen
+// maske: das Bild wird in eine Form geschnitten (CSS-Maske aus einem SVG).
+// geraet: das Bild sitzt als Bildschirm in einem gezeichneten Geraet.
+// Beides zeichnet renderSlide, sobald die Groesse feststeht; fuer die
+// Canva-Datei rastert der Browser es (braucht_raster in bauen.py).
+const MASKEN = ['kreis', 'bogen', 'herz', 'stern', 'sechseck', 'blob', 'raute', 'dreieck'];
+const MASKEN_NAMEN = {kreis: 'Kreis', bogen: 'Bogen', herz: 'Herz', stern: 'Stern', sechseck: 'Sechseck',
+                      blob: 'Organisch', raute: 'Raute', dreieck: 'Dreieck'};
+// Seitenverhaeltnis Breite/Hoehe, 0 = frei
+const GERAETE = {handy: 0.49, tablet: 0.75, laptop: 1.6, browser: 0};
+const GERAETE_NAMEN = {handy: 'Handy', tablet: 'Tablet', laptop: 'Laptop', browser: 'Browserfenster'};
+const GERAET_FARBE = {handy: '#1d1d1f', tablet: '#1d1d1f', laptop: '#2b2c2f', browser: '#e9ebee'};
+// Formen im Feld 0..100, nur absolute M/L/C/Z mit Zahlenpaaren (werden auf die Box skaliert)
+const MASKE_PFAD = {
+  herz: 'M50,94 C34,82 4,64 4,36 C4,18 17,6 31,6 C40,6 46,11 50,18 C54,11 60,6 69,6 C83,6 96,18 96,36 C96,64 66,82 50,94 Z',
+  blob: 'M52,4 C70,3 88,13 95,30 C102,48 96,68 84,82 C72,96 52,100 35,94 C18,88 4,74 2,56 C0,38 8,22 22,12 C31,6 41,4 52,4 Z',
+  sechseck: 'M25,0 L75,0 L100,50 L75,100 L25,100 L0,50 Z',
+  raute: 'M50,0 L100,50 L50,100 L0,50 Z',
+  dreieck: 'M50,0 L100,100 L0,100 Z'
+};
+(function(){                                   // Stern aus sternPunkte, auf 0..100 gebracht
+  const p = sternPunkte(), xs = p.map(q => q[0]), ys = p.map(q => q[1]);
+  const x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+  const y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+  MASKE_PFAD.stern = p.map((q, i) => (i ? 'L' : 'M') + ((q[0] - x0) / (x1 - x0) * 100).toFixed(2) + ',' +
+                                     ((q[1] - y0) / (y1 - y0) * 100).toFixed(2)).join(' ') + ' Z';
+})();
+
+// Umriss als SVG-Element in Box-Pixeln. e = Einzug (fuer einen Rand, der sonst
+// an der Boxkante halb abgeschnitten wuerde).
+function maskeForm(form, w, h, attr, e){
+  e = e || 0;
+  const W = Math.max(1, w - 2 * e), H = Math.max(1, h - 2 * e), f = n => (+n).toFixed(2);
+  if (form === 'kreis')
+    return '<ellipse cx="' + f(w / 2) + '" cy="' + f(h / 2) + '" rx="' + f(W / 2) + '" ry="' + f(H / 2) + '" ' + attr + '/>';
+  if (form === 'bogen'){
+    const rx = W / 2, ry = Math.min(W / 2, H);
+    return '<path d="M' + f(e) + ',' + f(e + H) + ' L' + f(e) + ',' + f(e + ry) + ' A' + f(rx) + ',' + f(ry) +
+           ' 0 0 1 ' + f(e + W) + ',' + f(e + ry) + ' L' + f(e + W) + ',' + f(e + H) + ' Z" ' + attr + '/>';
+  }
+  const roh = Object.prototype.hasOwnProperty.call(MASKE_PFAD, form) ? MASKE_PFAD[form] : '';
+  if (!roh) return '';
+  let i = 0;                                   // Zahlen abwechselnd als x und y skalieren
+  const d = roh.replace(/-?\d+(\.\d+)?/g, z => (i++ % 2 === 0 ? f(e + z / 100 * W) : f(e + z / 100 * H)));
+  return '<path d="' + d + '" ' + attr + '/>';
+}
+// Als CSS-Maske. Ohne Klammern und Hochkommas, damit url(...) ueberall sauber bleibt.
+function maskeUrl(form, w, h, e){
+  if (!e && form !== 'bogen'){ w = 100; h = 100; }   // gestreckt identisch, der Browser teilt sie sich
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w.toFixed(2) + ' ' + h.toFixed(2) +
+              '" preserveAspectRatio="none">' + maskeForm(form, w, h, 'fill="#fff"', e) + '</svg>';
+  return 'url("data:image/svg+xml,' + encodeURIComponent(svg).replace(/\(/g, '%28').replace(/\)/g, '%29')
+                                                               .replace(/'/g, '%27') + '")';
+}
+function maskeAnwenden(el, b, w, h){
+  const sp = el.querySelector('.spiegel');
+  if (!sp || !w || !h) return;
+  const r = b.rahmen || {}, s = Math.max(0, Math.min(60, +r.breite || 0));
+  const u = maskeUrl(b.maske, w, h, s / 2);
+  sp.style.webkitMaskImage = u; sp.style.maskImage = u;
+  sp.style.webkitMaskSize = sp.style.maskSize = '100% 100%';
+  sp.style.webkitMaskRepeat = sp.style.maskRepeat = 'no-repeat';
+  if (s){                                       // Rand folgt der Form
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'maskenrand');
+    svg.setAttribute('viewBox', '0 0 ' + w.toFixed(2) + ' ' + h.toFixed(2));
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.innerHTML = maskeForm(b.maske, w, h, 'fill="none" stroke="' + farbeOder(r.farbe, '#ffffff') +
+                              '" stroke-width="' + s + '" stroke-linejoin="round" vector-effect="non-scaling-stroke"', s / 2);
+    el.appendChild(svg);
+  }
+}
+
+function farbeHell(hex){
+  const h = String(hex).replace('#', ''), v = h.length < 6 ? h.split('').map(c => c + c).join('') : h.slice(0, 6);
+  const n = parseInt(v, 16) || 0;
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.6;
+}
+// Geraet in Box-Pixeln: Koerper (unter dem Bild), Bildschirm-Rechteck, Teile ueber dem Bild.
+// Passt die Box nicht zum Geraet, sitzt es mittig darin.
+function geraetTeile(typ, W, H, farbe){
+  const r = GERAETE[typ];
+  let w = W, h = H, ox = 0, oy = 0;
+  if (r){ if (W / H > r){ w = H * r; ox = (W - w) / 2; } else { h = W / r; oy = (H - h) / 2; } }
+  const f = n => (+n).toFixed(2), hell = farbeHell(farbe);
+  const kante = hell ? 'rgba(0,0,0,0.16)' : 'rgba(255,255,255,0.22)';
+  const R = (x, y, ww, hh, rr, fuell, extra) => '<rect x="' + f(ox + x) + '" y="' + f(oy + y) + '" width="' +
+    f(Math.max(0, ww)) + '" height="' + f(Math.max(0, hh)) + '" rx="' + f(Math.max(0, rr)) + '" fill="' + fuell + '"' + (extra || '') + '/>';
+  const rand = (rr, x, y, ww, hh) => R((x || 0) + 0.75, (y || 0) + 0.75, (ww || w) - 1.5, (hh || h) - 1.5, rr - 0.75, 'none',
+                                       ' stroke="' + kante + '" stroke-width="1.5"');
+  let k = '', o = '', s;
+  if (typ === 'handy'){
+    const rad = w * 0.15, b = w * 0.042, iw = w * 0.3, ih = w * 0.088;
+    k = R(0, 0, w, h, rad, farbe) + rand(rad);
+    s = {x: b, y: b, w: w - 2 * b, h: h - 2 * b, r: f(rad - b) + 'px', grund: '#0b0b0c'};
+    o = R((w - iw) / 2, b + w * 0.032, iw, ih, ih / 2, '#050505');
+  } else if (typ === 'tablet'){
+    const rad = w * 0.06, b = w * 0.048;
+    k = R(0, 0, w, h, rad, farbe) + rand(rad);
+    s = {x: b, y: b, w: w - 2 * b, h: h - 2 * b, r: f(rad * 0.45) + 'px', grund: '#0b0b0c'};
+    o = '<circle cx="' + f(ox + w / 2) + '" cy="' + f(oy + b / 2) + '" r="' + f(w * 0.009) + '" fill="' +
+        (hell ? '#9aa0a6' : '#3a3a3c') + '"/>';
+  } else if (typ === 'laptop'){
+    const dx = w * 0.075, dw = w - 2 * dx, dh = h * 0.915, rad = w * 0.022, b = w * 0.02, kinn = w * 0.032;
+    const fh = h - dh, rr = fh * 0.7;
+    k = R(dx, 0, dw, dh + rad, rad, farbe) + rand(rad, dx, 0, dw, dh + rad) +
+        '<path d="M' + f(ox) + ',' + f(oy + dh) + ' L' + f(ox + w) + ',' + f(oy + dh) + ' L' + f(ox + w) + ',' +
+        f(oy + h - rr) + ' Q' + f(ox + w) + ',' + f(oy + h) + ' ' + f(ox + w - rr) + ',' + f(oy + h) + ' L' +
+        f(ox + rr) + ',' + f(oy + h) + ' Q' + f(ox) + ',' + f(oy + h) + ' ' + f(ox) + ',' + f(oy + h - rr) + ' Z" fill="' +
+        farbe + '" stroke="' + kante + '" stroke-width="1.5"/>' +
+        R(w * 0.43, dh, w * 0.14, fh * 0.32, fh * 0.16, hell ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.35)');
+    s = {x: dx + b, y: b, w: dw - 2 * b, h: dh - b - kinn, r: f(rad * 0.35) + 'px', grund: '#0b0b0c'};
+    o = '<circle cx="' + f(ox + w / 2) + '" cy="' + f(oy + b / 2) + '" r="' + f(w * 0.004) + '" fill="#3a3a3c"/>';
+  } else {                                       // browser
+    const rad = Math.min(w, h) * 0.025, l = Math.min(h * 0.16, Math.max(w * 0.06, 26));
+    k = R(0, 0, w, h, rad, farbe) + rand(rad);
+    ['#ff5f57', '#febc2e', '#28c840'].forEach((c, i) => {
+      k += '<circle cx="' + f(ox + l * 0.55 + i * l * 0.5) + '" cy="' + f(oy + l / 2) + '" r="' + f(l * 0.14) + '" fill="' + c + '"/>';
+    });
+    k += R(l * 2.1, l * 0.22, w - l * 2.7, l * 0.56, l * 0.28, hell ? '#ffffff' : 'rgba(255,255,255,0.12)');
+    s = {x: 0, y: l, w: w, h: h - l, r: '0 0 ' + f(rad) + 'px ' + f(rad) + 'px', grund: '#ffffff'};
+  }
+  s.x += ox; s.y += oy;
+  return {koerper: k, schirm: s, oben: o};
+}
+function geraetBauen(el, b, w, h){
+  const sp = el.querySelector('.spiegel');
+  if (!sp || !w || !h) return;
+  const t = geraetTeile(b.geraet, w, h, farbeOder(b.geraetfarbe, GERAET_FARBE[b.geraet]));
+  const svg = (klasse, inhalt) => {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    e.setAttribute('class', klasse);
+    e.setAttribute('viewBox', '0 0 ' + w.toFixed(2) + ' ' + h.toFixed(2));
+    e.setAttribute('preserveAspectRatio', 'none');
+    e.innerHTML = inhalt;
+    return e;
+  };
+  const s = t.schirm, schirm = document.createElement('div');
+  schirm.className = 'bildschirm';
+  // in Prozent, damit beim Ziehen im Cockpit alles mitwaechst
+  schirm.style.left = (s.x / w * 100) + '%'; schirm.style.top = (s.y / h * 100) + '%';
+  schirm.style.width = (s.w / w * 100) + '%'; schirm.style.height = (s.h / h * 100) + '%';
+  schirm.style.borderRadius = s.r; schirm.style.background = s.grund;
+  el.insertBefore(svg('geraetkoerper', t.koerper), sp);
+  schirm.appendChild(sp);
+  el.appendChild(schirm);
+  if (t.oben) el.appendChild(svg('geraetoben', t.oben));
+}
+function rahmenZeichnen(el, b, w, h){
+  if (b.typ !== 'bild') return;
+  if (istGeraet(b)) geraetBauen(el, b, w, h);
+  else if (istMaske(b)) maskeAnwenden(el, b, w, h);
+}
+
 // Deckkraft und Schatten fuer Bilder und Formen (Schatten folgt der Form)
 function boxWirkung(el, b){
   el.style.opacity = (b.deckkraft !== undefined && +b.deckkraft < 100) ? Math.max(0, +b.deckkraft) / 100 : '';
@@ -301,6 +466,18 @@ function textWirkung(el, b){
   el.style.backgroundColor = fl ? farbeMitDeckkraft(farbeOder(fl.farbe, '#ffffff'), fl.deck === undefined ? 100 : fl.deck) : '';
   el.style.borderRadius = fl ? grenze(fl.rund, 0, 0, 2000) + 'px' : '';
   el.style.padding = fl ? (fl.innen === undefined ? 24 : grenze(fl.innen, 24, 0, 500)) + 'px' : '';
+  // Bild in der Schrift: das Foto fuellt die Buchstaben. Ein Schatten wirkt dann
+  // als drop-shadow, text-shadow laege sonst ueber dem Bild. Flaeche entfaellt.
+  const bf = typeof b.bildfuellung === 'string' && DATEI_OK.test(b.bildfuellung) ? b.bildfuellung : '';
+  el.classList.toggle('bildschrift', !!bf);
+  el.style.backgroundImage = bf ? 'url("' + BASIS + bf + '")' : '';
+  el.style.webkitBackgroundClip = el.style.backgroundClip = bf ? 'text' : '';
+  if (bf){
+    el.style.webkitTextFillColor = 'transparent';
+    el.style.backgroundColor = ''; el.style.borderRadius = ''; el.style.padding = '';
+    el.style.textShadow = '';
+    el.style.filter = b.schatten ? schattenCss(Object.assign({abstand: 6, weich: 10, deck: 50}, b.schatten)) : '';
+  } else el.style.filter = '';
 }
 
 // ------------------------------------------------------------ Folienhintergrund
@@ -361,9 +538,10 @@ function bildWirkung(el, b){
   if (f.sepia)            t.push('sepia(' + f.sepia + '%)');
   if (f.unschaerfe)       t.push('blur(' + Math.min(200, f.unschaerfe) + 'px)');
   fl.style.filter = t.join(' ');
-  el.style.borderRadius = b.ecken ? b.ecken + 'px' : '';
+  const eigen = istMaske(b) || istGeraet(b);
+  el.style.borderRadius = (b.ecken && !eigen) ? b.ecken + 'px' : '';
   const r = b.rahmen || {};
-  el.style.border = +r.breite ? r.breite + 'px solid ' + farbeOder(r.farbe, '#ffffff') : '';
+  el.style.border = (+r.breite && !eigen) ? r.breite + 'px solid ' + farbeOder(r.farbe, '#ffffff') : '';
   boxWirkung(el, b);
 }
 
@@ -389,7 +567,7 @@ function renderSlide(slide, stil, ziel){
   if (hg) el.style.background = hg;
   ziel.appendChild(el);
 
-  const bl = slide.bloecke || [];
+  const bl = (slide.bloecke || []).slice(0, MAX_BLOECKE);   // fremde Dateien mit Tausenden Bloecken
   bl.forEach((b, i) => { if (!b.id) b.id = 'b' + (i + 1); });
 
   const boxen = {};
@@ -431,10 +609,13 @@ function renderSlide(slide, stil, ziel){
     faktor *= 0.97;
   }
 
-  // Formen zeichnen, jetzt steht ihre Groesse fest
+  // Formen, Bild-Formen und Geraete zeichnen, jetzt steht ihre Groesse fest
   bl.forEach(b => {
     if (b.typ === 'form' && b.form !== 'icon' && layout[b.id])
       boxen[b.id].innerHTML = formSvg(b, layout[b.id].w, layout[b.id].h);
+    if (b.typ === 'bild' && layout[b.id])
+      rahmenZeichnen(boxen[b.id], b, +layout[b.id].w || boxen[b.id].offsetWidth,
+                     +layout[b.id].h || boxen[b.id].offsetHeight);
   });
 
   // Endgueltige Werte fuer den Export mitgeben
@@ -452,6 +633,295 @@ function renderSlide(slide, stil, ziel){
 
   ebenen(slide).forEach(k => { if (boxen[k]) el.appendChild(boxen[k]); });
   return {el: el, boxen: boxen, masse: {faktor: faktor, layout: layout}};
+}
+
+// ------------------------------------------------------------ Nahtloses Karussell
+// Ein frei gesetzter Block mit "nahtlos" darf ueber den Folienrand ragen und
+// laeuft auf der Nachbarfolie weiter (dort als Gast, eine Kopie seiner Box).
+// Wie eine durchgehende Leinwand von links nach rechts: Gaeste von frueheren
+// Folien liegen unter den eigenen Bloecken, Gaeste von spaeteren darueber.
+// Ohne "nahtlos" wird am Rand abgeschnitten wie bisher.
+function nahtlosBloecke(slide){
+  return (slide && slide.bloecke || []).filter(b => b && b.nahtlos && frei(b));
+}
+// Grenzen gegen fremde Dateien: Instagram erlaubt 20 Folien, mehr Gaeste braucht keine Folie
+const NAHTLOS_REICHWEITE = 19, NAHTLOS_MAX_GAESTE = 200;
+// cache: Map Folie -> ueberstehende Boxen, damit Minis und Buehne jede Nachbarfolie nur
+// einmal je Zeichnen unsichtbar aufbauen.
+function renderFolie(slides, i, stil, ziel, cache){
+  const r = renderSlide(slides[i], stil, ziel);
+  r.gaeste = [];
+  if (!Array.isArray(slides) || slides.length < 2) return r;
+  const B = +(Object.assign({}, STIL_STD, stil || {})).breite || 1080;
+  const unten = [], oben = [];
+  slides.forEach((s, m) => {
+    if (m === i || Math.abs(m - i) > NAHTLOS_REICHWEITE || r.gaeste.length >= NAHTLOS_MAX_GAESTE) return;
+    const abst = (m - i) * B;
+    // Vorpruefung aus den Daten: kann ein nahtloser Block diese Folie ueberhaupt erreichen?
+    const kandidat = nahtlosBloecke(s).some(b => {
+      const w = +b.w || 0, pad = +b.dreh ? Math.max(w, +b.h || w) : 0;
+      return +b.x + abst - pad < B && +b.x + w + abst + pad > 0;
+    });
+    if (!kandidat) return;
+    let teile = cache && cache.get(m);
+    if (!teile){
+      teile = [];
+      const tmp = document.createElement('div');
+      tmp.style.cssText = 'position:absolute;left:-40000px;top:0;visibility:hidden;pointer-events:none';
+      document.body.appendChild(tmp);
+      try {
+        const n = renderSlide(s, stil, tmp), s0 = n.el.getBoundingClientRect();
+        Array.prototype.forEach.call(n.el.children, bx => {         // in Stapelreihenfolge
+          if (!bx.classList || !bx.classList.contains('box') || bx.dataset.nahtlos !== '1') return;
+          const rr = bx.getBoundingClientRect();
+          teile.push({bx: bx, l: rr.left - s0.left, r: rr.right - s0.left});
+        });
+      } catch (e) { teile = []; }                // eine kaputte Nachbarfolie legt diese nicht lahm
+      finally { tmp.remove(); }
+      if (cache) cache.set(m, teile);
+    }
+    teile.forEach(o => {
+      if (r.gaeste.length >= NAHTLOS_MAX_GAESTE || o.r + abst <= 0.5 || o.l + abst >= B - 0.5) return;
+      const id = o.bx.dataset.art, g = o.bx.cloneNode(true);
+      g.classList.add('gast');
+      g.dataset.gast = (m + 1) + ':' + id;
+      g.dataset.art = 'gast-' + (m + 1) + '-' + id;
+      g.style.left = (parseFloat(o.bx.style.left) + abst) + 'px';
+      (m < i ? unten : oben).push(g);
+      r.gaeste.push({art: g.dataset.art, folie: m + 1, id: id, lage: m < i ? 'unten' : 'oben'});
+    });
+  });
+  const erstes = Array.prototype.find.call(r.el.children, x => x.classList && x.classList.contains('box'));
+  unten.forEach(g => r.el.insertBefore(g, erstes || null));
+  oben.forEach(g => r.el.appendChild(g));
+  return r;
+}
+
+// ------------------------------------------------------------ Instagram-Format
+// Das Profilraster zeigt jedes Vorschaubild als 3:4-Kachel (gemessen 05.10.2026):
+// was breiter ist (4:5), verliert links und rechts, was hoeher ist, oben und unten.
+// In der Beitragsansicht bleibt alles sichtbar.
+function profilAusschnitt(B, H){
+  B = +B || STIL_STD.breite; H = +H || STIL_STD.hoehe;
+  return {x: Math.max(0, (B - H * 3 / 4) / 2), y: Math.max(0, (H - B * 4 / 3) / 2)};
+}
+
+// Unsichtbar aufbauen und messen, danach ist der Platz wieder leer
+function unsichtbar(f){
+  const tmp = document.createElement('div');
+  tmp.style.cssText = 'position:absolute;left:-40000px;top:0;visibility:hidden;pointer-events:none';
+  document.body.appendChild(tmp);
+  try { return f(tmp); } finally { tmp.remove(); }
+}
+
+// Welche Elemente der ersten Folie reichen in den Streifen, den das Profilraster
+// abschneidet? Text zaehlt mit seinen Buchstaben, nicht mit der breiten Box.
+// Was schon ueber den Folienrand ragt, ist gewollt angeschnitten und zaehlt nicht,
+// ebenso Bilder und Formen bis an den Rand (Hintergrund) und Teile, die von der
+// Nachbarfolie hereinlaufen.
+function profilRandPruefen(slides, stil){
+  const st = Object.assign({}, STIL_STD, stil || {});
+  const B = +st.breite, H = +st.hoehe, a = profilAusschnitt(B, H);
+  if (!Array.isArray(slides) || !slides.length || (a.x < 1 && a.y < 1)) return [];
+  return unsichtbar(tmp => {
+    const r = renderFolie(slides, 0, stil, tmp), s0 = r.el.getBoundingClientRect();
+    const namen = [], bl = (slides[0].bloecke || []).slice(0, MAX_BLOECKE);
+    Array.prototype.forEach.call(r.el.children, bx => {
+      if (!bx.classList || !bx.classList.contains('box') || bx.classList.contains('gast')) return;
+      const b = bl.find(x => x.id === bx.dataset.art);
+      if (!b) return;
+      const box = bx.getBoundingClientRect();
+      const l0 = box.left - s0.left, r0 = box.right - s0.left, o0 = box.top - s0.top, u0 = box.bottom - s0.top;
+      if (l0 < -1 || r0 > B + 1 || o0 < -1 || u0 > H + 1) return;       // gewollt angeschnitten
+      const text = bx.classList.contains('text');
+      if (!text && (l0 <= 1 || r0 >= B - 1 || o0 <= 1 || u0 >= H - 1)) return;   // Flaeche bis an den Rand
+      let l = l0, r = r0, o = o0, u = u0;
+      if (text){
+        // nur die Buchstaben: Rechtecke der Textstuecke, nicht die der Absaetze (volle Breite)
+        const teile = [], w = document.createTreeWalker(bx, NodeFilter.SHOW_TEXT);
+        for (let t = w.nextNode(); t; t = w.nextNode()){
+          if (!t.nodeValue.trim()) continue;
+          const z = document.createRange(); z.selectNodeContents(t);
+          Array.prototype.forEach.call(z.getClientRects(), q => { if (q.width > 0.5 && q.height > 0.5) teile.push(q); });
+        }
+        if (!teile.length) return;
+        l = Math.min.apply(null, teile.map(q => q.left)) - s0.left;
+        r = Math.max.apply(null, teile.map(q => q.right)) - s0.left;
+        o = Math.min.apply(null, teile.map(q => q.top)) - s0.top;
+        u = Math.max.apply(null, teile.map(q => q.bottom)) - s0.top;
+      }
+      const drin = l >= a.x - 0.5 && r <= B - a.x + 0.5 && o >= a.y - 0.5 && u <= H - a.y + 0.5;
+      if (!drin && namen.indexOf(nameVon(b)) < 0) namen.push(nameVon(b));
+    });
+    return namen;
+  });
+}
+
+// Format wechseln, z. B. 3:4 (1080 x 1440) und 4:5 (1080 x 1350). Die Breite bleibt.
+// Fliessende Bloecke ordnet das Layout selbst neu (Raender wie bei einem neuen
+// Karussell in diesem Format). Frei gesetzte Bloecke behalten Groesse und Schrift:
+//  - Was sich in der Hoehe ueberschneidet, bildet eine Zeile und rueckt gemeinsam
+//    (Text auf einer Karte, Bild neben Text, Gruppen). Nur der Freiraum ueber,
+//    zwischen und unter den Zeilen wird gestaucht oder gedehnt, ueberall im
+//    gleichen Verhaeltnis; enge Abstaende bleiben also eng.
+//  - Am oberen Rand bleibt oben, am unteren Rand bleibt unten (dort ist kein Freiraum).
+//  - Fotos, Rechtecke und Linien ueber die ganze Hoehe wachsen oder schrumpfen mit.
+//    Alles andere behaelt seine Groesse, auch grosse Bilder und Karten.
+// Hin und zurueck ergibt wieder das Original (bis auf 1 px Rundung).
+// Gibt {daten, hinweise} zurueck, d selbst bleibt unveraendert. Cockpit und
+// k.py (ueber vorlage.html) rechnen beide hier, damit beide dasselbe tun.
+const AM_RAND = 2;                                   // px: so nah gilt als "am Rand"
+const FORMAT_RAENDER = {1350: {randOben: 354, randUnten: 94}, 1440: {randOben: 377, randUnten: 100}};
+function streckbar(b){
+  if (b.h === undefined || b.h === null || b.h === '' || !isFinite(+b.h)) return false;
+  if (b.typ === 'bild') return !istMaske(b) && !(istGeraet(b) && GERAETE[b.geraet] > 0);
+  return b.typ === 'form' && (b.form === 'rechteck' || b.form === 'linie');
+}
+// Seitenverhaeltnis einer Bilddatei (0, wenn sie nicht oder nicht in 3 s laedt)
+function bildVerhaeltnis(url){
+  return new Promise(fertig => {
+    const i = new Image(), uhr = setTimeout(() => fertig(0), 3000);
+    i.onload = () => { clearTimeout(uhr); fertig(i.naturalWidth && i.naturalHeight ? i.naturalWidth / i.naturalHeight : 0); };
+    i.onerror = () => { clearTimeout(uhr); fertig(0); };
+    i.src = url;
+  });
+}
+const MAX_FOLIEN_UMSTELLEN = 100;                // Instagram erlaubt 20; fremde Dateien bremsen sonst
+async function formatUmstellen(d, hoeheNeu){
+  const neu = JSON.parse(JSON.stringify(d || {}));
+  const st = Object.assign({}, STIL_STD, neu.stil || {});
+  const H0 = +st.hoehe, H1 = Math.round(+hoeheNeu), B = +st.breite;
+  if (!(H1 >= 100 && H1 <= 8000) || !(H0 >= 100 && H0 <= 8000) || !(B >= 100 && B <= 5000))
+    throw new Error('Format ungueltig');
+  const hinweise = [], basis = BASIS;            // Ordner merken: unten wird noch gewartet
+  if (H1 === H0) return {daten: neu, hinweise: hinweise};
+  if (Array.isArray(neu.slides) && neu.slides.length > MAX_FOLIEN_UMSTELLEN)
+    throw new Error('Zu viele Folien (hoechstens ' + MAX_FOLIEN_UMSTELLEN + ')');
+  const k = H1 / H0, dH = H1 - H0;
+  // Raender des fliessenden Layouts: Standardwerte des Zielformats, eigene im Verhaeltnis
+  const stilNeu = Object.assign({}, neu.stil || {}, {hoehe: H1});
+  ['randOben', 'randUnten'].forEach(f => {
+    const v = +st[f], alt = FORMAT_RAENDER[H0], ziel = FORMAT_RAENDER[H1];
+    stilNeu[f] = alt && ziel && v === alt[f] ? ziel[f] : Math.round(v * k);
+  });
+  const slides = Array.isArray(neu.slides) ? neu.slides : [];
+  const flaeche = (L, b) => {
+    const l = L.layout[b.id];
+    if (!l) return null;
+    const x = +l.x || 0, y = +l.y || 0;
+    return {l: x, r: x + (+l.w || 0), o: y, u: y + (+l.hBox || 0)};
+  };
+  const ueber = (a, b) => Math.min(a.r, b.r) - Math.max(a.l, b.l) > 2 && Math.min(a.u, b.u) - Math.max(a.o, b.o) > 2;
+  const grafiken = new Map();      // gestreckte SVG-Grafiken: Linien am Rand koennen wegfallen
+  unsichtbar(tmp => {
+    slides.forEach((s, i) => {
+      if (!s || typeof s !== 'object') return;
+      tmp.innerHTML = '';
+      const L0 = renderSlide(s, neu.stil, tmp).masse;     // misst die Texthoehen, vergibt fehlende IDs
+      const alle = (s.bloecke || []).slice(0, MAX_BLOECKE);
+      const hoehe = b => streckbar(b) ? +b.h : (+(L0.layout[b.id] || {}).hBox || 0);
+      const namen = new Map(), name = b => { if (!namen.has(b)) namen.set(b, nameVon(b)); return namen.get(b); };
+      // Einheiten: eine Gruppe rueckt als Ganzes, sonst jeder Block fuer sich
+      const einheiten = new Map();
+      alle.forEach((b, j) => {
+        if (!frei(b) || !L0.layout[b.id]) return;
+        const key = b.gruppe ? 'g:' + String(b.gruppe).slice(0, 60) : 'b:' + j;
+        const e = einheiten.get(key) || {bloecke: [], o: Infinity, u: -Infinity};
+        const o = zahlOder(b.y, 0);
+        e.bloecke.push(b); e.o = Math.min(e.o, o); e.u = Math.max(e.u, o + hoehe(b));
+        einheiten.set(key, e);
+      });
+      const inhalt = [], flaechen = [], ganze = [];
+      einheiten.forEach(e => {
+        const ganz = e.o <= AM_RAND && e.u >= H0 - AM_RAND, b = e.bloecke.length === 1 ? e.bloecke[0] : null;
+        if (ganz && b && streckbar(b)) flaechen.push(e);
+        else if (ganz) ganze.push(e);          // z. B. Gruppe oder Kreis ueber die ganze Hoehe
+        else inhalt.push(e);
+      });
+      const zeilen = [];
+      inhalt.map(e => ({e: e, o: Math.max(0, Math.min(H0, e.o)), u: Math.max(0, Math.min(H0, e.u))}))
+        .sort((a, b) => a.o - b.o)
+        .forEach(x => {
+          const z = zeilen[zeilen.length - 1];
+          if (z && x.o < z.u){ z.u = Math.max(z.u, x.u); z.teile.push(x.e); }
+          else zeilen.push({o: x.o, u: x.u, teile: [x.e]});
+        });
+      let luft = 0, vor = 0;
+      zeilen.forEach(z => { luft += z.o - vor; vor = z.u; });
+      luft += H0 - vor;
+      const f = luft > 0 ? Math.max(0, (luft + dH) / luft) : 1;
+      // Hoehe vorher -> nachher als Kurve durch die Zeilenkanten, dazwischen gleichmaessig
+      const punkte = [[0, 0]];
+      let y = 0; vor = 0;
+      zeilen.forEach(z => {
+        y += (z.o - vor) * f;
+        z.schub = y - z.o;
+        punkte.push([z.o, y], [z.u, y + z.u - z.o]);
+        y += z.u - z.o; vor = z.u;
+      });
+      punkte.push([H0, H1]);
+      const M = v => {
+        if (v <= 0) return v;
+        if (v >= H0) return v + dH;
+        for (let p = 1; p < punkte.length; p++){
+          const a = punkte[p - 1], b = punkte[p];
+          if (v <= b[0]) return b[0] > a[0] ? a[1] + (v - a[0]) * (b[1] - a[1]) / (b[0] - a[0]) : b[1];
+        }
+        return v + dH;
+      };
+      zeilen.forEach(z => z.teile.forEach(e => e.bloecke.forEach(b => {
+        if (Math.round(z.schub)) b.y = Math.round(zahlOder(b.y, 0) + z.schub);
+      })));
+      flaechen.forEach(e => {
+        const b = e.bloecke[0], o = M(e.o), u = M(e.u);
+        b.y = Math.round(o); b.h = Math.max(1, Math.round(u - o));
+        if (b.typ === 'bild' && DATEI_OK.test(String(b.datei || '')) && /\.svg$/i.test(b.datei))
+          grafiken.set(b.datei, (grafiken.get(b.datei) || []).concat({nr: i + 1, v: (+b.w || 0) / b.h}));
+      });
+      ganze.forEach(e => {
+        const m = (e.o + e.u) / 2, schub = M(m) - m;
+        if (Math.round(schub)) e.bloecke.forEach(b => { b.y = Math.round(zahlOder(b.y, 0) + schub); });
+      });
+      // Nachher messen: was ist kleiner geworden, was ragt hinaus, was stoesst neu zusammen?
+      tmp.innerHTML = '';
+      const L1 = renderSlide(s, stilNeu, tmp).masse;
+      const nr = 'Folie ' + (i + 1) + ': ';
+      if (L1.faktor < L0.faktor - 0.005)
+        hinweise.push(nr + 'Text wird auf ' + Math.round(L1.faktor / L0.faktor * 100) + ' % verkleinert, damit er passt');
+      if (hinweise.length >= 40) return;                 // mehr liest niemand
+      alle.forEach(b => {
+        const a = flaeche(L0, b), n = flaeche(L1, b);
+        if (a && n && a.o >= -1 && a.u <= H0 + 1 && (n.o < -1 || n.u > H1 + 1))
+          hinweise.push(nr + '„' + name(b) + '“ ragt ' + (n.o < -1 ? 'oben' : 'unten') + ' ueber den Rand');
+      });
+      for (let x = 0; x < alle.length && hinweise.length < 40; x++){
+        const a0 = flaeche(L0, alle[x]), a1 = flaeche(L1, alle[x]);
+        if (!a0 || !a1) continue;
+        for (let y = x + 1; y < alle.length; y++){
+          const b0 = flaeche(L0, alle[y]), b1 = flaeche(L1, alle[y]);
+          if (b0 && b1 && !ueber(a0, b0) && ueber(a1, b1))
+            hinweise.push(nr + '„' + name(alle[x]) + '“ und „' + name(alle[y]) + '“ ueberlappen jetzt');
+        }
+      }
+    });
+  });
+  neu.stil = stilNeu;
+  // Bilder fuellen ihre Flaeche wie ein Foto. Passt eine Grafik ueber die ganze Hoehe
+  // nicht mehr zu ihrem eigenen Seitenverhaeltnis, faellt am Rand etwas weg
+  // (z. B. die Rahmenlinie eines Hintergrunds).
+  let gemessen = 0;
+  for (const [datei, stellen] of grafiken){
+    if (++gemessen > 20) break;
+    const v = await bildVerhaeltnis(basis + datei);
+    const nummern = stellen.filter(x => v > 0 && Math.abs(x.v / v - 1) > 0.01).map(x => x.nr);
+    if (!nummern.length) continue;
+    const folien = nummern.length > 2 && nummern[nummern.length - 1] - nummern[0] === nummern.length - 1
+      ? nummern[0] + ' bis ' + nummern[nummern.length - 1] : nummern.join(', ');
+    hinweise.push('Folie ' + folien + ': Grafik „' + datei.slice(0, 40) + '“ passt nicht mehr ganz hinein, am Rand faellt etwas weg (Linien ansehen)');
+  }
+  profilRandPruefen(slides, stilNeu).forEach(n =>
+    hinweise.push('Folie 1: „' + n + '“ reicht in den Rand, der im Profil wegfaellt'));
+  return {daten: neu, hinweise: hinweise.slice(0, 40)};
 }
 
 // Google Fonts, die im Cockpit geladen wurden (schriften.py), kommen dazu

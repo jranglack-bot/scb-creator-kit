@@ -1,0 +1,633 @@
+{
+  "vorlage": {
+    "titel": "Fehler und Lösung",
+    "beschreibung": "Je Folie ein typischer Fehler oben und was besser klappt unten."
+  },
+  "stil": {
+    "breite": 1080,
+    "hoehe": 1350,
+    "randX": 96,
+    "randOben": 300,
+    "randUnten": 94,
+    "titel": 88,
+    "textgroesse": 40,
+    "titelAbstand": 1.1,
+    "textAbstand": 1.42,
+    "bg": "#FFFFFF",
+    "text": "#111111",
+    "akzent": "#E5484D",
+    "schrift": "Poppins",
+    "palette": [
+      "#E5484D",
+      "#2EA36B",
+      "#111111",
+      "#FFFFFF",
+      "#FDECEC",
+      "#E8F6EF"
+    ]
+  },
+  "slides": [
+    {
+      "bloecke": [
+        {
+          "id": "b1",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 150,
+          "w": 240,
+          "h": 240,
+          "fuellung": "#E5484D"
+        },
+        {
+          "id": "b2",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/x",
+          "x": 141,
+          "y": 195,
+          "w": 150,
+          "h": 150,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b3",
+          "typ": "form",
+          "form": "kreis",
+          "x": 291,
+          "y": 315,
+          "w": 130,
+          "h": 130,
+          "fuellung": "#2EA36B",
+          "rand": {
+            "breite": 10,
+            "farbe": "#FFFFFF"
+          }
+        },
+        {
+          "id": "b4",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/check",
+          "x": 321,
+          "y": 345,
+          "w": 70,
+          "h": 70,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b5",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>[Anzahl] Fehler bei [Thema]</b>",
+          "x": 96,
+          "y": 540,
+          "w": 888,
+          "groesse": 108,
+          "abstand": 1.04,
+          "zeichen": -20
+        },
+        {
+          "id": "b6",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Und was du stattdessen machst.",
+          "x": 96,
+          "y": 870,
+          "w": 760,
+          "groesse": 44,
+          "farbe": "#555555"
+        },
+        {
+          "id": "b7",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Wisch weiter</b>",
+          "x": 96,
+          "y": 1190,
+          "w": 300,
+          "groesse": 32,
+          "farbe": "#111111"
+        },
+        {
+          "id": "b8",
+          "typ": "form",
+          "form": "pfeil",
+          "x": 341,
+          "y": 1188.04,
+          "w": 130,
+          "h": 50,
+          "fuellung": "#111111",
+          "staerke": 6
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b9",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 675,
+          "fuellung": "#FDECEC"
+        },
+        {
+          "id": "b10",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 0,
+          "y": 675,
+          "w": 1080,
+          "h": 675,
+          "fuellung": "#E8F6EF"
+        },
+        {
+          "id": "b11",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 120,
+          "w": 88,
+          "h": 88,
+          "fuellung": "#E5484D"
+        },
+        {
+          "id": "b12",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/x",
+          "x": 114,
+          "y": 138,
+          "w": 52,
+          "h": 52,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b13",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>FEHLER 1</b>",
+          "x": 211,
+          "y": 145,
+          "w": 400,
+          "groesse": 30,
+          "farbe": "#E5484D",
+          "zeichen": 140
+        },
+        {
+          "id": "b14",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Was viele machen, in einem Satz.</b>",
+          "x": 96,
+          "y": 260,
+          "w": 888,
+          "groesse": 66,
+          "abstand": 1.08
+        },
+        {
+          "id": "b15",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Warum das nicht klappt, kurz und ehrlich.",
+          "x": 96,
+          "y": 470,
+          "w": 840,
+          "groesse": 38,
+          "farbe": "#7A2E31"
+        },
+        {
+          "id": "b16",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 795,
+          "w": 88,
+          "h": 88,
+          "fuellung": "#2EA36B"
+        },
+        {
+          "id": "b17",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/check",
+          "x": 114,
+          "y": 813,
+          "w": 52,
+          "h": 52,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b18",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>SO KLAPPT ES</b>",
+          "x": 211,
+          "y": 820,
+          "w": 400,
+          "groesse": 30,
+          "farbe": "#2EA36B",
+          "zeichen": 140
+        },
+        {
+          "id": "b19",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Was besser funktioniert, in einem Satz.</b>",
+          "x": 96,
+          "y": 935,
+          "w": 888,
+          "groesse": 66,
+          "abstand": 1.08
+        },
+        {
+          "id": "b20",
+          "typ": "text",
+          "rolle": "text",
+          "text": "So setzt du es um: ein konkreter Schritt.",
+          "x": 96,
+          "y": 1145,
+          "w": 840,
+          "groesse": 38,
+          "farbe": "#1F5E40"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b21",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 675,
+          "fuellung": "#FDECEC"
+        },
+        {
+          "id": "b22",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 0,
+          "y": 675,
+          "w": 1080,
+          "h": 675,
+          "fuellung": "#E8F6EF"
+        },
+        {
+          "id": "b23",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 120,
+          "w": 88,
+          "h": 88,
+          "fuellung": "#E5484D"
+        },
+        {
+          "id": "b24",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/x",
+          "x": 114,
+          "y": 138,
+          "w": 52,
+          "h": 52,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b25",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>FEHLER 2</b>",
+          "x": 211,
+          "y": 145,
+          "w": 400,
+          "groesse": 30,
+          "farbe": "#E5484D",
+          "zeichen": 140
+        },
+        {
+          "id": "b26",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Was viele machen, in einem Satz.</b>",
+          "x": 96,
+          "y": 260,
+          "w": 888,
+          "groesse": 66,
+          "abstand": 1.08
+        },
+        {
+          "id": "b27",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Warum das nicht klappt, kurz und ehrlich.",
+          "x": 96,
+          "y": 470,
+          "w": 840,
+          "groesse": 38,
+          "farbe": "#7A2E31"
+        },
+        {
+          "id": "b28",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 795,
+          "w": 88,
+          "h": 88,
+          "fuellung": "#2EA36B"
+        },
+        {
+          "id": "b29",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/check",
+          "x": 114,
+          "y": 813,
+          "w": 52,
+          "h": 52,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b30",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>SO KLAPPT ES</b>",
+          "x": 211,
+          "y": 820,
+          "w": 400,
+          "groesse": 30,
+          "farbe": "#2EA36B",
+          "zeichen": 140
+        },
+        {
+          "id": "b31",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Was besser funktioniert, in einem Satz.</b>",
+          "x": 96,
+          "y": 935,
+          "w": 888,
+          "groesse": 66,
+          "abstand": 1.08
+        },
+        {
+          "id": "b32",
+          "typ": "text",
+          "rolle": "text",
+          "text": "So setzt du es um: ein konkreter Schritt.",
+          "x": 96,
+          "y": 1145,
+          "w": 840,
+          "groesse": 38,
+          "farbe": "#1F5E40"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b33",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 675,
+          "fuellung": "#FDECEC"
+        },
+        {
+          "id": "b34",
+          "typ": "form",
+          "form": "rechteck",
+          "x": 0,
+          "y": 675,
+          "w": 1080,
+          "h": 675,
+          "fuellung": "#E8F6EF"
+        },
+        {
+          "id": "b35",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 120,
+          "w": 88,
+          "h": 88,
+          "fuellung": "#E5484D"
+        },
+        {
+          "id": "b36",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/x",
+          "x": 114,
+          "y": 138,
+          "w": 52,
+          "h": 52,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b37",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>FEHLER 3</b>",
+          "x": 211,
+          "y": 145,
+          "w": 400,
+          "groesse": 30,
+          "farbe": "#E5484D",
+          "zeichen": 140
+        },
+        {
+          "id": "b38",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Was viele machen, in einem Satz.</b>",
+          "x": 96,
+          "y": 260,
+          "w": 888,
+          "groesse": 66,
+          "abstand": 1.08
+        },
+        {
+          "id": "b39",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Warum das nicht klappt, kurz und ehrlich.",
+          "x": 96,
+          "y": 470,
+          "w": 840,
+          "groesse": 38,
+          "farbe": "#7A2E31"
+        },
+        {
+          "id": "b40",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 795,
+          "w": 88,
+          "h": 88,
+          "fuellung": "#2EA36B"
+        },
+        {
+          "id": "b41",
+          "typ": "form",
+          "form": "icon",
+          "icon": "lucide/check",
+          "x": 114,
+          "y": 813,
+          "w": 52,
+          "h": 52,
+          "fuellung": "#FFFFFF"
+        },
+        {
+          "id": "b42",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>SO KLAPPT ES</b>",
+          "x": 211,
+          "y": 820,
+          "w": 400,
+          "groesse": 30,
+          "farbe": "#2EA36B",
+          "zeichen": 140
+        },
+        {
+          "id": "b43",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Was besser funktioniert, in einem Satz.</b>",
+          "x": 96,
+          "y": 935,
+          "w": 888,
+          "groesse": 66,
+          "abstand": 1.08
+        },
+        {
+          "id": "b44",
+          "typ": "text",
+          "rolle": "text",
+          "text": "So setzt du es um: ein konkreter Schritt.",
+          "x": 96,
+          "y": 1145,
+          "w": 840,
+          "groesse": 38,
+          "farbe": "#1F5E40"
+        }
+      ]
+    },
+    {
+      "bloecke": [
+        {
+          "id": "b45",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>Welchen Fehler machst du gerade?</b>",
+          "x": 96,
+          "y": 220,
+          "w": 888,
+          "groesse": 104,
+          "abstand": 1.03,
+          "zeichen": -20
+        },
+        {
+          "id": "b46",
+          "typ": "text",
+          "rolle": "text",
+          "text": "Schreib die Nummer in die Kommentare. Und speicher dir den Post für später.",
+          "x": 96,
+          "y": 600,
+          "w": 840,
+          "groesse": 44,
+          "farbe": "#555555"
+        },
+        {
+          "id": "b47",
+          "typ": "form",
+          "form": "kreis",
+          "x": 96,
+          "y": 900,
+          "w": 140,
+          "h": 140,
+          "fuellung": "#FFFFFF",
+          "rand": {
+            "breite": 6,
+            "farbe": "#E5484D"
+          }
+        },
+        {
+          "id": "b48",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>1</b>",
+          "x": 96,
+          "y": 930,
+          "w": 140,
+          "groesse": 60,
+          "farbe": "#E5484D",
+          "aus": "center"
+        },
+        {
+          "id": "b49",
+          "typ": "form",
+          "form": "kreis",
+          "x": 276,
+          "y": 900,
+          "w": 140,
+          "h": 140,
+          "fuellung": "#FFFFFF",
+          "rand": {
+            "breite": 6,
+            "farbe": "#E5484D"
+          }
+        },
+        {
+          "id": "b50",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>2</b>",
+          "x": 276,
+          "y": 930,
+          "w": 140,
+          "groesse": 60,
+          "farbe": "#E5484D",
+          "aus": "center"
+        },
+        {
+          "id": "b51",
+          "typ": "form",
+          "form": "kreis",
+          "x": 456,
+          "y": 900,
+          "w": 140,
+          "h": 140,
+          "fuellung": "#FFFFFF",
+          "rand": {
+            "breite": 6,
+            "farbe": "#E5484D"
+          }
+        },
+        {
+          "id": "b52",
+          "typ": "text",
+          "rolle": "text",
+          "text": "<b>3</b>",
+          "x": 456,
+          "y": 930,
+          "w": 140,
+          "groesse": 60,
+          "farbe": "#E5484D",
+          "aus": "center"
+        }
+      ]
+    }
+  ]
+}

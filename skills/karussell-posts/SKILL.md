@@ -4,11 +4,20 @@ description: >
   Karussell-Cockpit: Instagram-Karussells (4:5 oder 3:4) frei gestalten wie in
   Canva, lokal im Browser, mit Claude als Helfer. Ziehen, Drehen, Ausrichten,
   Google Fonts, Formen und über 8.000 Icons, Text-Effekte, Hintergrund
-  entfernen, Vorlagen, Markenfarben. Ausgabe als Bilder für Instagram,
+  entfernen, Bild in Form, Screenshots im Handy- oder Laptop-Rahmen, Bild in
+  der Schrift, nahtlose Karussells (Panorama über mehrere Folien), 15 Vorlagen
+  für verschiedene Karussell-Arten (Anleitung, Fehler, Vergleich, Checkliste,
+  Zitate, Ranking, Vorher/Nachher, Prompts und mehr), Markenpaket (Farben,
+  Schriften, Logos, Name für alle Karussells, mit einem Klick angewendet),
+  eigene Schriftdateien,
+  Markenfarben, Instagram-Vorschau (Profilraster und Wischen) mit Formatwahl
+  3:4 oder 4:5. Ausgabe als Bilder für Instagram,
   Canva-Datei (PPTX) und PDF. Verwende diesen Skill bei: "mach mir ein
   Karussell", "Carousel-Post erstellen", "Slides für Instagram", "Karussell zu
   [Thema]", "mach aus dem Reel ein Karussell", "Infografik-Post",
-  "Karussell-Cockpit", "Karussell nachbauen", "Karussell als PDF".
+  "Karussell-Cockpit", "Karussell nachbauen", "Karussell als PDF",
+  "nahtloses Karussell", "Panorama-Karussell", "Instagram-Vorschau",
+  "Karussell auf 3:4 umstellen".
 ---
 
 # Karussell-Cockpit
@@ -85,9 +94,13 @@ Canva**, **PDF**.
 | Überblick | `<python> k.py` (eine Zeile je Folie), `<python> k.py zeige 3` |
 | Text, Farbe, Größe, Position | `<python> k.py setze 3 b2 farbe=#ffffff groesse=60 "text=Neuer <b>Titel</b>"` |
 | Neues Element | `k.py neu 3 text "Hallo" x=100 y=200` · `k.py neu 3 bild foto.png x=0 y=600 w=1080 h=750` · `k.py neu 3 form kreis` · `k.py icons herz`, dann `k.py neu 3 icon lucide/heart` |
+| Nahtlos, Panorama | `k.py panorama 1 foto.jpg folien=3` (Bild läuft über Folie 1 bis 3, ganz hinten) · `k.py setze 2 b4 x=820 nahtlos=1` (Block ragt über den Rand und läuft auf Folie 3 weiter) |
+| Bild in Form, Geräte | `k.py setze 3 b2 maske=kreis` (bogen, herz, stern, sechseck, blob, raute, dreieck) · `k.py neu 3 bild screenshot.png geraet=handy x=340 y=250 w=400 h=816` (tablet, laptop, browser; `geraetfarbe=#f5f5f7`) · Text: `k.py setze 1 b1 bildfuellung=foto.jpg` |
 | Folien | `k.py folie neu [3]` · `folie dup 3` · `folie weg 3` · `folie zu 3 1` |
-| Look und Markenfarben | `k.py stil bg=#fff akzent=#e33 schrift=Oswald` · `k.py stil palette=#e4572e,#1e1e1e` |
-| Schriften | `k.py schriften slab` (Suche) · `k.py schrift laden "Roboto Slab"` |
+| Format 3:4 oder 4:5 | `k.py format 3:4` · `k.py format 4:5` (Inhalt rückt mit, die gemeldeten Hinweise dem User nennen). Im Cockpit: Knopf **Vorschau**, dort Formatwahl |
+| Markenpaket (alle Karussells) | `k.py marke` (zeigen) · `k.py marke farben=#e4572e,#1e1e1e,#ffffff titel=Oswald text=Inter name=deinname` (1. Akzent, 2. Dunkel, 3. Hell, dann weitere) · `k.py marke logo <datei>` · `k.py marke anwenden` (offenes Karussell in Markenfarben und -schriften) · `k.py logo 3` oder `k.py logo alle` |
+| Look nur dieses Karussells | `k.py stil bg=#fff akzent=#e33 schrift=Oswald` · `k.py stil palette=#e4572e,#1e1e1e` |
+| Schriften | `k.py schriften slab` (Suche) · `k.py schrift laden "Roboto Slab"` · eigene Datei: `k.py schrift datei <pfad.ttf>` |
 | Projekte, Vorlagen | `k.py projekte` · `k.py projekt neu <name> --vorlage klar-hell` · `k.py vorlagen` · `k.py vorlage speichern <name>` |
 | Hintergrund entfernen | `k.py frei 3 b2` (unter 1 s) · `--modell genau` (etwa 2 Min.) |
 | Viele Texte auf einmal | `<python> texte.py --raus` → Datei bearbeiten → `<python> texte.py <datei>` (nur ungestaltete Folien) |
@@ -106,11 +119,37 @@ andere (Dateien außerhalb, Netz, Posten) vorher im Chat fragen.
   `reel-hooks` beachten.
 - Texte dem User kurz als Liste zeigen, Freigabe holen, dann per
   `texte.py` oder `k.py setze` eintragen.
-- Look: Gibt es in Claudes Memory einen `karussell-profil`-Eintrag (aus der
-  früheren Karussell-Vorlage: bg1, accent, text, font, account), daraus
-  einmal `k.py stil bg=... text=... akzent=... schrift=...` und die
-  Markenfarben setzen und als eigene Vorlage speichern (`k.py vorlage
-  speichern <name>`). Sonst eine der mitgelieferten Vorlagen anbieten.
+- Look: Erst `k.py marke` ansehen. Ist ein Markenpaket da, neue Karussells
+  mit `k.py projekt neu <name> --vorlage <v>` anlegen und gleich
+  `k.py marke anwenden` (im Cockpit hakt der Neu-Dialog das von selbst an).
+  Fehlt es: einmal Farben (Akzent, Dunkel, Hell), Schriften und
+  Instagram-Namen erfragen, bei einem `karussell-profil`-Eintrag in Claudes
+  Memory von dort übernehmen, und mit `k.py marke farben=... titel=...
+  text=... name=...` setzen. Das Logo legt der User im Cockpit unter
+  **Marke** ab oder Claude mit `k.py marke logo <datei>`.
+- Vorlage nach der Art des Karussells wählen (`k.py vorlagen` zeigt alle mit
+  Beschreibung), dann `k.py projekt neu <name> --vorlage <vorlage>`:
+
+  | Wunsch des Users | Vorlage |
+  |---|---|
+  | Tipps, Liste, „5 Dinge …“ | `klar-hell` (hell) · `dunkel-verlauf` (dunkel, Tech) |
+  | Anleitung, „so geht …“ | `schritt-fuer-schritt` · mit Screenshots: `tutorial-handy` |
+  | Fehler, „mach das nicht“ | `fehler-loesung` |
+  | Irrtum, Mythos | `gelb-fett` |
+  | Vergleich, „A oder B“ | `vergleich` |
+  | Vorher/Nachher, Ergebnis | `vorher-nachher` |
+  | Persönliche Geschichte | `story` |
+  | Checkliste zum Speichern | `checkliste` |
+  | Zahlen, Studien, Statistik | `zahlen-fakten` |
+  | Zitate, Gedanken | `zitat` |
+  | Ranking, Top 5 | `ranking` |
+  | Prompts zum Kopieren | `prompt-karten` |
+  | Durchgehendes Bild beim Wischen | `panorama` |
+
+  Die Texte der Vorlagen sind Platzhalter: was in `[eckigen Klammern]` steht,
+  ersetzen, den Rest umschreiben. Leere Bildrahmen füllt der User per Ziehen,
+  Claude per `k.py setze <folie> <id> datei=bild.jpg`. Folienzahl anpassen mit
+  `k.py folie dup 3` oder `k.py folie weg 3`.
 
 ## 5. Fremdes Karussell nachbauen
 
@@ -133,7 +172,9 @@ Aufbau und Zierelemente.
   einzeln bearbeitbar), `karussell.pdf` (z. B. LinkedIn, Druck).
 - Posten: von Hand in der App, oder automatisch über Make („Create a
   Carousel Post“) mit dem Skill `reel-posting`. Neue Karussells sind 4:5,
-  das nimmt die Instagram-Schnittstelle ohne Rand.
+  das nimmt jede Posting-Automatik ohne Rand. 3:4 füllt die Kachel im Profil
+  ganz und ist im Feed größer, Automatiken nehmen es nicht immer an.
+  Umstellen jederzeit: Knopf **Vorschau** im Cockpit oder `k.py format`.
 
 ## Fehler und Neustart
 

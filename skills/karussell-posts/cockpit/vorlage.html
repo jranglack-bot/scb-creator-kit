@@ -8,20 +8,29 @@ body.vorschau{display:flex;flex-wrap:wrap;gap:18px;padding:24px;background:#6f76
 .kachel .slide{transform-origin:top left}
 .kachel::after{content:attr(data-nr);position:absolute;top:6px;right:8px;
   font:600 13px Mont;color:#fff;background:#0009;border-radius:10px;padding:2px 9px}
+/* Alle Folien einer Vorlage in einer Reihe (.folien.png fuer die Galerie) */
+body.streifen{flex-wrap:nowrap;gap:10px;padding:10px;background:#1b2023;width:max-content}
+body.streifen .kachel{box-shadow:none;border-radius:6px}
+body.streifen .kachel::after{display:none}
+/* Vorschaubilder der Vorlagen: leere Bildrahmen als ruhige Flaeche mit Bild-Symbol
+   statt unsichtbar (im Export bleiben sie leer, im Cockpit gestreift) */
+body.platzhalter .slide .box.bild.leer .bildflaeche{background:linear-gradient(135deg,#dfe4e8,#c5ccd3)}
+body.platzhalter .slide .box.bild.leer .bildflaeche::after{content:"";position:absolute;inset:0;opacity:.6;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23626b73' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='9' cy='9' r='2'/%3E%3Cpath d='m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21'/%3E%3C/svg%3E") center/min(30%,160px) no-repeat}
 </style>
 <script src="render.js"></script>
 <script>
 async function bilderBereit(){
   // Hintergrundbilder (Fotos, Folienhintergrund) und Masken (Icons)
-  const quellen=[];
+  const quellen=new Set();
   document.querySelectorAll('.slide, .slide *').forEach(el=>{
     const cs=getComputedStyle(el);
     [cs.backgroundImage, cs.webkitMaskImage, cs.maskImage].forEach(v=>{
       const m=String(v||'').match(/url\("?([^"')]+)"?\)/);
-      if(m && quellen.indexOf(m[1])<0) quellen.push(m[1]);
+      if(m) quellen.add(m[1]);
     });
   });
-  await Promise.all(quellen.map(u=>new Promise(fertig=>{
+  await Promise.all([...quellen].map(u=>new Promise(fertig=>{
     const bild=new Image();
     bild.onload=bild.onerror=fertig;
     bild.src=u;
@@ -42,18 +51,32 @@ async function bilderBereit(){
   const d=await (await fetch(BASIS+'inhalt.json?'+Date.now())).json();
   await schriftenLaden();
   await schriftBereit(d);
+  const fmt=new URLSearchParams(location.search).get('format');
+  if(fmt!==null){
+    // k.py format: umrechnen und messen wie im Cockpit, nichts zeichnen
+    try{ window.ERGEBNIS=await formatUmstellen(d,+fmt); }
+    catch(e){ window.ERGEBNIS={fehler:String(e&&e.message||e).slice(0,200)}; }
+    window.FERTIG=true;
+    return;
+  }
+  if(new URLSearchParams(location.search).get('platzhalter')) document.body.classList.add('platzhalter');
   const nr=new URLSearchParams(location.search).get('render');
   if(nr!==null){
-    window.MASSE=renderSlide(d.slides[+nr],d.stil,document.body).masse;
+    // mit Gaesten: nahtlose Bloecke der Nachbarfolien laufen hier weiter
+    const r=renderFolie(d.slides,+nr,d.stil,document.body);
+    window.MASSE=r.masse; window.GAESTE=r.gaeste;
   }else{
-    document.body.className='vorschau';
-    const st={...STIL_STD,...(d.stil||{})}, k=270/st.breite;
-    d.slides.forEach((s,i)=>{
+    document.body.classList.add('vorschau');
+    const streifen=!!new URLSearchParams(location.search).get('streifen');
+    if(streifen) document.body.classList.add('streifen');
+    const st={...STIL_STD,...(d.stil||{})}, kb=streifen?216:270, k=kb/st.breite;
+    // Streifen: hoechstens 20 Folien, Kacheln hoechstens 2,5-mal so hoch wie breit
+    (streifen?d.slides.slice(0,20):d.slides).forEach((s,i)=>{
       const kach=document.createElement('div'); kach.className='kachel';
-      kach.style.width='270px'; kach.style.height=Math.round(st.hoehe*k)+'px';
+      kach.style.width=kb+'px'; kach.style.height=Math.round(Math.min(st.hoehe*k,streifen?kb*2.5:1e9))+'px';
       kach.dataset.nr=(i+1)+'/'+d.slides.length;
       document.body.appendChild(kach);
-      renderSlide(s,d.stil,kach).el.style.transform='scale('+k+')';
+      renderFolie(d.slides,i,d.stil,kach).el.style.transform='scale('+k+')';
     });
   }
   // Bilder sind CSS-Hintergruende und laden asynchron nach. Ohne dieses

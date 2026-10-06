@@ -1,4 +1,8 @@
 {
+  "vorlage": {
+    "titel": "Mythos aufdecken",
+    "beschreibung": "Kräftiges Gelb, ein verbreiteter Irrtum, warum er nicht stimmt und was stimmt."
+  },
   "stil": {
     "breite": 1080,
     "hoehe": 1350,

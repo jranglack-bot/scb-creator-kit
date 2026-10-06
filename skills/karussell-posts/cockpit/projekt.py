@@ -18,7 +18,7 @@ Vorschlag (Bilder/SCB Karussells).
 
 Geteilt von bauen.py, k.py, texte.py, schriftprobe.py, schriften.py und vorlage.py.
 """
-import json, os, re, shutil, stat, unicodedata
+import json, os, re, shutil, stat, tempfile, time, unicodedata
 from pathlib import Path
 
 HIER     = Path(__file__).resolve().parent          # Code
@@ -106,6 +106,7 @@ def _pfade(daten):
 _pfade(_datenordner())
 VORLAGEN_KIT = HIER / "vorlagen"                    # mitgelieferte Vorlagen, nur lesen
 VORSCHAU = ".vorschau.png"                          # reservierter Name, kollidiert mit keinem Bild
+FOLIEN = ".folien.png"                              # alle Folien einer Vorlage als Streifen
 
 NAME = re.compile(r"^[a-z0-9][a-z0-9-]{0,59}$")
 # Bilddateien in inhalt.json: relativ zum Projekt, nur harmlose Zeichen, kein
@@ -126,7 +127,7 @@ DATENARTEN = {".json", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".txt"}
 def datei_ok(roh):
     roh = str(roh or "")
     if len(roh) > 200 or not DATEI.fullmatch(roh) or any(geraet(t) for t in roh.split("/")):
-        raise ValueError("ungueltiger Dateiname: %s" % roh[:60])
+        raise ValueError("ungueltiger Dateiname: %r" % roh[:60])
     return roh
 
 STIL_STD = {"breite": 1080, "hoehe": 1350, "bg": "#dee3e7", "text": "#313538",
@@ -198,9 +199,58 @@ def lesen(name=None):
     return json.loads((ordner(name) / "inhalt.json").read_text(encoding="utf-8-sig"))
 
 
+def sicher_schreiben(ziel, roh):
+    """Datei ersetzen statt ueberschreiben: erst vollstaendig in eine neue Zwischendatei
+    im selben Ordner (mkstemp folgt keiner Verknuepfung), dann os.replace. Geht etwas
+    schief, bleibt das Original. Nie durch eine Verknuepfung hindurch."""
+    ziel = Path(ziel)
+    if ziel.is_symlink():
+        raise ValueError("%s ist eine Verknuepfung" % ziel.name)
+    fd, tmp = tempfile.mkstemp(dir=str(ziel.parent), prefix="." + ziel.name + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(roh)
+        for versuch in range(40):            # Windows: kurz gesperrt, solange jemand liest
+            try:
+                os.replace(tmp, ziel)
+                return
+            except PermissionError:
+                if versuch == 39:
+                    raise
+                time.sleep(0.05)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def _endlich(o, tiefe=0):
+    """inf und nan (etwa aus 1e400 in einer fremden Datei) werden 0, sonst entsteht ungueltiges JSON."""
+    if isinstance(o, float):
+        return o if o == o and o not in (float("inf"), float("-inf")) else 0
+    if tiefe > 60:
+        return o
+    if isinstance(o, dict):
+        return {k: _endlich(v, tiefe + 1) for k, v in o.items()}
+    if isinstance(o, list):
+        return [_endlich(v, tiefe + 1) for v in o]
+    return o
+
+
+def json_bytes(daten):
+    """Ganz kodieren, bevor irgendetwas geschrieben wird. Einzelne Surrogate aus fremden
+    Dateien gehen dann als \\u-Folgen hinaus, statt mitten im Schreiben abzubrechen."""
+    daten = _endlich(daten)
+    try:
+        return json.dumps(daten, ensure_ascii=False, indent=2, allow_nan=False).encode("utf-8")
+    except UnicodeEncodeError:
+        return json.dumps(daten, ensure_ascii=True, indent=2, allow_nan=False).encode("ascii")
+
+
 def schreiben(daten, name=None):
-    (ordner(name) / "inhalt.json").write_text(
-        json.dumps(daten, ensure_ascii=False, indent=2), encoding="utf-8")
+    sicher_schreiben(ordner(name) / "inhalt.json", json_bytes(daten))
 
 
 def stil(daten):
@@ -307,6 +357,7 @@ def als_vorlage(name, von=None):
     if vorlage_gueltig(n) or (VORLAGEN / n).exists():
         raise ValueError("Eine Vorlage „%s“ gibt es schon. Nimm einen anderen Namen." % n)
     shutil.copytree(quelle, VORLAGEN / n, ignore=_nur_daten(*_NICHT_MIT))
+    _ohne_vorlagen_info(VORLAGEN / n)
     return n
 
 
@@ -315,8 +366,47 @@ def neu_aus_vorlage(name, vorlage):
     if q is None:
         raise ValueError("Vorlage gibt es nicht: %s" % vorlage)
     n = _frei(name)
-    shutil.copytree(q, PROJEKTE / n, ignore=_nur_daten(VORSCHAU, *_NICHT_MIT))
+    shutil.copytree(q, PROJEKTE / n, ignore=_nur_daten(VORSCHAU, FOLIEN, *_NICHT_MIT))
+    _ohne_vorlagen_info(PROJEKTE / n)
     return n
+
+
+def _ohne_vorlagen_info(o):
+    """Titel und Beschreibung gehoeren zur Vorlage, nicht zum neuen Projekt
+    (sonst traegt eine daraus gespeicherte eigene Vorlage den fremden Titel).
+    Erst fertig in eine Zwischendatei, dann ersetzen: Geht etwas schief (kaputtes
+    JSON, einzelne Surrogate, 1e400), bleibt die frische Kopie unveraendert."""
+    p = o / "inhalt.json"
+    try:
+        d = json.loads(p.read_text(encoding="utf-8-sig"))
+        if not (isinstance(d, dict) and "vorlage" in d):
+            return
+        del d["vorlage"]
+        sicher_schreiben(p, json_bytes(d))
+    except Exception:
+        pass
+
+
+# Unsichtbares und Kaputtes aus fremden kurzen Texten (Titel, Beschreibung):
+# Steuer-, Format- und Privatzeichen, einzelne Surrogate, Tag-Zeichen, Variantenwaehler
+_UNSICHTBAR = {"Cc", "Cf", "Cs", "Co", "Cn"}
+
+
+def kurztext(v, n):
+    """Kurzer sichtbarer Text, Leerraum zusammengefasst, hoechstens n Zeichen."""
+    if not isinstance(v, str):
+        return ""
+    teile = []
+    for c in v[:4 * n]:                     # erst kuerzen: riesige Texte kosten sonst Sekunden
+        o = ord(c)
+        if c.isspace() or unicodedata.category(c) in ("Zl", "Zp"):
+            teile.append(" ")
+        elif unicodedata.category(c) in _UNSICHTBAR or 0xFE00 <= o <= 0xFE0F or \
+                0xE0100 <= o <= 0xE01EF or 0x180B <= o <= 0x180F:
+            continue
+        else:
+            teile.append(c)
+    return " ".join("".join(teile).split())[:n]
 
 
 def aus_argv(argv):

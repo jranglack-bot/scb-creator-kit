@@ -1,4 +1,8 @@
 {
+  "vorlage": {
+    "titel": "Liste mit Punkten",
+    "beschreibung": "Hell und klar, je Folie ein nummerierter Punkt."
+  },
   "stil": {
     "breite": 1080,
     "hoehe": 1350,

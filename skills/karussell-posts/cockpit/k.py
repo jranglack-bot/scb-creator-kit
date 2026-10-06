@@ -17,6 +17,8 @@ Cockpit zeigt jede Aenderung nach 1,5 s von selbst.
   python k.py hintergrund 3|alle art=verlauf farbe=#111 farbe2=#335 winkel=135   (aus = global)
   python k.py weg 3 b5                 Element loeschen
   python k.py folie neu [3]            leere Folie (nach Folie 3, sonst ans Ende)
+  python k.py panorama 1 bild.jpg [folien=3]   Bild laeuft nahtlos ueber Folie 1 bis 3 (ganz hinten)
+  python k.py setze 2 b4 nahtlos=1     Block laeuft ueber den Rand auf der Nachbarfolie weiter
   python k.py folie dup 3 | folie weg 3 | folie zu 3 1   (verschieben an Stelle 1)
   python k.py stil [bg=#fff akzent=#e33 titel=90 schrift=Oswald]   ohne Werte: zeigen
   python k.py stil palette=#e4572e,#1e1e1e,#2e86ab       Markenfarben (bis 12), palette= leert
@@ -29,6 +31,14 @@ Cockpit zeigt jede Aenderung nach 1,5 s von selbst.
   python k.py auftrag erledigt         Auftrag abhaken
   python k.py frei 3 b2 [--modell genau]   Hintergrund entfernen (schnell <1 s, genau ~2 Min.)
   python k.py render [3,5]             Bilder fuer Instagram (alle oder nur diese)
+  python k.py marke                    Markenpaket zeigen (Farben, Schriften, Logos, Name)
+  python k.py marke farben=#e4572e,#1e1e1e,#ffffff titel=Oswald text=Inter name=deinname
+                                       setzen (Farben: 1. Akzent, 2. Dunkel, 3. Hell, dann weitere)
+  python k.py marke logo <datei>       Logo ins Markenpaket
+  python k.py marke anwenden [farben] [schriften] [logo]   offenes Karussell in die Marke bringen
+  python k.py logo 3|alle              Logo aus dem Markenpaket auf Folie 3 oder auf alle
+  python k.py schrift datei <pfad>     eigene Schriftdatei (TTF, OTF, WOFF), danach ueberall waehlbar
+  python k.py format 3:4|4:5           Format umstellen, Inhalt rueckt mit (wie die Vorschau im Cockpit)
   python k.py projekte | projekt <name>
 
 Ueberall --projekt <name> fuer ein anderes als das offene Projekt.
@@ -36,6 +46,8 @@ Felder: text, rolle (titel|text), groesse, abstand, farbe, font (eingebaut + gel
 aus (left|center|right),
 x, y, w, h, dreh, datei, gesperrt (1|0), gruppe, fett (1|0).
 Bilder: ausschnitt.z (1-5) ausschnitt.x/.y (0-100, Fokus in Prozent), spiegeln (h|v|hv),
+maske (kreis|bogen|herz|stern|sechseck|blob|raute|dreieck), geraet (handy|tablet|laptop|browser),
+geraetfarbe (#hex), bei Text: bildfuellung=foto.jpg (Bild in der Schrift),
 filter.hell/.kontrast/.saett (100 = normal) filter.grau/.sepia (0-100) filter.unschaerfe (px),
 deckkraft (0-100), ecken (px), rahmen.breite/.farbe, schatten=an|aus,
 schatten.weich/.abstand/.winkel/.deck/.farbe.
@@ -76,17 +88,26 @@ def wert(roh):
 
 # Werte aus inhalt.json sind fremde Daten. Ein Zeilenumbruch darin koennte in
 # der Ausgabe einen Auftrag vortaeuschen, darum nie Steuerzeichen ausgeben.
-STEUER = re.compile(r"[\x00-\x1f\x7f\u2028\u2029\u0085]")
+# Steuer-, Bidi- und unsichtbare Zeichen (auch Tag-Zeichen, Variantenwaehler, einzelne Surrogate)
+STEUER = re.compile(r"[\x00-\x1f\x7f-\x9f\u00ad\u061c\u180b-\u180f\u200b-\u200f\u2028-\u202e"
+                    r"\u2060-\u2069\ufe00-\ufe0f\ufeff\ud800-\udfff\U000e0000-\U000e007f\U000e0100-\U000e01ef]")
 
 
 def sauber(v):
     return STEUER.sub(" ", v) if isinstance(v, str) else v
 
 
+GUELTIG = {"maske": lambda v: v in WAHL["maske"], "geraet": lambda v: v in WAHL["geraet"],
+           "geraetfarbe": lambda v: bool(FARBE.fullmatch(v)), "farbe": lambda v: bool(FARBE.fullmatch(v)),
+           "font": lambda v: v in WAHL["font"], "aus": lambda v: v in WAHL["aus"],
+           "bildfuellung": lambda v: bool(P.DATEI.fullmatch(v))}
+
+
 def zeile(b, voll=False):
     teile = [b.get("id", "?")]
     if b.get("typ") == "bild":
-        teile += ["bild", b.get("datei", "")]
+        dat = b.get("datei", "")
+        teile += ["bild", dat if isinstance(dat, str) and (not dat or P.DATEI.fullmatch(dat)) else "(ungueltig)"]
     elif b.get("typ") == "form":
         teile += ["icon", b.get("icon", "")] if b.get("form") == "icon" else ["form", b.get("form", "")]
     else:
@@ -101,11 +122,20 @@ def zeile(b, voll=False):
     else:
         teile.append("im Raster")
     for f, form in (("groesse", "g%s"), ("farbe", "%s"), ("font", "%s"), ("aus", "%s"),
-                    ("dreh", "%s Grad"), ("gruppe", "Gruppe %s")):
-        if b.get(f) not in (None, ""):
-            teile.append(form % b[f])
+                    ("dreh", "%s Grad"), ("gruppe", "Gruppe %s"), ("maske", "in %s"),
+                    ("geraet", "im Rahmen %s"), ("geraetfarbe", "Geraet %s"),
+                    ("bildfuellung", "Bild in der Schrift: %s")):
+        v = b.get(f)
+        if v in (None, ""):
+            continue
+        # Werte aus einer fremden Datei: nur Gueltiges zeigen, alles kurz
+        if f in GUELTIG and not (isinstance(v, str) and GUELTIG[f](v)):
+            v = "(ungueltig)"
+        teile.append(form % (sauber(str(v))[:60],))
     if b.get("gesperrt"):
         teile.append("gesperrt")
+    if b.get("nahtlos"):
+        teile.append("nahtlos")
     for f in ("fuellung", "rand", "staerke", "strich", "zeichen", "gross", "umriss", "flaeche",
               "ausschnitt", "spiegeln", "filter", "deckkraft", "ecken", "rahmen", "schatten", "original"):
         if f in b:
@@ -157,8 +187,10 @@ ZAHLEN = {"x", "y", "w", "h", "groesse", "abstand", "dreh", "deckkraft", "ecken"
 WAHL = {"rolle": {"titel", "text", "bild"}, "aus": {"left", "center", "right"},
         "spiegeln": {"h", "v", "hv"}, "strich": {"voll", "gestrichelt", "gepunktet"},
         "form": {"rechteck", "kreis", "dreieck", "raute", "stern", "linie", "pfeil", "icon"},
+        "maske": {"kreis", "bogen", "herz", "stern", "sechseck", "blob", "raute", "dreieck"},
+        "geraet": {"handy", "tablet", "laptop", "browser"},
         "font": {"Montserrat", "Poppins", "Inter", "Oswald", "Playfair Display", "Lora", "Bebas Neue"} | _google()}
-SCHALTER = {"gesperrt", "fett", "gross"}
+SCHALTER = {"gesperrt", "fett", "gross", "nahtlos"}
 GRUPPEN = {"ausschnitt": {"z", "x", "y"},
            "filter": {"hell", "kontrast", "saett", "grau", "sepia", "unschaerfe"},
            "rahmen": {"breite", "farbe"}, "rand": {"breite", "farbe"},
@@ -172,7 +204,7 @@ def pruefen(feld, v):
     """Wert fuer ein Feld pruefen, None heisst entfernen."""
     if v is None:
         return None
-    if feld in ("farbe", "fuellung"):
+    if feld in ("farbe", "fuellung", "geraetfarbe"):
         if feld == "fuellung" and v == "keine":
             return v
         if not FARBE.fullmatch(str(v)):
@@ -190,7 +222,7 @@ def pruefen(feld, v):
         return v
     if feld in SCHALTER or feld == "hohl":
         return True if v in (1, "1", "an", "ja", True) else None
-    if feld in ("datei", "original"):
+    if feld in ("datei", "original", "bildfuellung"):
         return P.datei_ok(v)
     if feld == "icon":
         if not ICON.fullmatch(str(v)):
@@ -229,6 +261,17 @@ def stil_setzen(stil, paare):
             stil[f] = pruefen(art, roh)
 
 
+def ebenen_von(s):
+    """Stapelung wie ebenen() in render.js: gespeicherte Folge, dann fliessende Bilder, dann der Rest."""
+    bl = s.get("bloecke", [])
+    da = [b.get("id") for b in bl]
+    folge = [x for x in (s.get("ebenen") or []) if x in da]
+    for b in bl:
+        if b.get("typ") == "bild" and (b.get("x") is None or b.get("y") is None) and b.get("id") not in folge:
+            folge.append(b.get("id"))
+    return folge + [x for x in da if x not in folge]
+
+
 def felder_setzen(b, paare):
     for p in paare:
         if "=" not in p:
@@ -264,6 +307,8 @@ def felder_setzen(b, paare):
             b.pop(f, None)
         else:
             b[f] = v
+    if b.get("nahtlos") and b.get("typ") != "form" and (b.get("x") is None or b.get("y") is None):
+        sys.exit("nahtlos geht nur bei frei gesetzten Bloecken (mit x und y)")
 
 
 def icons_suchen(frage, n=12):
@@ -335,7 +380,20 @@ def main(args):
     if befehl == "projekt":
         P.setzen(args[1]); print("offen:", args[1]); return
     if befehl == "vorlagen":
-        print("  ".join(P.vorlagen()) or "keine Vorlagen"); return
+        # Name, Titel und wofuer sie gedacht ist: Claude waehlt so die passende Karussell-Art
+        zeilen = []
+        for v in P.vorlagen():
+            try:
+                d = json.loads((P.vorlage_ordner(v) / "inhalt.json").read_text(encoding="utf-8-sig"))
+            except (OSError, ValueError, TypeError):
+                d = {}
+            i = d.get("vorlage") if isinstance(d, dict) and isinstance(d.get("vorlage"), dict) else {}
+            o = P.vorlage_ordner(v)
+            if o is None or o.parent == P.VORLAGEN:            # eigene: nur der Name, nie ein Titel
+                zeilen.append(sauber("%-22s (eigene Vorlage)" % v)); continue
+            titel, text = P.kurztext(i.get("titel"), 40), P.kurztext(i.get("beschreibung"), 140)
+            zeilen.append(sauber("%-22s %s%s" % (v, titel, (": " + text) if text else "")).rstrip())
+        print("\n".join(zeilen) or "keine Vorlagen"); return
     if befehl == "vorlage" and len(args) > 2 and args[1] == "speichern":
         if server_da():
             j = json.loads(post("projekt", json.dumps({"aktion": "vorlage", "name": args[2], "von": name}), name))
@@ -361,6 +419,73 @@ def main(args):
         print("  ".join(n + (" *" if n in da else "") for n in schriften.suchen(wort, art, 25))
               or "keine Treffer")
         print("(* = schon waehlbar)")
+        return
+    if befehl == "marke":
+        import marke as MK
+        try:
+            MK.lesen()
+        except (ValueError, OSError) as e:
+            sys.exit(sauber(str(e)))
+        if len(args) > 1 and args[1] == "anwenden":
+            wahl = set(args[2:]) or {"farben", "schriften"}
+            print(sauber(MK.anwenden_auf_projekt(name, farben="farben" in wahl, schriften="schriften" in wahl,
+                                                 logo="logo" in wahl)))
+            return
+        if len(args) > 2 and args[1] == "logo":
+            import bauen
+            p = Path(" ".join(args[2:]))
+            if not p.is_file():
+                sys.exit("Datei nicht gefunden: %s" % sauber(str(p)))
+            if p.stat().st_size > 20_000_000:
+                sys.exit("Logo zu gross (hoechstens 20 MB)")
+            m = MK.logo_ablegen(p.name, p.read_bytes(), bauen.bild_ablegen)
+            print("Logos:", sauber(", ".join(m["logos"])))
+            return
+        m = MK.lesen()
+        if len(args) > 1:
+            for a in args[1:]:
+                k_, _, v = a.partition("=")
+                if k_ == "farben":
+                    m["farben"] = [x.strip() for x in v.split(",") if x.strip()]
+                    falsch = [x for x in m["farben"] if not MK.norm(x)]
+                    if falsch:
+                        sys.exit("Farben bitte als #rrggbb: %s" % sauber(", ".join(falsch)[:80]))
+                elif k_ in ("titel", "text"):
+                    if v and v not in WAHL["font"]:
+                        sys.exit("Schrift %s gibt es nicht. Erst laden: k.py schrift laden \"%s\"" % (sauber(v[:60]), sauber(v[:60])))
+                    m[k_] = v
+                elif k_ == "name":
+                    m["name"] = v.lstrip("@")
+                else:
+                    sys.exit("marke kennt: farben=, titel=, text=, name=, logo <datei>, anwenden")
+            m = MK.schreiben(m)
+        print(sauber("Name: %s" % (("@" + m["name"]) if m["name"] else "-")))
+        print(sauber("Farben: %s   (1. Akzent, 2. Dunkel, 3. Hell, dann weitere)" % (", ".join(m["farben"]) or "-")))
+        print(sauber("Schriften: Ueberschrift %s, Text %s" % (m["titel"] or "-", m["text"] or "-")))
+        print(sauber("Logos: %s" % (", ".join(m["logos"]) or "-")))
+        return
+    if befehl == "schrift" and len(args) > 2 and args[1] == "datei":
+        p = Path(" ".join(args[2:]))
+        if not p.is_file():
+            sys.exit("Datei nicht gefunden: %s" % sauber(str(p)))
+        import schriften
+        if p.stat().st_size > schriften.MAX_EIGENE:
+            sys.exit("Schriftdatei zu gross (hoechstens 10 MB)")
+        daten = p.read_bytes()
+        if server_da():
+            from urllib.parse import quote
+            oeffner = request.build_opener(request.ProxyHandler({}))
+            url = "http://127.0.0.1:%d/schriftdatei?name=%s" % (PORT, quote(p.name))
+            with oeffner.open(request.Request(url, data=daten, method="POST"), timeout=60) as r:
+                j = json.loads(r.read().decode("utf-8"))
+            if not j.get("ok"):
+                sys.exit("Ging nicht: %s" % sauber(str(j.get("fehler"))))
+            print("geladen:", sauber(j["family"]))
+        else:
+            try:
+                print("geladen:", sauber(schriften.eigene_laden(daten, p.name)))
+            except ValueError as e:
+                sys.exit(sauber(str(e)))
         return
     if befehl == "schrift" and len(args) > 2 and args[1] == "laden":
         fam = " ".join(args[2:])
@@ -487,12 +612,35 @@ def main(args):
                     hg[f] = v
             s["hg"] = hg
         schreiben(d, name)
-        print("Hintergrund gesetzt:", json.dumps(ziele[0].get("hg"), ensure_ascii=False))
+        print("Hintergrund gesetzt:", sauber(json.dumps(ziele[0].get("hg"), ensure_ascii=False)))
+        return
+
+    if befehl == "panorama":
+        # Ein Bild ueber mehrere Folien: frei gesetzt, ganz hinten, nahtlos
+        nr, datei = int(args[1]), P.datei_ok(args[2])
+        if not (P.ordner(name) / datei).is_file():
+            sys.exit("Bild %s liegt nicht im Projekt" % datei)
+        rest = len(d["slides"]) - nr + 1
+        if rest < 2:
+            sys.exit("Nach Folie %d gibt es keine Folie mehr. Erst eine anlegen: k.py folie neu %d" % (nr, nr))
+        anzahl = 3
+        for a in args[3:]:
+            if a.startswith("folien="):
+                anzahl = int(a.split("=", 1)[1])
+        anzahl = max(2, min(anzahl, rest, 10))
+        s = folie(d, nr)
+        vorher = ebenen_von(s)
+        b = {"id": neue_id(d), "typ": "bild", "datei": datei, "x": 0, "y": 0,
+             "w": int(st["breite"]) * anzahl, "h": int(st["hoehe"]), "nahtlos": True}
+        s.setdefault("bloecke", []).append(b)
+        s["ebenen"] = [b["id"]] + vorher
+        schreiben(d, name)
+        print("Panorama ueber Folie %d bis %d:" % (nr, nr + anzahl - 1), zeile(b))
         return
 
     if befehl == "stil":
         if len(args) == 1:
-            print("  ".join("%s=%s" % (k, v) for k, v in st.items())); return
+            print(sauber("  ".join("%s=%s" % (k, str(v)[:80]) for k, v in st.items()))); return
         stil = d.setdefault("stil", {})
         stil_setzen(stil, args[1:])
         schreiben(d, name); print("stil gesetzt"); return
@@ -538,10 +686,47 @@ def main(args):
         b["datei"] = neu
         schreiben(d, name); print(zeile(b)); return
 
+    if befehl == "format":
+        # Gleiche Rechnung wie die Formatwahl im Cockpit (render.js, im Browser gemessen)
+        if len(args) < 2:
+            sys.exit("python k.py format 3:4   oder   python k.py format 4:5")
+        zeilen = lambda t: "\n".join(sauber(z) for z in t.split("\n"))   # sauber() nimmt sonst die Umbrueche
+        if server_da():
+            print(zeilen(post("format", args[1], name)))
+        else:
+            import bauen
+            srv, port = bauen.server()
+            try:
+                print(zeilen(bauen.format_umstellen(port, name, args[1])))
+            except ValueError as e:
+                sys.exit(sauber(str(e)))
+            finally:
+                srv.shutdown()
+        return
+
+    if befehl == "logo":
+        import marke as MK
+        m = MK.lesen()
+        if not m["logos"]:
+            sys.exit("Noch kein Logo im Markenpaket: k.py marke logo <datei>")
+        if len(args) < 2:
+            sys.exit("python k.py logo 3   oder   python k.py logo alle")
+        datei, v = MK.logo_ins_projekt(name, m["logos"][0])
+        nummern = range(1, min(len(d["slides"]), 100) + 1) if args[1] == "alle" else [int(args[1])]
+        for nr in nummern:
+            s = folie(d, nr)
+            if any(b.get("datei") == datei for b in s.get("bloecke", [])):
+                continue
+            b = MK.logo_block(datei, v, st, neue_id(d))
+            s.setdefault("bloecke", []).append(b)
+            print("Folie %d:" % nr, zeile(b))
+        schreiben(d, name)
+        return
+
     if befehl == "render":
         art = "bilder" + (":" + args[1] if len(args) > 1 else "")
         if server_da():
-            print(post("rendern", art, name))
+            print(sauber(post("rendern", art, name)))
         else:
             import bauen
             srv, port = bauen.server()

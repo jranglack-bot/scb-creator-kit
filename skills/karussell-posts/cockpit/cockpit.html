@@ -4,7 +4,7 @@
 <style>
 :root{--ui:#22282b;--ui2:#2d3438;--rand:#3d464b;--fg:#e7ecee;--akz:#7fb3a3}
 *{box-sizing:border-box}
-body{margin:0;height:100vh;display:grid;grid-template-rows:48px 1fr;
+body{margin:0;height:100vh;display:grid;grid-template-rows:48px 1fr;grid-template-columns:minmax(0,1fr);
      background:var(--ui);color:var(--fg);font:14px/1.45 system-ui,sans-serif;overflow:hidden}
 header{display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--ui2);
        border-bottom:1px solid var(--rand)}
@@ -16,7 +16,8 @@ header h1{font-size:14px;font-weight:600;margin:0;letter-spacing:.02em}
 .dlg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
   z-index:5000;background:#000a}
 .dlg .karte{background:var(--ui2);border:1px solid var(--akz);border-radius:12px;
-  padding:20px 22px;width:400px;max-width:calc(100vw - 32px);box-shadow:0 12px 40px #000c}
+  padding:20px 22px;width:400px;max-width:calc(100vw - 32px);box-shadow:0 12px 40px #000c;
+  max-height:calc(100vh - 24px);overflow-y:auto}
 .dlg h2{font-size:15px;margin:0 0 4px}
 .dlg .unter{font-size:12px;opacity:.65;margin:0 0 12px}
 .dlg input[type=text]{font-size:15px;padding:9px}
@@ -36,6 +37,17 @@ button.haupt:hover{background:#96c6b7}
 button:disabled{opacity:.45;cursor:default}
 #status{font-size:12px;opacity:.75;min-width:0;flex:0 1 200px;text-align:right;line-height:1.3}
 header h1,header button{white-space:nowrap}
+/* Schmalere Bildschirme: Kopfleiste kompakter, damit rechts kein Knopf abgeschnitten wird */
+@media (max-width: 1520px){
+  header h1{display:none}
+  header{gap:7px;padding:0 10px}
+  header > button,#projektwahl button{padding:6px 9px;font-size:13px}
+  #projektwahl{margin-left:0}
+}
+@media (max-width: 1300px){
+  header .lang{display:none}
+  #projektwahl select{max-width:150px}
+}
 main{display:grid;grid-template-columns:126px 1fr 336px;overflow:hidden}
 #liste{overflow-y:auto;padding:10px;background:#1b2023;border-right:1px solid var(--rand)}
 .mini{position:relative;width:104px;margin-bottom:9px;border:2px solid transparent;
@@ -59,6 +71,7 @@ main{display:grid;grid-template-columns:126px 1fr 336px;overflow:hidden}
   border-top:1px solid var(--rand)}
 #zoomleiste input[type=range]{flex:1;accent-color:var(--akz);min-width:60px}
 #zoomleiste button{padding:5px 10px;font-size:13px;line-height:1}
+#zoomleiste button.an{background:var(--akz);color:#12201c}
 #zoomleiste input[type=number]{width:66px;background:#1b2023;color:var(--fg);
   border:1px solid var(--rand);border-radius:5px;padding:5px 6px;font:13px system-ui;
   text-align:right}
@@ -83,6 +96,26 @@ details.abschnitt[open] summary{opacity:1;color:var(--akz)}
 #rahmen .box.zuschneiden{cursor:grab;outline:2px solid #7fb3a3;outline-offset:0}
 #flaeche .geist{position:absolute;opacity:.35;pointer-events:none;overflow:visible!important}
 #flaeche .geist .spiegel{position:absolute}
+#flaeche .box.gast,.mini .box.gast{pointer-events:none}
+#rahmen.pano{outline:2px solid var(--akz);z-index:1}
+#rahmen .nachbar{position:absolute;top:0;overflow:hidden;cursor:pointer;background:#fff;z-index:0}
+#rahmen .nachbar .slide{transform-origin:top left;pointer-events:none}
+#rahmen .nachbar::after{content:'';position:absolute;inset:0;background:rgba(20,26,29,.10);transition:background .15s}
+#rahmen .nachbar:hover::after{background:rgba(20,26,29,.24)}
+#rahmen .nachbarnr{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:2;background:#000a;color:#fff;
+  font:600 12px system-ui,sans-serif;padding:3px 10px;border-radius:10px;pointer-events:none}
+#flaeche .box.bild.leer .bildflaeche{background:repeating-linear-gradient(45deg,#cfd6d9 0 16px,#c3cbce 16px 32px)}
+#flaeche .box.bild.leer .bildflaeche::after{content:'Bild hierher ziehen';position:absolute;inset:0;display:flex;
+  align-items:center;justify-content:center;text-align:center;padding:12px;font:600 26px system-ui,sans-serif;color:#56636a}
+.rahmenraster{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 14px}
+.rahmenwahl{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;background:#1b2023}
+.rahmenwahl svg{width:70px;height:70px;overflow:visible}
+.rahmenwahl span{font-size:12px;opacity:.8}
+.rahmenklein{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:4px 0 8px}
+.rahmenklein button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;font-size:11px}
+.rahmenklein svg{width:28px;height:28px;overflow:visible}
+.bildwahl{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:4px 0 6px}
+.bildkachel{aspect-ratio:1;padding:0;background-size:cover;background-position:center;border:1px solid #0006}
 #buehne.ablegen{outline:3px dashed var(--akz);outline-offset:-8px}
 .dlg .karte.breit{width:720px}
 .reiter{display:flex;gap:6px;align-items:center}
@@ -98,12 +131,39 @@ details.abschnitt[open] summary{opacity:1;color:var(--akz)}
 .iconbild{width:100%;height:100%;background:var(--fg);-webkit-mask-size:contain;mask-size:contain;
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
 .blk .vorschau.form{display:flex;align-items:center;justify-content:center;padding:3px}
-.galerie{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;max-height:46vh;overflow-y:auto}
+.galerie{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;max-height:38vh;overflow-y:auto}
 .vorlagekarte{display:flex;flex-direction:column;gap:5px;padding:6px;background:#1b2023;border:2px solid transparent}
 .vorlagekarte.an{border-color:var(--akz)}
 .vorlagekarte img,.vorlagekarte .leerkarte{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:4px;background:#e7ecee}
 .vorlagekarte .leerkarte{display:flex;align-items:center;justify-content:center;color:#12201c;font-weight:300;font-size:44px}
-.vorlagekarte span{font-size:11px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vorlagekarte span{font-size:12px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dDetail{display:none;margin-top:10px;padding:10px;background:#1b2023;border-radius:8px}
+#dDetail .unter{margin:0 0 8px;opacity:.85}
+#dDetail .streifen{overflow-x:auto;overflow-y:hidden}
+#dDetail .streifen img{display:block;height:180px;width:auto;max-width:none;border-radius:6px}
+/* Markenpaket */
+#marke .karte{width:760px}
+#marke h3{font-size:11px;margin:16px 0 7px;opacity:.75;text-transform:uppercase;letter-spacing:.08em}
+#mFarben,#mLogos{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.mFarbe{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;opacity:.9;width:52px}
+.mFarbe .feld{position:relative;width:48px;height:48px;border-radius:10px;border:1px solid var(--rand);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--fg)}
+.mFarbe input[type=color]{position:absolute;inset:-10px;width:70px;height:70px;border:0;padding:0;cursor:pointer;opacity:0}
+.mFarbe .weg,.mLogo .weg{position:absolute;top:3px;right:3px;width:18px;height:18px;padding:0;border-radius:50%;
+  font-size:12px;line-height:18px;background:#000b;color:#fff;display:none;z-index:2}
+.mFarbe:hover .weg,.mLogo:hover .weg{display:block}
+#mProbe{margin-top:10px;padding:14px 16px;border-radius:8px;background:#f4f5f6;color:#111;border-left:6px solid transparent}
+#mProbe .t{font-size:28px;font-weight:700;line-height:1.15}
+#mProbe .x{font-size:15px;margin-top:5px;line-height:1.4}
+.mLogo{position:relative;width:96px;height:96px;border-radius:8px;border:1px solid var(--rand);padding:8px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  background:repeating-conic-gradient(#d4d9dd 0 25%,#f4f5f6 0 50%) 0 0/16px 16px}
+.mLogo img{max-width:100%;max-height:100%;display:block}
+.mLogo.neu{background:#1b2023;color:var(--fg);font-size:12px;line-height:1.3;text-align:center}
+.mZeile{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.mHaken{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
+.mHaken input{accent-color:var(--akz)}
+#mName{max-width:320px}
 .schriftliste{max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .schriftzeile{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:6px 8px;background:#1b2023;border-radius:6px}
 .schriftname{font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -173,6 +233,103 @@ textarea{min-height:64px}
   box-shadow:0 8px 26px #000a}
 #fertig button{padding:6px 12px;font-size:12px}
 #fertig #fZu{padding:4px 9px;background:transparent;opacity:.6}
+/* Profilrand auf Folie 1: nur Anzeige, nicht im Bild */
+#rahmen .profilrand{position:absolute;pointer-events:none;z-index:4}
+#rahmen .profilrand.senk{top:0;bottom:0;width:1px;margin-left:-.5px;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.9) 0 6px,rgba(0,0,0,.55) 6px 12px)}
+#rahmen .profilrand.waag{left:0;right:0;height:1px;margin-top:-.5px;
+  background:repeating-linear-gradient(to right,rgba(255,255,255,.9) 0 6px,rgba(0,0,0,.55) 6px 12px)}
+#rahmen .profilrand span{position:absolute;left:5px;top:6px;font:600 10px/1.4 system-ui;color:#fff;
+  background:#000a;border-radius:8px;padding:0 6px;white-space:nowrap}
+#rahmen .profilrand.waag span{left:6px;top:4px}
+/* Instagram-Vorschau */
+#vorschau{flex-direction:column;align-items:stretch;justify-content:flex-start;background:#15191b;
+  --ig-bg:#000;--ig-fg:#f5f5f5;--ig-sub:#a8a8a8;--ig-linie:#262626;--ig-skel:#262626;--ig-knopf:#363636}
+#vorschau.hell{--ig-bg:#fff;--ig-fg:#000;--ig-sub:#737373;--ig-linie:#dbdbdb;--ig-skel:#efefef;--ig-knopf:#efefef}
+#vorschau .vKopf{display:flex;align-items:center;gap:10px;padding:9px 16px;background:var(--ui2);
+  border-bottom:1px solid var(--rand);flex-wrap:wrap}
+#vorschau .vKopf > b{font-size:14px;margin-right:4px;white-space:nowrap}
+#vFormat{display:flex;border:1px solid var(--rand);border-radius:8px;overflow:hidden;flex:none}
+#vFormat button{border-radius:0;padding:6px 15px;background:transparent;position:relative}
+#vFormat button:hover{background:#4b565c}
+#vFormat button.an{background:var(--akz);color:#12201c}
+#vFormat button.jetzt::after{content:'';position:absolute;left:50%;bottom:3px;width:4px;height:4px;
+  margin-left:-2px;border-radius:50%;background:currentColor;opacity:.75}
+#vErkl{font-size:12px;opacity:.78;flex:1 1 260px;min-width:0;line-height:1.35}
+#vorschau .vKopf label{font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+#vName{width:150px;background:#1b2023;color:var(--fg);border:1px solid var(--rand);border-radius:6px;
+  padding:5px 8px;font:13px system-ui}
+#vorschau .vMitte{flex:1;display:flex;justify-content:center;align-items:center;gap:40px;min-height:0;padding:14px}
+#vorschau .vSpalte{display:flex;flex-direction:column;align-items:center;gap:8px}
+#vorschau .vTitel{font-size:12px;opacity:.7;white-space:nowrap}
+#vorschau .vHuelle{position:relative;flex:none}
+#vorschau .handy{position:absolute;left:0;top:0;width:414px;height:868px;transform-origin:0 0;
+  border:12px solid #0b0b0c;border-radius:56px;background:#000;overflow:hidden;
+  box-shadow:0 18px 50px #000a,0 0 0 1px #3a3f42}
+#vorschau .handy::before{content:'';position:absolute;top:11px;left:50%;width:120px;height:34px;margin-left:-60px;
+  border-radius:20px;background:#000;z-index:5}
+#vorschau .schirm{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;padding-top:50px;
+  background:var(--ig-bg);color:var(--ig-fg);font:14px/1.35 -apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+#vorschau .schirm::-webkit-scrollbar{display:none}
+#vorschau .schirm svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round;display:block;flex:none}
+#vorschau .vFuss{padding:10px 16px 14px;background:var(--ui2);border-top:1px solid var(--rand);
+  font-size:13px;max-height:30vh;overflow:auto}
+#vorschau .vFuss .knoepfe{justify-content:flex-start;align-items:center;margin:0;flex-wrap:wrap}
+#vorschau .vFuss ul{margin:6px 0 0;padding-left:18px;font-size:12px;opacity:.85}
+#vorschau .vFuss .unter{margin:4px 0 0}
+#vorschau .vFuss .gut{color:#9ed2bf}
+.igOben{display:flex;align-items:center;justify-content:space-between;gap:10px;height:44px;padding:0 14px;font-size:16px}
+.igOben .igName{font-size:20px;font-weight:700}
+.igOben span{display:flex;gap:20px}
+.igKopf{display:flex;align-items:center;gap:10px;height:54px;padding:0 12px}
+.igKopf .igName{flex:1;font-size:14px;font-weight:600}
+.igAvatar{display:flex;align-items:center;justify-content:center;border-radius:50%;flex:none;
+  background:linear-gradient(135deg,#8a9096,#3b4046);color:#fff;font-weight:700}
+.igAvatar.klein{width:32px;height:32px;font-size:14px}
+.igAvatar.gross{width:86px;height:86px;font-size:34px}
+.igMedien{position:relative;overflow:hidden;touch-action:pan-y;cursor:grab;background:#000;
+  -webkit-user-select:none;user-select:none}
+.igMedien.zieht{cursor:grabbing}
+.igStreifen{display:flex;height:100%;will-change:transform}
+.igFolie{position:relative;flex:none;overflow:hidden}
+.igFolie .slide{transform-origin:0 0}
+.igZahl{position:absolute;top:12px;right:12px;background:rgba(18,18,18,.72);color:#fff;font-size:12px;
+  font-weight:600;padding:3px 9px;border-radius:12px;pointer-events:none}
+#vorschau .igPfeil{position:absolute;top:50%;width:28px;height:28px;margin-top:-14px;border-radius:50%;padding:0;
+  background:rgba(255,255,255,.85);color:#000;display:none;align-items:center;justify-content:center;
+  box-shadow:0 1px 4px #0006}
+#vorschau .igPfeil svg{width:15px;height:15px;stroke-width:2.8}
+#vorschau .igPfeil.links{left:10px}
+#vorschau .igPfeil.rechts{right:10px}
+#vorschau .igMedien:hover .igPfeil.da{display:flex}
+#vorschau .igPfeil:hover{background:#fff}
+.igAktionen{position:relative;display:flex;align-items:center;justify-content:space-between;height:46px;padding:0 12px}
+.igAktionen > span:first-child{display:flex;gap:16px}
+.igPunkte{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:4px}
+.igPunkte i{width:6px;height:6px;border-radius:50%;background:var(--ig-sub);opacity:.5}
+.igPunkte.viele{gap:3px}
+.igPunkte.viele i{width:5px;height:5px}
+.igPunkte i.an{background:#0095f6;opacity:1}
+.igText{padding:2px 14px 18px;display:flex;flex-direction:column;gap:9px}
+.igText .igName{font-weight:600;margin-right:6px}
+.skel{display:inline-block;height:11px;border-radius:6px;background:var(--ig-skel);vertical-align:middle}
+.igProfilKopf{display:flex;align-items:center;gap:20px;padding:4px 16px 12px}
+.igZahlen{display:flex;flex:1;justify-content:space-around;text-align:center;font-size:13px}
+.igZahlen div{display:flex;flex-direction:column;align-items:center;gap:6px}
+.igBio{padding:0 16px 12px;display:flex;flex-direction:column;gap:7px}
+.igKnoepfe{display:flex;gap:6px;padding:0 16px 14px}
+.igKnoepfe span{flex:1;text-align:center;background:var(--ig-knopf);border-radius:8px;padding:7px 0;
+  font-size:13px;font-weight:600}
+.igReiter{display:flex;border-top:1px solid var(--ig-linie)}
+.igReiter span{flex:1;display:flex;justify-content:center;padding:10px 0;color:var(--ig-sub)}
+.igReiter span.an{color:var(--ig-fg);box-shadow:inset 0 -1.5px 0 var(--ig-fg)}
+.igRaster{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.igKachel{position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--ig-skel)}
+.igKachel .slide{position:absolute;left:0;top:0;transform-origin:0 0}
+#vorschau .igKachel .igStapel{position:absolute;top:7px;right:7px;color:#fff;z-index:3;
+  filter:drop-shadow(0 0 2px rgba(0,0,0,.6))}
+#vorschau .igKachel .igStapel svg{width:18px;height:18px}
 </style>
 <script src="lib/moveable.min.js"></script>
 <script src="lib/selecto.min.js"></script>
@@ -191,8 +348,10 @@ textarea{min-height:64px}
   <button id="zurueck" title="Strg+Z">&#8630; Zurueck</button>
   <button id="vor" title="Strg+Y">&#8631; Vor</button>
   <button id="speichern">Gesichert</button>
-  <button id="rBilder" class="haupt">Bilder fuer Instagram</button>
-  <button id="rPptx">Datei fuer Canva</button>
+  <button id="rMarke" title="Markenpaket: deine Farben, Schriften und Logos fuer alle Karussells">Marke</button>
+  <button id="rVorschau" title="So sieht es auf Instagram aus: im Profil und beim Wischen, mit Wahl zwischen 3:4 und 4:5">Vorschau</button>
+  <button id="rBilder" class="haupt" title="Bilder fuer Instagram, eins je Folie">Bilder<span class="lang"> fuer Instagram</span></button>
+  <button id="rPptx" title="Datei fuer Canva (PowerPoint), jedes Element einzeln beweglich"><span class="lang">Datei fuer </span>Canva</button>
   <button id="rPdf" title="Alle Folien als ein PDF, z. B. fuer LinkedIn oder zum Drucken">PDF</button>
 </header>
 <main>
@@ -206,6 +365,7 @@ textarea{min-height:64px}
       <input type="number" id="zZahl" min="25" max="800" step="5" value="100">
       <span class="proz">%</span>
       <button id="zFit">Einpassen</button>
+      <button id="zPano" title="Nachbarfolien links und rechts zeigen: fuer Bilder und Linien, die ueber mehrere Folien laufen">Panorama</button>
     </div>
   </div>
   <div id="regler"></div>
@@ -226,10 +386,12 @@ textarea{min-height:64px}
   <div class="karte breit">
     <div class="reiter">
       <button data-tab="formen">Formen</button>
+      <button data-tab="rahmen">Rahmen</button>
       <button data-tab="icons">Icons</button>
       <span class="unter" style="margin:0 0 0 auto">Lucide und Tabler, frei nutzbar</span>
     </div>
     <div id="eFormen" class="formraster"></div>
+    <div id="eRahmen" style="display:none"></div>
     <div id="eIcons" style="display:none">
       <div class="reihe" style="margin:10px 0 8px">
         <input type="text" id="eSuche" placeholder="Suchen, z. B. Herz, Geld, Pfeil, Instagram" autocomplete="off">
@@ -262,11 +424,13 @@ textarea{min-height:64px}
     <p class="unter" id="dUnter"></p>
     <input type="text" id="dName" placeholder="Name, z. B. Kompass" autocomplete="off">
     <div id="dGalerie" class="galerie"></div>
+    <div id="dDetail"><p class="unter" id="dInfo"></p><div class="streifen" id="dStreifen"></div>
+      <label class="mHaken" id="dMarkeZeile" style="margin-top:8px"><input type="checkbox" id="dMarke" checked> In meiner Marke (Farben und Schriften aus dem Markenpaket)</label></div>
     <div id="dFormat">
       <label class="wahl"><input type="radio" name="fmt" value="45" checked>
-        <div><b>4:5, fuer automatisches Posten</b><span>Standard. Geht so um 8 Uhr live, wie du es hier siehst.</span></div></label>
+        <div><b>4:5, fuer automatisches Posten</b><span>Standard. Nimmt jede Posting-Automatik an. Im Profil fehlen links und rechts je 34 px.</span></div></label>
       <label class="wahl"><input type="radio" name="fmt" value="34">
-        <div><b>3:4, nur fuer Posten von Hand in der App</b><span>Etwas hoeher. Die Automatik muss es verkleinern.</span></div></label>
+        <div><b>3:4, am groessten im Feed</b><span>Fuellt die Kachel im Profil ganz. Zum Posten in der App, Automatiken nehmen 3:4 nicht immer an.</span></div></label>
     </div>
     <div class="fehler" id="dFehler"></div>
     <div class="knoepfe">
@@ -288,9 +452,60 @@ textarea{min-height:64px}
       </select>
     </div>
     <div id="sListe" class="schriftliste"></div>
-    <div class="knoepfe"><button id="sZu">Schliessen</button></div>
+    <div class="knoepfe"><button id="sDatei" title="TTF, OTF oder WOFF vom Rechner">Eigene Schrift hochladen</button><button id="sZu">Schliessen</button></div>
   </div>
 </div>
+<div id="vorschau" class="dlg">
+  <div class="vKopf">
+    <b>Instagram-Vorschau</b>
+    <div id="vFormat"><button data-h="1440">3:4</button><button data-h="1350">4:5</button></div>
+    <span id="vErkl"></span>
+    <label>Profilname <input type="text" id="vName" maxlength="30" autocomplete="off" spellcheck="false"></label>
+    <button id="vHell" title="Instagram hell oder dunkel zeigen">Hell</button>
+    <button id="vZu" title="Esc">Schliessen</button>
+  </div>
+  <div class="vMitte">
+    <div class="vSpalte"><div class="vTitel">Im Profil (oben links dieses Karussell)</div>
+      <div class="vHuelle"><div class="handy"><div class="schirm" id="vProfil"></div></div></div></div>
+    <div class="vSpalte"><div class="vTitel">Beim Wischen (ziehen, Pfeiltasten oder Trackpad)</div>
+      <div class="vHuelle"><div class="handy"><div class="schirm" id="vBeitrag"></div></div></div></div>
+  </div>
+  <div class="vFuss" id="vFuss"></div>
+</div>
+<div id="marke" class="dlg">
+  <div class="karte breit">
+    <h2>Markenpaket</h2>
+    <p class="unter">Gilt fuer alle Karussells. Markenfarben stehen in jeder Farbwahl vorn, Markenschriften oben in der Schriftliste, Logos setzt + Logo auf die Folie.</p>
+    <h3>Farben</h3>
+    <div id="mFarben"></div>
+    <h3>Schriften</h3>
+    <div class="zwei">
+      <div><label>Ueberschriften</label><select id="mTitel" class="schrift"></select></div>
+      <div><label>Text</label><select id="mText" class="schrift"></select></div>
+    </div>
+    <div id="mProbe"><div class="t">So sieht deine Ueberschrift aus</div><div class="x">Und so dein Fliesstext, gut lesbar auf dem Handy.</div></div>
+    <div class="knopfreihe" style="margin-top:8px">
+      <button id="mSchriftDatei" class="klein" title="TTF, OTF oder WOFF vom Rechner, danach in jeder Schriftauswahl">Eigene Schrift hochladen</button>
+      <button id="mGoogle" class="klein">Google Fonts</button>
+    </div>
+    <h3>Logos</h3>
+    <div id="mLogos"></div>
+    <h3>Instagram-Name</h3>
+    <input type="text" id="mName" placeholder="deinname" maxlength="31" autocomplete="off" spellcheck="false">
+    <h3>Auf dieses Karussell anwenden</h3>
+    <div class="mZeile">
+      <label class="mHaken"><input type="checkbox" id="mAFarben" checked> Farben</label>
+      <label class="mHaken"><input type="checkbox" id="mASchriften" checked> Schriften</label>
+      <label class="mHaken"><input type="checkbox" id="mALogo"> Logo auf jede Folie</label>
+      <button id="mAnwenden" class="haupt">Anwenden</button>
+    </div>
+    <p class="unter" style="margin:8px 0 0">Dunkle Vorlagen bleiben dunkel, helle bleiben hell. Ueberschriften bekommen die Ueberschrift-Schrift. Zurueck holt alles wieder.</p>
+    <div class="fehler" id="mFehler"></div>
+    <div class="knoepfe"><button id="mZu">Schliessen</button></div>
+  </div>
+</div>
+<input type="file" id="mLogoDatei" accept=".png,.jpg,.jpeg,.webp,.svg" style="display:none">
+<input type="file" id="mSchriftWahl" accept=".ttf,.otf,.woff" multiple style="display:none">
 <div id="werkzeuge">
   <button data-f="b" title="fett"><b>F</b></button>
   <button data-f="i" title="kursiv"><i>K</i></button>
@@ -310,6 +525,8 @@ let posFelder = {}, gemerkteMk = null, historie = [], zukunft = [];
 let meinStand = null, gesicherterStand = '', speichertGerade = false, sicherTimer = null;
 let zoom = 100, kFit = 1;
 let PROJEKT = '', wechseltGerade = false;
+// Markenpaket (siehe unten): frueh angelegt, die Schriftlisten fragen schon beim Start
+let MARKE = {name: '', farben: [], titel: '', text: '', logos: []}, markeTimer = null, markeGeladen = false;
 
 // Jede Anfrage nennt ihr Projekt. So landet nichts im falschen Karussell,
 // auch wenn von aussen gerade ein anderes geoeffnet wird.
@@ -529,7 +746,7 @@ function formatiere(aend){
   markiereWieder(mk.art, mk.von, mk.bis);
 }
 function markiereWieder(id, von, bis){
-  const box = [].slice.call(document.querySelectorAll('#rahmen .box'))
+  const box = [].slice.call(document.querySelectorAll('#flaeche .box:not(.gast)'))
                 .filter(b => b.dataset.art === id)[0];
   if (!box) return;
   const sp = [].slice.call(box.querySelectorAll('[data-von]'));
@@ -603,8 +820,9 @@ function farbe(bez, wert, cb){
   r.appendChild(i); r.appendChild(t); box.appendChild(r);
   if (D && D.stil){
     const p = q('div', {class: 'palette klein'});
-    markenfarben().forEach(c => {
-      const f = q('button', {class: 'farbfeld', title: c});
+    const eigene = markenfarben();
+    MARKE.farben.concat(eigene.filter(c => MARKE.farben.indexOf(c) < 0)).slice(0, 20).forEach(c => {
+      const f = q('button', {class: 'farbfeld', title: (MARKE.farben.indexOf(c) >= 0 ? 'Marke ' : '') + c});
       f.style.background = c;
       f.onclick = () => { merke(); i.value = c; t.value = c; cb(c); zeichne(); };
       p.appendChild(f);
@@ -781,14 +999,20 @@ async function geistZeigen(){
   if (!b || !el || !DATEI_OK.test(b.datei || '')) return;
   const m = await bildMasseLaden(BASIS + b.datei);
   if (!m.w || zuschnitt !== b.id || !el.isConnected) return;
-  const rand = el.clientLeft, w = el.clientWidth, h = el.clientHeight;
+  const rand = el.clientLeft, sch = el.querySelector('.bildschirm');
+  const w = sch ? sch.clientWidth : el.clientWidth, h = sch ? sch.clientHeight : el.clientHeight;
   const g = ausschnittGeometrie(b, w, h, m.w, m.h);
   const geist = document.createElement('div');
   geist.className = 'geist';
   geist.style.cssText = el.style.cssText;
   geist.style.filter = ''; geist.style.opacity = ''; geist.style.border = '';
   const sp = el.querySelector('.spiegel').cloneNode(false);
-  sp.style.inset = rand + 'px';
+  sp.style.webkitMaskImage = sp.style.maskImage = 'none';     // der Geist zeigt das ganze Bild
+  if (sch){
+    sp.style.inset = 'auto';
+    sp.style.left = (rand + sch.offsetLeft) + 'px'; sp.style.top = (rand + sch.offsetTop) + 'px';
+    sp.style.width = w + 'px'; sp.style.height = h + 'px';
+  } else sp.style.inset = rand + 'px';
   const bildEl = document.createElement('img');
   bildEl.src = BASIS + b.datei;
   bildEl.style.cssText = 'position:absolute;left:' + g.L + 'px;top:' + g.T + 'px;width:' + g.W +
@@ -809,7 +1033,8 @@ async function zuschnittZiehen(e){
   const m = await bildMasseLaden(BASIS + b.datei);
   if (!m.w) return;
   merke();
-  const w = el.clientWidth, h = el.clientHeight;
+  const traeger = el.querySelector('.bildschirm') || el;
+  const w = traeger.clientWidth, h = traeger.clientHeight;
   const start = ausschnittGeometrie(b, w, h, m.w, m.h), a0 = ausschnittVon(b);
   const mx = e.clientX, my = e.clientY, r = (b.dreh || 0) * Math.PI / 180;
   const s = String(b.spiegeln || ''), fx = s.indexOf('h') >= 0 ? -1 : 1, fy = s.indexOf('v') >= 0 ? -1 : 1;
@@ -905,6 +1130,7 @@ const FILTER_VORLAGEN = [
 ];
 function bildRegler(f, b){
   const id = b.id;
+  rahmenTeil(f, b);
   // Ausschnitt und Spiegeln
   const d1 = abschnitt('Ausschnitt und Spiegeln', true);
   const r1 = q('div', {class: 'knopfreihe'});
@@ -949,12 +1175,14 @@ function bildRegler(f, b){
   const d3 = abschnitt('Deckkraft, Ecken, Rahmen, Schatten', false);
   d3.appendChild(schieber('Deckkraft in Prozent', b.deckkraft === undefined ? 100 : b.deckkraft, 0, 100, 1,
     v => { if (v >= 100) delete b.deckkraft; else b.deckkraft = v; }));
-  d3.appendChild(schieber('Ecken abrunden', b.ecken || 0, 0, 400, 1,
+  if (!b.maske && !b.geraet) d3.appendChild(schieber('Ecken abrunden', b.ecken || 0, 0, 400, 1,
     v => { if (v) b.ecken = v; else delete b.ecken; }));
   const rw = b.rahmen || {};
-  d3.appendChild(schieber('Rahmenbreite', rw.breite || 0, 0, 60, 1,
-    v => setzeTief(b, 'rahmen', 'breite', v, 0)));
-  if (rw.breite) d3.appendChild(farbe('Rahmenfarbe', rw.farbe || '#ffffff', v => setzeTief(b, 'rahmen', 'farbe', v, null)));
+  if (!b.geraet){
+    d3.appendChild(schieber(b.maske ? 'Rand (folgt der Form)' : 'Rahmenbreite', rw.breite || 0, 0, 60, 1,
+      v => setzeTief(b, 'rahmen', 'breite', v, 0)));
+    if (rw.breite) d3.appendChild(farbe('Rahmenfarbe', rw.farbe || '#ffffff', v => setzeTief(b, 'rahmen', 'farbe', v, null)));
+  }
   const r3 = q('div', {class: 'knopfreihe'});
   r3.appendChild(knopf(b.schatten ? 'Schatten aus' : 'Schatten an', 'folgt der Form, auch bei freigestellten Bildern',
     () => { merke(); if (b.schatten) delete b.schatten; else b.schatten = {}; alles(); }, !!b.schatten));
@@ -1027,6 +1255,7 @@ function elementeZu(){ document.getElementById('elemente').style.display = 'none
 function elementeTab(tab){
   document.querySelectorAll('#elemente .reiter button').forEach(b => b.classList.toggle('an', b.dataset.tab === tab));
   document.getElementById('eFormen').style.display = tab === 'formen' ? '' : 'none';
+  document.getElementById('eRahmen').style.display = tab === 'rahmen' ? '' : 'none';
   document.getElementById('eIcons').style.display = tab === 'icons' ? '' : 'none';
   if (tab === 'formen'){
     const g = document.getElementById('eFormen'); g.innerHTML = '';
@@ -1037,6 +1266,21 @@ function elementeTab(tab){
       b.onclick = () => { elementeZu(); formEinfuegen(f[0]); };
       g.appendChild(b);
     });
+  } else if (tab === 'rahmen'){
+    const g = document.getElementById('eRahmen'); g.innerHTML = '';
+    const reihe = (titel, arten) => {
+      g.appendChild(q('div', {class: 'unter', html: titel}));
+      const r = q('div', {class: 'rahmenraster'});
+      arten.forEach(a => {
+        const name = a.maske ? MASKEN_NAMEN[a.maske] : GERAETE_NAMEN[a.geraet];
+        const b = q('button', {class: 'rahmenwahl', title: name, html: rahmenVorschau(a, 70, 70) + '<span>' + name + '</span>'});
+        b.onclick = () => { elementeZu(); rahmenEinfuegen(a); };
+        r.appendChild(b);
+      });
+      g.appendChild(r);
+    };
+    reihe(tt('Bild in Form: Rahmen einfuegen, dann ein Bild aus dem Explorer darauf ziehen.'), MASKEN.map(m => ({maske: m})));
+    reihe('Geraete: Screenshot im Handy, Tablet, Laptop oder Browserfenster.', Object.keys(GERAETE).map(t => ({geraet: t})));
   } else {
     const s = document.getElementById('eSuche');
     s.focus();
@@ -1078,6 +1322,238 @@ function iconEinfuegen(name, ersetzeId){
              x: Math.round((st.breite - w) / 2), y: Math.round((st.hoehe - w) / 2), w: w, h: w};
   bloecke().push(b);
   auswahl = [b.id]; sel = b.id; alles();
+}
+
+// ------------------------------------------------------------ Bild in Form, Geraete-Rahmen
+// Gezeichnet wird in render.js (rahmenZeichnen), hier nur Auswahl und Groesse.
+
+function rahmenVorschau(art, w, h){
+  const grau = '#8a9599';
+  if (art.geraet){
+    const t = geraetTeile(art.geraet, w, h, GERAET_FARBE[art.geraet]), sc = t.schirm;
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '">' + t.koerper + '<rect x="' + sc.x.toFixed(2) + '" y="' +
+           sc.y.toFixed(2) + '" width="' + sc.w.toFixed(2) + '" height="' + sc.h.toFixed(2) + '" rx="1.5" fill="' +
+           grau + '"/>' + t.oben + '</svg>';
+  }
+  if (art.maske) return '<svg viewBox="0 0 ' + w + ' ' + h + '">' + maskeForm(art.maske, w, h, 'fill="' + grau + '"', 1) + '</svg>';
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '"><rect x="' + w * 0.1 + '" y="' + h * 0.18 + '" width="' + w * 0.8 +
+         '" height="' + h * 0.64 + '" rx="1.5" fill="' + grau + '"/></svg>';
+}
+function knopfMitBild(text, titel, svg, tun, an){
+  const b = q('button', {class: 'klein' + (an ? ' an' : ''), title: tt(titel || text), html: svg + '<span>' + text + '</span>'});
+  b.onclick = tun;
+  return b;
+}
+// Groesse passend zur Form: Kreis, Herz, Stern ... quadratisch, Geraete im eigenen Verhaeltnis
+const MASKE_VERHAELTNIS = {kreis: 1, herz: 1, stern: 1, raute: 1, blob: 1, sechseck: 1 / 0.866};
+function rahmenSetzen(b, art){
+  delete b.maske; delete b.geraet; delete b.geraetfarbe;
+  Object.assign(b, art);
+  if (!art.maske && !art.geraet) return;
+  delete b.ecken;
+  if (!frei(b)) einfrieren();                    // eigene Groesse braucht eine freie Position
+  const r = art.geraet ? GERAETE[art.geraet] : (MASKE_VERHAELTNIS[art.maske] || 0);
+  if (!r || !frei(b)) return;
+  const st = D.stil, h0 = b.h || b.w;
+  const cx = b.x + b.w / 2, cy = b.y + h0 / 2;
+  let w = b.w, h = h0;
+  if (art.geraet === 'handy' || art.geraet === 'tablet'){ h = Math.max(h, st.hoehe * 0.6); w = h * r; }
+  else if (art.geraet === 'laptop'){ w = Math.max(w, st.breite * 0.75); h = w / r; }
+  else { const m = Math.min(w, h * r); w = m; h = m / r; }   // passt in die bisherige Box
+  const k0 = Math.min(1, st.breite * 0.95 / w, st.hoehe * 0.9 / h);
+  w *= k0; h *= k0;
+  b.w = Math.round(w); b.h = Math.round(h);
+  b.x = Math.round(Math.max(0, Math.min(st.breite - w, cx - w / 2)));
+  b.y = Math.round(Math.max(0, Math.min(st.hoehe - h, cy - h / 2)));
+}
+function rahmenEinfuegen(art){
+  merke(); einfrieren();
+  const st = D.stil;
+  let w = 480, h = 480;
+  if (art.maske === 'bogen'){ w = 440; h = 600; }
+  if (art.maske === 'sechseck') h = Math.round(w * 0.866);
+  if (art.geraet === 'handy'){ h = Math.round(st.hoehe * 0.62); w = Math.round(h * GERAETE.handy); }
+  if (art.geraet === 'tablet'){ h = Math.round(st.hoehe * 0.6); w = Math.round(h * GERAETE.tablet); }
+  if (art.geraet === 'laptop'){ w = Math.round(st.breite * 0.8); h = Math.round(w / GERAETE.laptop); }
+  if (art.geraet === 'browser'){ w = Math.round(st.breite * 0.8); h = Math.round(w * 0.68); }
+  const b = Object.assign({id: neueId(), typ: 'bild', x: Math.round((st.breite - w) / 2),
+                           y: Math.round((st.hoehe - h) / 2), w: w, h: h}, art);
+  bloecke().push(b);
+  auswahl = [b.id]; sel = b.id; alles();
+  melde('Rahmen eingefuegt. Zieh ein Bild aus dem Explorer darauf oder klick rechts auf "Bild waehlen".', 8000);
+}
+function rahmenTeil(f, b){
+  const d = abschnitt('Form und Geraet', !!(b.maske || b.geraet || !b.datei));
+  const setze = art => { merke(); rahmenSetzen(b, art); alles(); };
+  const g = q('div', {class: 'rahmenklein'});
+  g.appendChild(knopfMitBild('Keine', 'normales Rechteck', rahmenVorschau({}, 30, 30), () => setze({}), !b.maske && !b.geraet));
+  MASKEN.forEach(m => g.appendChild(knopfMitBild(MASKEN_NAMEN[m], 'Bild in Form: ' + MASKEN_NAMEN[m],
+    rahmenVorschau({maske: m}, 30, 30), () => setze({maske: m}), b.maske === m)));
+  Object.keys(GERAETE).forEach(t => g.appendChild(knopfMitBild(GERAETE_NAMEN[t], 'Bild als Bildschirm: ' + GERAETE_NAMEN[t],
+    rahmenVorschau({geraet: t}, 30, 30), () => setze({geraet: t}), b.geraet === t)));
+  d.appendChild(g);
+  if (istGeraet(b)){
+    const jetzt = String(b.geraetfarbe || GERAET_FARBE[b.geraet]).toLowerCase();
+    const r = q('div', {class: 'knopfreihe'});
+    [['Schwarz', '#1d1d1f'], ['Weiss', '#f5f5f7'], ['Silber', '#c9cbce']].forEach(o =>
+      r.appendChild(knopf(o[0], '', () => { merke(); b.geraetfarbe = o[1]; alles(); }, jetzt === o[1])));
+    d.appendChild(r);
+    d.appendChild(farbe('Farbe des Geraets', b.geraetfarbe || GERAET_FARBE[b.geraet], v => { b.geraetfarbe = v; }));
+  }
+  if (b.maske) d.appendChild(q('div', {class: 'hint', html: 'Ein Rand folgt der Form (unten bei Rahmenbreite). ' +
+                                       'Doppelklick verschiebt das Bild in der Form.'}));
+  if (b.geraet) d.appendChild(q('div', {class: 'hint', html: 'Doppelklick verschiebt den Screenshot im Bildschirm.'}));
+  f.appendChild(d);
+}
+
+// ----- Bild in der Schrift (Text-Panel)
+function projektBilder(){
+  const n = [], dazu = x => { if (x && DATEI_OK.test(x) && !/\.svg$/i.test(x) && n.indexOf(x) < 0) n.push(x); };
+  D.slides.forEach(sl => {
+    (sl.bloecke || []).forEach(b => { dazu(b.datei); dazu(b.original); dazu(b.bildfuellung); });
+    if (sl.hg) dazu(sl.hg.datei);
+  });
+  return n;
+}
+function bildschriftTeil(f, b){
+  const d = abschnitt('Bild in der Schrift', !!b.bildfuellung);
+  const r = q('div', {class: 'knopfreihe'});
+  r.appendChild(knopf(b.bildfuellung ? 'anderes Bild waehlen' : 'Bild in die Schrift',
+    'Das Foto fuellt die Buchstaben. Wirkt am besten mit dicker Schrift und grossem Text.',
+    () => bildWaehlen(n => { merke(); b.bildfuellung = n; alles(); })));
+  if (b.bildfuellung) r.appendChild(knopf('Bild aus der Schrift', '', () => { merke(); delete b.bildfuellung; alles(); }));
+  d.appendChild(r);
+  const da = projektBilder().filter(n => n !== b.bildfuellung).slice(0, 12);
+  if (da.length){
+    d.appendChild(q('label', {html: 'oder ein Bild aus diesem Karussell'}));
+    const g = q('div', {class: 'bildwahl'});
+    da.forEach(n => {
+      const k = q('button', {class: 'bildkachel', title: n});
+      k.style.backgroundImage = bildUrl(n);
+      k.onclick = () => { merke(); b.bildfuellung = n; alles(); };
+      g.appendChild(k);
+    });
+    d.appendChild(g);
+  }
+  if (b.bildfuellung) d.appendChild(q('div', {class: 'hint', html:
+    'Flaeche hinter dem Text entfaellt hier, ein Schatten folgt den Buchstaben. In der Canva-Datei wird dieser Text ein Bild.'}));
+  f.appendChild(d);
+}
+
+// ------------------------------------------------------------ Nahtloses Karussell
+// Panorama-Ansicht: links und rechts laufen die Nachbarfolien mit (anklicken =
+// dort weiterarbeiten). Wer dort ein Element ueber die Kante zieht, macht es
+// nahtlos: der Teil ueber dem Rand erscheint auf der Nachbarfolie.
+
+let panorama = false;
+
+function nachbarnZeichnen(rah, cache){
+  rah.querySelectorAll('.nachbar').forEach(n => n.remove());
+  rah.classList.toggle('pano', panorama);
+  if (!panorama) return;
+  [akt - 1, akt + 1].forEach(n => {
+    if (n < 0 || n >= D.slides.length) return;
+    const c = q('div', {class: 'nachbar', title: 'Folie ' + (n + 1) + ' bearbeiten'});
+    c.dataset.folie = n;
+    c.style.left = Math.round((n - akt) * D.stil.breite * k) + 'px';
+    c.style.width = rah.style.width; c.style.height = rah.style.height;
+    c.onclick = () => { akt = n; sel = null; auswahl = []; gemerkteMk = null; alles(); };
+    rah.insertBefore(c, rah.firstChild);
+    renderFolie(D.slides, n, D.stil, c, cache).el.style.transform = 'scale(' + k + ')';
+    c.appendChild(q('span', {class: 'nachbarnr', html: 'Folie ' + (n + 1)}));
+  });
+}
+// Beim Ziehen laufen die Kopien auf den Nachbarfolien gleich mit
+function gaesteLive(){
+  if (!panorama) return;
+  const B = D.stil.breite, eigen = new Map();
+  document.querySelectorAll('#flaeche .box:not(.gast)').forEach(el => { if (!eigen.has(el.dataset.art)) eigen.set(el.dataset.art, el); });
+  const folie = document.querySelector('#flaeche .slide');
+  if (!folie) return;
+  const f0 = folie.getBoundingClientRect(), kk = f0.width / B || 1;
+  document.querySelectorAll('#rahmen .nachbar').forEach(c => {
+    const n = +c.dataset.folie, sl = c.querySelector('.slide');
+    if (!sl || isNaN(n)) return;
+    const abst = (akt - n) * B, da = new Map();
+    sl.querySelectorAll('.box.gast').forEach(x => da.set(x.dataset.gast, x));
+    auswahl.forEach(id => {
+      const t = eigen.get(id);
+      if (!t) return;
+      const marke = (akt + 1) + ':' + id;
+      let g = da.get(marke);
+      if (!g){
+        // nur anlegen, wenn das Element wirklich in diese Nachbarfolie hineinragt
+        const rr = t.getBoundingClientRect(), l = (rr.left - f0.left) / kk + abst, r = (rr.right - f0.left) / kk + abst;
+        if (r <= 0.5 || l >= B - 0.5) return;
+        g = t.cloneNode(true);
+        ['gewaehlt', 'tippt', 'zuschneiden'].forEach(x => g.classList.remove(x));
+        g.classList.add('gast'); g.dataset.gast = marke; g.dataset.art = 'gast-' + (akt + 1) + '-' + id;
+        if (n > akt){                            // fruehere Folie: unter den eigenen Bloecken
+          const erstes = Array.prototype.find.call(sl.children, x => x.classList && x.classList.contains('box') &&
+                                                                   !x.classList.contains('gast'));
+          sl.insertBefore(g, erstes || null);
+        } else sl.appendChild(g);
+        da.set(marke, g);
+      }
+      g.style.left = (parseFloat(t.style.left) + abst) + 'px';
+      g.style.top = t.style.top; g.style.width = t.style.width; g.style.height = t.style.height;
+      g.style.transform = t.style.transform; g.style.fontSize = t.style.fontSize;
+    });
+  });
+}
+// Nach dem Loslassen in der Panorama-Ansicht: ueber dem Rand = nahtlos, ganz drin = normal
+function nahtlosNachGeste(){
+  if (!panorama) return;
+  let neu = 0;
+  auswahl.forEach(id => {
+    const b = blockVon(id), el = boxVon(id);
+    if (!b || !el) return;
+    const sl = el.closest('.slide').getBoundingClientRect(), r = el.getBoundingClientRect();
+    const ragt = r.left < sl.left - 0.5 || r.right > sl.right + 0.5;
+    if (ragt && !b.nahtlos){ b.nahtlos = true; neu++; }
+    else if (!ragt && b.nahtlos) delete b.nahtlos;
+  });
+  if (neu) setTimeout(() => melde('Laeuft jetzt auf der Nachbarfolie weiter (nahtlos). Ausschalten rechts im Panel.', 7000), 0);
+}
+function nahtlosTeil(f, b){
+  const B = D.stil.breite, L = letzteLayout[b.id] || b;
+  const ragt = (+L.x < 0) || (+L.x + (+L.w || 0) > B);
+  if (!ragt && !b.nahtlos) return;
+  const r = q('div', {class: 'knopfreihe'});
+  r.appendChild(knopf(b.nahtlos ? 'Nahtlos an: laeuft auf der Nachbarfolie weiter' : 'Auf der Nachbarfolie weiterlaufen lassen',
+    'Fuer nahtlose Karussells: der Teil ueber dem Rand erscheint auf der naechsten bzw. vorigen Folie',
+    () => { merke(); if (b.nahtlos) delete b.nahtlos; else b.nahtlos = true; alles(); }, !!b.nahtlos));
+  f.appendChild(r);
+  if (ragt && !b.nahtlos) f.appendChild(q('div', {class: 'hint', html: 'Ragt ueber den Folienrand und wird dort abgeschnitten.'}));
+}
+// Ein Bild ueber mehrere Folien, ganz hinten
+function panoramaTeil(f){
+  const rest = D.slides.length - akt;
+  f.appendChild(q('label', {html: 'Panorama-Bild ueber mehrere Folien'}));
+  if (rest < 2){
+    f.appendChild(q('div', {class: 'hint', html: 'Erst eine Folie danach anlegen, dann laeuft ein Bild ueber beide.'}));
+    return;
+  }
+  const r = q('div', {class: 'reihe'});
+  const wahl = document.createElement('select');
+  wahl.className = 'schrift'; wahl.style.width = 'auto';
+  for (let n = 2; n <= Math.min(rest, 10); n++) wahl.appendChild(new Option('ueber ' + n + ' Folien', n));
+  wahl.value = String(Math.min(3, rest));
+  r.appendChild(wahl);
+  r.appendChild(knopf('Bild waehlen', 'Ein breites Foto, das beim Wischen weiterlaeuft',
+    () => bildWaehlen(n => panoramaEinfuegen(n, +wahl.value))));
+  f.appendChild(r);
+}
+function panoramaEinfuegen(datei, anzahl){
+  merke();
+  const st = D.stil, s = slide(), vorher = ebenen(s);
+  const b = {id: neueId(), typ: 'bild', datei: datei, x: 0, y: 0, w: st.breite * anzahl, h: st.hoehe, nahtlos: true};
+  bloecke().push(b);
+  s.ebenen = [b.id].concat(vorher);
+  auswahl = [b.id]; sel = b.id;
+  if (!panorama){ panorama = true; document.getElementById('zPano').classList.add('an'); }
+  alles();
+  melde('Panorama-Bild ueber ' + anzahl + ' Folien, ganz hinten. Doppelklick verschiebt den Ausschnitt.', 8000);
 }
 
 // ----- Schatten-Regler, geteilt von Bildern, Formen und Text
@@ -1275,7 +1751,7 @@ async function schriftHolen(family, knopfEl){
 }
 function werkzeugSchriftenFuellen(){
   const ws = document.getElementById('wSchrift');
-  ws.innerHTML = '<option value="">Schrift</option>' + alleSchriften().map(n => '<option style="font-family:&quot;' + n + '&quot;">' + esc(n) + '</option>').join('');
+  ws.innerHTML = '<option value="">Schrift</option>' + schriftOptionen('');
 }
 
 // ------------------------------------------------------------ Markenfarben
@@ -1290,7 +1766,7 @@ function markenfarben(){
 }
 function paletteTeil(f){
   const st = D.stil;
-  f.appendChild(q('label', {html: 'Markenfarben (erscheinen bei jeder Farbwahl)'}));
+  f.appendChild(q('label', {html: 'Farben dieses Karussells (erscheinen bei jeder Farbwahl, nach denen der Marke)'}));
   const r = q('div', {class: 'palette'});
   (Array.isArray(st.palette) ? st.palette.slice(0, 12) : []).forEach((c, i) => {
     const b = q('button', {class: 'farbfeld', title: c + ' entfernen'});
@@ -1436,8 +1912,18 @@ function bloeckeRegler(){
   const zwei2 = q('div', {class: 'zwei'});
   zwei2.appendChild(knopf('+ Form', 'Rechteck, Kreis, Linie, Pfeil ...', () => elementeAuf('formen')));
   zwei2.appendChild(knopf('+ Icon', 'ueber 8.000 Icons mit Suche', () => elementeAuf('icons')));
+  const rb = knopf('+ Rahmen: Bild in Form, Handy, Laptop', 'Bild in Kreis, Herz, Bogen ... oder Screenshot im Geraet',
+                   () => elementeAuf('rahmen'));
+  rb.style.width = '100%';
+  const zwei3 = q('div', {class: 'zwei'});
+  zwei3.appendChild(knopf('+ Logo', 'Logo aus deinem Markenpaket', () => {
+    if (MARKE.logos.length === 1) logoEinsetzen(MARKE.logos[0]); else markeAuf();
+  }));
+  zwei3.appendChild(knopf('Marke', 'Farben, Schriften, Logos fuer alle Karussells', markeAuf));
   f.appendChild(zwei);
   f.appendChild(zwei2);
+  f.appendChild(rb);
+  f.appendChild(zwei3);
   f.appendChild(q('div', {class: 'hint', html:
     'Ein Klick waehlt den Block aus, darunter kannst du ihn bearbeiten. ' +
     'Das erste Bild einer Slide fliesst unter dem Text mit, jedes weitere steht frei.'}));
@@ -1454,11 +1940,12 @@ function blockRegler(){
               [q('legend', {html: (b.typ === 'bild' ? 'Bild' : b.typ === 'form' ? (b.form === 'icon' ? 'Icon' : 'Form') : 'Textblock') + ' bearbeiten'})]);
 
   if (b.typ === 'bild'){
-    const w = q('button', {class: 'klein', html: 'andere Datei waehlen'});
+    const w = q('button', {class: 'klein' + (b.datei ? '' : ' an'), html: b.datei ? 'andere Datei waehlen' : 'Bild waehlen'});
     w.style.width = '100%';
-    w.onclick = () => bildWaehlen(n => { merke(); b.datei = n; delete b.original; alles(); });
+    w.onclick = () => bildWaehlen(n => { merke(); b.datei = n; delete b.original; delete b.ausschnitt; alles(); });
     f.appendChild(w);
-    if (!/\.svg$/i.test(b.original || b.datei || '')){
+    if (!b.datei) f.appendChild(q('div', {class: 'hint', html: tt('Oder ein Bild aus dem Explorer direkt auf den Rahmen ziehen.')}));
+    if (b.datei && !/\.svg$/i.test(b.original || b.datei || '')){
       const fr = q('div', {class: 'knopfreihe'});
       fr.appendChild(knopf('Hintergrund entfernen', 'unter 1 Sekunde', () => freistellen(b.id, 'schnell')));
       fr.appendChild(knopf('Gruendlicher', 'sauberer bei Glas, Fell, Illustrationen. Etwa 2 Minuten, du arbeitest weiter',
@@ -1482,8 +1969,7 @@ function blockRegler(){
     const r = q('div', {class: 'reihe'}); r.style.marginTop = '5px';
     const sw = document.createElement('select');
     sw.className = 'schrift'; sw.style.flex = '1'; sw.style.minWidth = '0';
-    sw.innerHTML = '<option value="">Schrift wie global</option>' +
-      alleSchriften().map(n => '<option' + (n === b.font ? ' selected' : '') + ' style="font-family:&quot;' + n + '&quot;">' + esc(n) + '</option>').join('');
+    sw.innerHTML = '<option value="">Schrift wie global</option>' + schriftOptionen(b.font);
     sw.onchange = () => { merke(); if (sw.value) b.font = sw.value; else delete b.font; baueRegler(); zeichne(); };
     const cf = document.createElement('input');
     cf.type = 'color'; cf.value = b.farbe || D.stil.text; cf.title = 'Farbe des ganzen Blocks';
@@ -1518,6 +2004,7 @@ function blockRegler(){
     f.appendChild(q('div', {class: 'hint', html:
       'Einzelne Woerter: in der Vorschau markieren, die Formatleiste erscheint darueber.'}));
     texteffektRegler(f, b);
+    bildschriftTeil(f, b);
   }
 
   f.appendChild(q('label', {html: 'Position' + (frei(b) ? ' (frei gesetzt)' : ' (im Raster)')}));
@@ -1532,6 +2019,7 @@ function blockRegler(){
     const fh = zahl('Hoehe', p.h || 400, v => { posSchreiben(sel).h = Math.max(4, v); });
     posFelder.h = fh.feld; f.appendChild(fh.box);
   }
+  if (frei(b)) nahtlosTeil(f, b);
   const dr = zahl('Drehen in Grad (unten am Rahmen ziehen geht auch)', b.dreh || 0, v => {
     posSchreiben(sel);
     const d = ((v % 360) + 360) % 360;
@@ -1583,6 +2071,7 @@ function baueRegler(){
   run.onclick = () => { if (akt === D.slides.length-1) return; merke(); const x = D.slides[akt+1]; D.slides[akt+1] = D.slides[akt]; D.slides[akt] = x; akt++; alles(); };
   nav2.appendChild(hoch); nav2.appendChild(run); f1.appendChild(nav2);
   hintergrundTeil(f1);
+  panoramaTeil(f1);
   R.appendChild(f1);
 
   const f2 = q('fieldset', {}, [q('legend', {html: 'Alle Slides'})]);
@@ -1602,7 +2091,7 @@ function baueRegler(){
   f3.appendChild(farbe('Text', st.text, v => st.text = v));
   f3.appendChild(farbe('Akzent', st.akzent, v => st.akzent = v));
   paletteTeil(f3);
-  f3.appendChild(auswahlFeld('Schrift (alle Slides)', st.schrift, alleSchriften(),
+  f3.appendChild(auswahlFeld('Schrift (alle Slides)', st.schrift, schriftListe(),
     v => st.schrift = v || 'Montserrat', false));
   { const r = q('div', {class: 'knopfreihe'}); r.appendChild(knopf('+ Google Fonts', 'ueber 1.800 Schriften', schriftenAuf)); f3.appendChild(r); }
   f3.appendChild(schieber('Hoehe (Breite bleibt 1080)', st.hoehe, 1080, 1600, 10, v => st.hoehe = v));
@@ -1621,7 +2110,7 @@ let mv = null, sx = null, auswahl = [], textModus = null, leertaste = false;
 let ablage = null;
 
 function boxVon(id){
-  return [].slice.call(document.querySelectorAll('#flaeche .box')).filter(el => el.dataset.art === id)[0] || null;
+  return [].slice.call(document.querySelectorAll('#flaeche .box:not(.gast)')).filter(el => el.dataset.art === id)[0] || null;
 }
 function auswahlAbgleichen(){
   auswahl = auswahl.filter(id => blockVon(id));
@@ -1678,10 +2167,13 @@ function zielSetzen(){
   mv.draggable = aktiv;
   mv.resizable = aktiv;
   mv.rotatable = aktiv;
-  mv.keepRatio = els.length > 1;
+  const eins = els.length === 1 ? blockVon(auswahl[0]) : null;
+  const festesFormat = !!(eins && eins.typ === 'bild' && istGeraet(eins) && GERAETE[eins.geraet] > 0);
+  mv.keepRatio = els.length > 1 || festesFormat;
   mv.renderDirections = nurText ? ['w', 'e', 'nw', 'ne', 'sw', 'se']
-                                : ['n', 's', 'w', 'e', 'nw', 'ne', 'sw', 'se'];
-  mv.elementGuidelines = [].slice.call(document.querySelectorAll('#flaeche .box'))
+                      : festesFormat ? ['nw', 'ne', 'sw', 'se']
+                      : ['n', 's', 'w', 'e', 'nw', 'ne', 'sw', 'se'];
+  mv.elementGuidelines = [].slice.call(document.querySelectorAll('#flaeche .box, #rahmen .nachbar .box:not(.gast)'))
                            .filter(el => els.indexOf(el) < 0);
   const st = D.stil;
   mv.verticalGuidelines = [0, st.randX, st.breite / 2, st.breite - st.randX, st.breite].map(v => v * k);
@@ -1719,6 +2211,7 @@ function gesteEnde(){
     }
     if (el.dataset.skaliert) b.groesse = Math.max(6, Math.round(parseFloat(el.style.fontSize)));
   });
+  nahtlosNachGeste();
   alles();
 }
 function felderZeigen(el){
@@ -1824,6 +2317,7 @@ function moveableAnlegen(){
     });
   });
   mv.on('resizeGroupEnd', e => { if (e.isDrag && bewegt) gesteEnde(); });
+  ['drag', 'dragGroup', 'resize', 'resizeGroup', 'rotate', 'rotateGroup'].forEach(ev => mv.on(ev, gaesteLive));
 
   // ----- Drehen (rastet bei 0, 45, 90 ... Grad ein)
   const setzeDreh = (t, grad) => {
@@ -1860,12 +2354,13 @@ function moveableAnlegen(){
   const buehne = document.getElementById('buehne');
   sx = new Selecto({
     container: document.body, dragContainer: buehne,
-    selectableTargets: ['#flaeche .box'], hitRate: 0, ratio: 0,
+    selectableTargets: ['#flaeche .box:not(.gast)'], hitRate: 0, ratio: 0,
     selectByClick: true, selectFromInside: false, toggleContinueSelect: [['shift'], ['meta']]
   });
   sx.on('dragStart', e => {
     const t = e.inputEvent.target;
     if (leertaste || e.inputEvent.button === 1){ e.stop(); return; }            // Ansicht schieben
+    if (t.closest && t.closest('.nachbar')){ e.stop(); return; }                // Nachbarfolie: Klick wechselt
     if (mv.isMoveableElement(t)){ e.stop(); return; }                            // Griffe
     if (zuschnitt){                                                              // Bild im Rahmen schieben
       const el = boxVon(zuschnitt);
@@ -1921,12 +2416,17 @@ function zeichneBuehne(){
   const fl = document.getElementById('flaeche');
   const sx0 = buehne.scrollLeft, sy0 = buehne.scrollTop;
   fl.innerHTML = '';
+  const pano = panorama && D.slides.length > 1;
   kFit = Math.min((buehne.clientHeight - 40) / D.stil.hoehe,
-                  (buehne.clientWidth  - 40) / D.stil.breite);
+                  (buehne.clientWidth  - 40) / (D.stil.breite * (pano ? 3 : 1)));
   k = kFit * zoom / 100;
   rah.style.width  = Math.round(D.stil.breite * k) + 'px';
   rah.style.height = Math.round(D.stil.hoehe  * k) + 'px';
-  const r = renderSlide(slide(), D.stil, fl);
+  rah.style.marginLeft = rah.style.marginRight = pano ? Math.round(D.stil.breite * k) + 'px' : '';
+  profilLinien(rah);
+  const cache = zyklusCache || new Map();    // jede Nachbarfolie nur einmal unsichtbar aufbauen
+  const r = renderFolie(D.slides, akt, D.stil, fl, cache);
+  nachbarnZeichnen(rah, cache);
   r.el.style.transform = 'scale(' + k + ')';
   letzteLayout = r.masse.layout;
   if (!mv) moveableAnlegen();
@@ -2096,23 +2596,29 @@ function zeichneMinis(){
   const L = document.getElementById('liste');
   const stand = L.scrollTop;
   L.innerHTML = '';
-  const km = 104 / D.stil.breite;
+  const km = 104 / D.stil.breite, cache = zyklusCache || new Map();
   D.slides.forEach((s, i) => {
     const m = q('div', {class: 'mini' + (i === akt ? ' an' : '')});
     m.style.height = Math.round(D.stil.hoehe * km) + 'px';
     m.onclick = () => { akt = i; sel = null; gemerkteMk = null; alles(); };
     L.appendChild(m);
-    renderSlide(s, D.stil, m).el.style.transform = 'scale(' + km + ')';
+    renderFolie(D.slides, i, D.stil, m, cache).el.style.transform = 'scale(' + km + ')';
     m.appendChild(q('span', {class: 'nr', html: i + 1}));
   });
   L.scrollTop = stand;
 }
+// Buehne und Minis teilen sich die unsichtbar gebauten Nachbarfolien eines Durchgangs
+let zyklusCache = null;
+function mitZyklus(f){ zyklusCache = new Map(); try { f(); } finally { zyklusCache = null; } }
 function zeichne(){
   clearTimeout(timer);
-  timer = setTimeout(() => { zeichneBuehne(); zeichneMinis(); }, 60);
+  timer = setTimeout(() => mitZyklus(() => { zeichneBuehne(); zeichneMinis(); }), 60);
   autoSichern();
 }
-function alles(){ baueRegler(); zeichneBuehne(); zeichneMinis(); autoSichern(); }
+function alles(){
+  baueRegler(); mitZyklus(() => { zeichneBuehne(); zeichneMinis(); }); projektLabel(); autoSichern();
+  if (vorschauOffen()){ vUmgestellt = null; vorschauZeichnen(); }   // z. B. von aussen geaendert
+}
 
 // --------------------------------------------------------------- Verdrahtung
 
@@ -2147,8 +2653,16 @@ document.addEventListener('keydown', e => {
   const tg = (e.target.tagName || '').toLowerCase();
   const tippt = tg === 'input' || tg === 'textarea' || tg === 'select' || e.target.isContentEditable;
   if (document.querySelector('.dlg[style*="flex"]')){
+    if (vorschauOffen()){
+      if (e.key === 'Escape'){ e.preventDefault(); vorschauZu(); }
+      else if (!tippt && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')){
+        e.preventDefault(); zeigeFolie(vFolie + (e.key === 'ArrowRight' ? 1 : -1), true);
+      }
+      return;
+    }
     if (e.key === 'Escape' && document.getElementById('elemente').style.display === 'flex') elementeZu();
     if (e.key === 'Escape' && document.getElementById('schriften').style.display === 'flex') schriftenZu();
+    if (e.key === 'Escape' && markeOffen()) markeZu();
     return;
   }
   if ((e.key === 'Escape' || e.key === 'Enter') && zuschnitt && !tippt){ e.preventDefault(); zuschnittEnde(); return; }
@@ -2263,6 +2777,12 @@ document.getElementById('kMeins').onclick = async () => {
   document.getElementById('zPlus').onclick  = () => zoomSetzen(zoom * 1.25, ...mitte());
   document.getElementById('zMinus').onclick = () => zoomSetzen(zoom / 1.25, ...mitte());
   document.getElementById('zFit').onclick   = () => { zoomSetzen(100); buehne.scrollTo(0, 0); };
+document.getElementById('zPano').onclick = () => {
+  panorama = !panorama;
+  document.getElementById('zPano').classList.toggle('an', panorama);
+  zeichneBuehne();
+  if (panorama) melde('Panorama: links und rechts die Nachbarfolien. Ein Element ueber die Kante ziehen, dann laeuft es dort weiter.', 8000);
+};
   document.getElementById('zBalken').oninput = e => zoomSetzen(+e.target.value, ...mitte());
   document.getElementById('zZahl').onchange  = e => zoomSetzen(+e.target.value, ...mitte());
 })();
@@ -2290,6 +2810,11 @@ window.addEventListener('resize', zeichne);
     buehne.classList.remove('ablegen');
     if (!mitDateien(e)) return;
     e.preventDefault();
+    const schriftDateien = [].slice.call(e.dataTransfer.files).filter(f => /\.(ttf|otf|woff)$/i.test(f.name || ''));
+    if (schriftDateien.length){
+      (async () => { for (const f of schriftDateien) await schriftDateiHochladen(f); })();
+      if (schriftDateien.length === e.dataTransfer.files.length) return;
+    }
     const dateien = [].slice.call(e.dataTransfer.files).filter(istBilddatei);
     if (!dateien.length){ melde('Nur Bilder lassen sich ablegen (PNG, JPG, WEBP, GIF, SVG).', 5000); return; }
     const auf = e.target.closest && e.target.closest('#flaeche .box.bild');
@@ -2371,14 +2896,16 @@ let dialogArt = 'neu';
 let gewaehlteVorlage = '';
 async function galerieZeigen(){
   const g = document.getElementById('dGalerie');
-  g.innerHTML = '';
   let liste = [];
   try { liste = await (await fetch('vorlagen', {cache: 'no-store'})).json(); } catch (e) {}
-  const karte = (name, titel, bild) => {
-    const k = q('button', {class: 'vorlagekarte' + (gewaehlteVorlage === name ? ' an' : ''), title: titel});
+  const pos = g.scrollTop;                 // beim Waehlen nicht nach oben springen
+  g.innerHTML = '';
+  const karte = (name, titel, bild, text) => {
+    const k = q('button', {class: 'vorlagekarte' + (gewaehlteVorlage === name ? ' an' : '')});
+    k.title = text ? titel + ': ' + text : titel;          // Attribut ueber die DOM-Eigenschaft, nie als HTML
     if (bild){ const i = document.createElement('img'); i.src = bild; i.alt = ''; k.appendChild(i); }
     else k.appendChild(q('div', {class: 'leerkarte', html: '+'}));
-    k.appendChild(q('span', {html: esc(titel)}));
+    const s = document.createElement('span'); s.textContent = titel; k.appendChild(s);
     k.onclick = () => {
       gewaehlteVorlage = name;
       document.getElementById('dFormat').style.display = name ? 'none' : '';
@@ -2386,8 +2913,31 @@ async function galerieZeigen(){
     };
     g.appendChild(k);
   };
-  karte('', 'Leer', null);
-  liste.forEach(v => { if (/^[a-z0-9][a-z0-9-]*$/.test(v.name)) karte(v.name, v.name, v.vorschau ? 'vorlagen/' + v.name + '/.vorschau.png?' + Date.now() : null); });
+  const jetzt = Date.now(), gewaehlt = liste.find(v => v.name === gewaehlteVorlage);
+  karte('', 'Leer', null, 'Leere Folie, Format waehlbar');
+  // Mitgelieferte zuerst, darunter die eigenen
+  liste.filter(v => /^[a-z0-9][a-z0-9-]*$/.test(v.name))
+       .sort((a, b) => (a.eigen === b.eigen ? String(a.titel || a.name).localeCompare(String(b.titel || b.name), 'de')
+                                             : a.eigen ? 1 : -1))
+       .forEach(v => karte(v.name, v.titel || v.name,
+                           v.vorschau ? 'vorlagen/' + v.name + '/.vorschau.png?' + jetzt : null, v.beschreibung || ''));
+  // Gewaehlte Vorlage: was sie ist und alle Folien auf einen Blick
+  const det = document.getElementById('dDetail');
+  det.style.display = gewaehlt ? 'block' : 'none';
+  document.getElementById('dMarkeZeile').style.display =
+    (MARKE.farben.length || MARKE.titel || MARKE.text) ? 'flex' : 'none';
+  if (gewaehlt){
+    document.getElementById('dInfo').textContent = (gewaehlt.titel || gewaehlt.name) +
+      (gewaehlt.beschreibung ? ': ' + gewaehlt.beschreibung : '') + ' (' + (+gewaehlt.slides || 0) + ' Folien)';
+    const st = document.getElementById('dStreifen');
+    st.innerHTML = '';
+    if (gewaehlt.folien){
+      const i = document.createElement('img');
+      i.src = 'vorlagen/' + gewaehlt.name + '/.folien.png?' + jetzt; i.alt = '';
+      st.appendChild(i);
+    }
+  }
+  g.scrollTop = pos;
 }
 function dialogAuf(art){
   dialogArt = art;
@@ -2402,6 +2952,8 @@ function dialogAuf(art){
   gewaehlteVorlage = '';
   document.getElementById('dFormat').style.display = neu ? '' : 'none';
   document.getElementById('dGalerie').style.display = neu ? '' : 'none';
+  document.getElementById('dDetail').style.display = 'none';
+  document.querySelector('#dialog .karte').classList.toggle('breit', neu);   // Platz fuer die Galerie
   if (neu) galerieZeigen();
   document.getElementById('dOk').textContent = neu ? 'Anlegen' : vorl ? 'Speichern' : 'Duplizieren';
   document.getElementById('dFehler').textContent = '';
@@ -2428,7 +2980,9 @@ async function dialogOk(){
   }
   const a = dialogArt === 'neu'
     ? Object.assign({aktion: 'neu', name: name, format: document.querySelector('input[name=fmt]:checked').value},
-                    gewaehlteVorlage ? {vorlage: gewaehlteVorlage} : {})
+                    gewaehlteVorlage ? {vorlage: gewaehlteVorlage,
+                                        marke: document.getElementById('dMarke').checked &&
+                                               !!(MARKE.farben.length || MARKE.titel || MARKE.text)} : {})
     : {aktion: 'duplizieren', name: name, von: PROJEKT};
   ok.disabled = true;
   const j = await projektWechsel(a);
@@ -2500,9 +3054,573 @@ document.getElementById('projekt').onchange = async e => {
   else { melde(j.fehler || 'Ging nicht.', 6000); projekteFuellen(); }
 };
 
+// ------------------------------------------------------------- Instagram-Vorschau
+// So sieht das Karussell auf Instagram aus: als Kachel im Profilraster und beim
+// Wischen durch den Beitrag. Das Profil zeigt jede Kachel in 3:4, bei 4:5 fehlen
+// links und rechts je 34 px. Die Formatwahl zeigt erst, wie es aussaehe;
+// umgestellt wird erst mit dem Knopf, Zurueck holt das alte Format wieder.
+const IG_BREITE = 390, IG_HOEHE = 844, IG_RAHMEN = 12;      // Handy in CSS-Pixeln
+let vUmgestellt = null, vFolie = 0, vToken = 0, vWahl = 0, vMeldung = '';
+const IC = {
+  zurueck: '<svg viewBox="0 0 24 24"><path d="M15 4l-8 8 8 8"/></svg>',
+  mehr: '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg>',
+  herz: '<svg viewBox="0 0 24 24"><path d="M16.8 3.6c-2.1 0-3.7 1.1-4.8 2.9-1.1-1.8-2.7-2.9-4.8-2.9C4.3 3.6 2 6 2 9c0 5.4 7.7 10.4 10 11.6C14.3 19.4 22 14.4 22 9c0-3-2.3-5.4-5.2-5.4z"/></svg>',
+  kommentar: '<svg viewBox="0 0 24 24"><path d="M20.7 16.6A9.4 9.4 0 1 0 17.2 20l4.3 1.5z"/></svg>',
+  teilen: '<svg viewBox="0 0 24 24"><path d="M22 3L9.5 10.5M22 3l-7 18-3.5-8.5L3 9z"/></svg>',
+  merken: '<svg viewBox="0 0 24 24"><path d="M19 21l-7-6-7 6V3h14z"/></svg>',
+  links: '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+  rechts: '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
+  plus: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg>',
+  menue: '<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+  raster: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>',
+  reels: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 8.5h18M8 3l3 5.5M14 3l3 5.5M10 12v5l4.5-2.5z"/></svg>',
+  markiert: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19a6 6 0 0 1 11 0"/></svg>',
+  stapel: '<svg viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M9 2h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M3.5 7.5V19a1.5 1.5 0 0 0 1.5 1.5h11.5" stroke-width="2.2"/></svg>'
+};
+function vorschauOffen(){ return document.getElementById('vorschau').style.display === 'flex'; }
+// Gemerkter Name, sonst der erste @name aus den Texten dieses Karussells
+function igName(){
+  let n = '';
+  try { n = localStorage.getItem('igName') || ''; } catch (e) {}
+  if (!n) n = MARKE.name || '';
+  if (!n && D){
+    for (const s of (D.slides || []).slice(0, 20)){
+      for (const b of ((s && s.bloecke) || []).slice(0, MAX_BLOECKE)){
+        const m = String(b && b.text || '').slice(0, 2000).replace(/<[^<>]*>/g, '').match(/@([A-Za-z0-9._]{2,30})/);
+        if (m){ n = m[1]; break; }
+      }
+      if (n) break;
+    }
+  }
+  n = String(n).replace(/[^A-Za-z0-9._]/g, '').slice(0, 30);
+  return n || 'dein.profil';
+}
+function vorschauAuf(){
+  if (!D) return;
+  vUmgestellt = null; vFolie = 0; vMeldung = '';
+  let hell = false, gemerkt = '';
+  try { hell = localStorage.getItem('igHell') === '1'; gemerkt = localStorage.getItem('igName') || ''; } catch (e) {}
+  const v = document.getElementById('vorschau');
+  v.classList.toggle('hell', hell);
+  document.getElementById('vHell').textContent = hell ? 'Dunkel' : 'Hell';
+  document.getElementById('vName').value = gemerkt.replace(/[^A-Za-z0-9._]/g, '').slice(0, 30);
+  v.style.display = 'flex';
+  document.getElementById('vName').placeholder = igName();
+  vorschauZeichnen();
+}
+function vorschauZu(){
+  document.getElementById('vorschau').style.display = 'none';
+  document.getElementById('vProfil').innerHTML = '';
+  document.getElementById('vBeitrag').innerHTML = '';
+  vUmgestellt = null; vToken++; vWahl++;
+}
+function vorschauSkalieren(){
+  const m = document.querySelector('#vorschau .vMitte');
+  const gb = IG_BREITE + 2 * IG_RAHMEN, gh = IG_HOEHE + 2 * IG_RAHMEN;
+  const s = Math.max(0.25, Math.min(1, (m.clientHeight - 62) / gh, (m.clientWidth - 96) / 2 / gb));
+  document.querySelectorAll('#vorschau .vHuelle').forEach(x => {
+    x.style.width = Math.round(gb * s) + 'px'; x.style.height = Math.round(gh * s) + 'px';
+  });
+  document.querySelectorAll('#vorschau .handy').forEach(x => { x.style.transform = 'scale(' + s + ')'; });
+}
+function vorschauZeichnen(){
+  const token = ++vToken;
+  const daten = vUmgestellt ? vUmgestellt.daten : D;
+  const st = Object.assign({}, STIL_STD, daten.stil || {});
+  const H0 = +D.stil.hoehe, breitOk = +D.stil.breite === 1080;
+  document.querySelectorAll('#vFormat button').forEach(b => {
+    const h = +b.dataset.h;
+    b.classList.toggle('an', h === +st.hoehe);
+    b.classList.toggle('jetzt', h === H0);
+    b.disabled = !breitOk;
+    b.title = !breitOk ? 'Geht nur bei Folien mit 1080 px Breite'
+            : h === H0 ? 'So ist dein Karussell gerade angelegt' : 'Zeigen, wie es in diesem Format aussaehe';
+  });
+  const a = profilAusschnitt(st.breite, st.hoehe);
+  document.getElementById('vErkl').textContent = formatName(st) + ' (' + st.breite + ' x ' + st.hoehe + ' px): ' + (
+    +st.breite === 1080 && +st.hoehe === 1440
+      ? 'fuellt die Kachel im Profil ganz und ist im Feed am groessten. Posting-Automatiken nehmen 3:4 nicht immer an.'
+    : +st.breite === 1080 && +st.hoehe === 1350
+      ? 'nimmt jede Posting-Automatik an. Im Profil fehlen links und rechts je ' + Math.round(a.x) + ' px.'
+    : a.x >= 1 ? 'im Profil fehlen links und rechts je ' + Math.round(a.x) + ' px.'
+    : a.y >= 1 ? 'im Profil fehlen oben und unten je ' + Math.round(a.y) + ' px.'
+    : 'passt genau in die Kachel im Profil.');
+  vorschauSkalieren();
+  beitragBauen(daten, st);
+  profilBauen(daten, st, token);
+  fussBauen(daten, st);
+}
+
+// Rechtes Handy: der Beitrag, Folien zum Durchwischen
+function beitragBauen(daten, st){
+  const schirm = document.getElementById('vBeitrag');
+  const n = daten.slides.length, mh = IG_BREITE * st.hoehe / st.breite;
+  schirm.innerHTML =
+    '<div class="igOben">' + IC.zurueck + '<b>Beiträge</b><span style="width:24px"></span></div>' +
+    '<div class="igKopf"><span class="igAvatar klein"></span><span class="igName"></span>' + IC.mehr + '</div>' +
+    '<div class="igMedien"><div class="igStreifen"></div><span class="igZahl"></span>' +
+      '<button class="igPfeil links" title="zurueck">' + IC.links + '</button>' +
+      '<button class="igPfeil rechts" title="weiter">' + IC.rechts + '</button></div>' +
+    '<div class="igAktionen"><span>' + IC.herz + IC.kommentar + IC.teilen + '</span>' +
+      '<span class="igPunkte' + (n > 10 ? ' viele' : '') + '"></span>' + IC.merken + '</div>' +
+    '<div class="igText"><i class="skel" style="width:36%"></i>' +
+      '<div><span class="igName"></span><i class="skel" style="width:50%"></i></div>' +
+      '<i class="skel" style="width:78%"></i><i class="skel" style="width:30%;height:9px"></i></div>';
+  igNamenSetzen(schirm);
+  const medien = schirm.querySelector('.igMedien'), streifen = schirm.querySelector('.igStreifen');
+  medien.style.height = mh + 'px';
+  const cache = new Map(), kk = IG_BREITE / st.breite;
+  daten.slides.forEach((s, i) => {
+    const f = q('div', {class: 'igFolie'});
+    f.style.width = IG_BREITE + 'px'; f.style.height = mh + 'px';
+    streifen.appendChild(f);
+    try { renderFolie(daten.slides, i, daten.stil, f, cache).el.style.transform = 'scale(' + kk + ')'; }
+    catch (e) {}
+  });
+  const punkte = schirm.querySelector('.igPunkte');
+  if (n > 1) for (let i = 0; i < n; i++) punkte.appendChild(document.createElement('i'));
+  schirm.querySelector('.igZahl').style.display = n > 1 ? '' : 'none';
+  wischen(medien, streifen, n);
+  vFolie = Math.min(vFolie, n - 1);
+  zeigeFolie(vFolie, false);
+}
+function igNamenSetzen(wo){
+  const n = igName();
+  wo.querySelectorAll('.igName').forEach(x => { x.textContent = n; });
+  const logo = MARKE.logos[0];
+  wo.querySelectorAll('.igAvatar').forEach(x => {
+    if (logo){                              // Profilbild: erstes Logo aus dem Markenpaket
+      x.textContent = '';
+      x.style.background = '#ffffff url("marke/' + encodeURIComponent(logo) + '") center/72% no-repeat';
+    } else {
+      x.style.background = '';
+      x.textContent = n.charAt(0).toUpperCase();
+    }
+  });
+}
+function zeigeFolie(i, weich){
+  const schirm = document.getElementById('vBeitrag'), streifen = schirm.querySelector('.igStreifen');
+  if (!streifen) return;
+  const n = streifen.children.length;
+  vFolie = Math.max(0, Math.min(n - 1, i));
+  streifen.style.transition = weich ? 'transform .32s cubic-bezier(.2,.75,.25,1)' : 'none';
+  streifen.style.transform = 'translateX(' + (-vFolie * IG_BREITE) + 'px)';
+  schirm.querySelector('.igZahl').textContent = (vFolie + 1) + '/' + n;
+  schirm.querySelectorAll('.igPunkte i').forEach((p, j) => p.classList.toggle('an', j === vFolie));
+  schirm.querySelector('.igPfeil.links').classList.toggle('da', vFolie > 0);
+  schirm.querySelector('.igPfeil.rechts').classList.toggle('da', vFolie < n - 1);
+}
+// Ziehen mit Maus oder Finger, Pfeile, waagerechtes Wischen auf dem Trackpad
+function wischen(medien, streifen, n){
+  let start = null, rad = 0, letztes = 0, verbraucht = false;
+  const pxJe = () => medien.getBoundingClientRect().width / IG_BREITE;    // Bildschirm- je Handypixel
+  medien.onpointerdown = e => {
+    if (e.button !== 0 || e.target.closest('.igPfeil')) return;
+    start = {x: e.clientX, t: performance.now(), id: e.pointerId};
+    medien.setPointerCapture(e.pointerId);
+    medien.classList.add('zieht');
+    streifen.style.transition = 'none';
+  };
+  medien.onpointermove = e => {
+    if (!start || e.pointerId !== start.id) return;
+    let dx = (e.clientX - start.x) / pxJe();
+    if ((vFolie === 0 && dx > 0) || (vFolie === n - 1 && dx < 0)) dx /= 3;    // Gummiband am Ende
+    streifen.style.transform = 'translateX(' + (-vFolie * IG_BREITE + dx) + 'px)';
+  };
+  medien.onpointerup = medien.onpointercancel = e => {
+    if (!start || e.pointerId !== start.id) return;
+    const dx = (e.clientX - start.x) / pxJe(), schnell = Math.abs(dx) > 20 && performance.now() - start.t < 260;
+    start = null;
+    medien.classList.remove('zieht');
+    let z = vFolie;
+    if (dx < -IG_BREITE * 0.2 || (schnell && dx < 0)) z++;
+    if (dx >  IG_BREITE * 0.2 || (schnell && dx > 0)) z--;
+    zeigeFolie(z, true);
+  };
+  medien.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;     // senkrecht: Handy scrollt
+    e.preventDefault();
+    const t = performance.now();
+    if (t - letztes > 250){ rad = 0; verbraucht = false; }   // neue Geste
+    letztes = t;
+    if (verbraucht) return;                                  // eine Geste, eine Folie
+    rad += e.deltaX;
+    if (Math.abs(rad) > 40){ verbraucht = true; zeigeFolie(vFolie + (rad > 0 ? 1 : -1), true); }
+  }, {passive: false});
+  medien.querySelector('.igPfeil.links').onclick = () => zeigeFolie(vFolie - 1, true);
+  medien.querySelector('.igPfeil.rechts').onclick = () => zeigeFolie(vFolie + 1, true);
+}
+
+// Linkes Handy: das Profilraster, dieses Karussell oben links, daneben die anderen
+async function profilBauen(daten, st, token){
+  const schirm = document.getElementById('vProfil');
+  schirm.innerHTML =
+    '<div class="igOben"><span class="igName"></span><span>' + IC.plus + IC.menue + '</span></div>' +
+    '<div class="igProfilKopf"><span class="igAvatar gross"></span><div class="igZahlen">' +
+      ['Beiträge', 'Follower', 'Gefolgt'].map(t => '<div><i class="skel" style="width:30px;height:14px"></i>' + t + '</div>').join('') +
+    '</div></div>' +
+    '<div class="igBio"><i class="skel" style="width:40%"></i><i class="skel" style="width:80%"></i><i class="skel" style="width:58%"></i></div>' +
+    '<div class="igKnoepfe"><span>Profil bearbeiten</span><span>Profil teilen</span></div>' +
+    '<div class="igReiter"><span class="an">' + IC.raster + '</span><span>' + IC.reels + '</span><span>' + IC.markiert + '</span></div>' +
+    '<div class="igRaster"></div>';
+  igNamenSetzen(schirm);
+  const raster = schirm.querySelector('.igRaster'), kacheln = [];
+  for (let i = 0; i < 12; i++) kacheln.push(raster.appendChild(q('div', {class: 'igKachel'})));
+  try { kachelFuellen(kacheln[0], daten.slides, daten.stil); } catch (e) {}
+  let liste = [];
+  try { liste = (await (await fetch('projekte', {cache: 'no-store'})).json()).projekte || []; } catch (e) {}
+  if (token !== vToken) return;
+  // Fremde, riesige Dateien nicht laden (die Groesse meldet der Server)
+  liste = liste.filter(p => p && p.name !== PROJEKT && /^[a-z0-9][a-z0-9-]{0,59}$/.test(p.name) && +p.slides > 0 &&
+                            !(+p.groesse > 5e6))
+               .sort((a, b) => (+b.geaendert || 0) - (+a.geaendert || 0));
+  let frei = 1;
+  for (const p of liste){
+    if (frei >= kacheln.length) break;
+    let d = null;
+    try { d = await (await fetch('projekte/' + encodeURIComponent(p.name) + '/inhalt.json', {cache: 'no-store'})).json(); }
+    catch (e) {}
+    if (token !== vToken) return;
+    if (!d || !Array.isArray(d.slides) || !d.slides.length) continue;
+    try { await schriftBereit(d); } catch (e) {}
+    if (token !== vToken) return;
+    const alt = BASIS;                       // Bilder liegen im Ordner des anderen Karussells
+    BASIS = 'projekte/' + encodeURIComponent(p.name) + '/';
+    try { kachelFuellen(kacheln[frei], d.slides.slice(0, 20), d.stil); frei++; }
+    catch (e) {}
+    finally { BASIS = alt; }
+  }
+}
+// Folie 1 als 3:4-Kachel, so wie das Profilraster sie zuschneidet (mittig, fuellend)
+function kachelFuellen(kachel, slides, stil){
+  const st = Object.assign({}, STIL_STD, stil || {});
+  const kw = (IG_BREITE - 4) / 3, kh = kw * 4 / 3;
+  const s = Math.max(kw / st.breite, kh / st.hoehe);
+  const r = renderFolie(slides, 0, stil, kachel, new Map());
+  r.el.style.transform = 'translate(' + (kw - st.breite * s) / 2 + 'px,' + (kh - st.hoehe * s) / 2 + 'px) scale(' + s + ')';
+  if (slides.length > 1) kachel.appendChild(q('span', {class: 'igStapel', html: IC.stapel}));
+}
+
+// Unten: was beim Umstellen passiert oder was im Profil abgeschnitten wird
+function fussBauen(daten, st){
+  const fuss = document.getElementById('vFuss');
+  fuss.innerHTML = '';
+  const neu = formatName(st), alt = formatName(D.stil);
+  if (vUmgestellt){
+    const z = q('div', {class: 'knoepfe'});
+    z.appendChild(q('span', {html: 'So saehe es in <b>' + esc(neu) + '</b> aus. Noch ist nichts umgestellt.'}));
+    const ja = q('button', {class: 'haupt', html: 'Auf ' + esc(neu) + ' umstellen'});
+    ja.onclick = formatUebernehmen;
+    const nein = q('button', {html: 'Bei ' + esc(alt) + ' bleiben'});
+    nein.onclick = () => vorschauFormat(+D.stil.hoehe);
+    z.append(ja, nein);
+    fuss.appendChild(z);
+    fuss.appendChild(q('div', {class: 'unter', html: 'Groessen, Schriften und enge Abstaende bleiben. Nur der freie Raum ueber, zwischen und unter den Inhalten wird kleiner oder groesser, Fotos ueber die ganze Hoehe wachsen mit. Zurueck holt alles wieder.'}));
+    hinweisListe(fuss, vUmgestellt.hinweise, 'Alles passt: nichts ragt hinaus, nichts stoesst neu zusammen.');
+    return;
+  }
+  if (vMeldung) fuss.appendChild(q('div', {class: 'gut', html: esc(vMeldung)}));
+  const a = profilAusschnitt(st.breite, st.hoehe);
+  fuss.appendChild(q('div', {html: a.x >= 1 || a.y >= 1
+    ? 'Im Profil fehlen von Folie 1 ' + (a.x >= 1 ? 'links und rechts' : 'oben und unten') + ' je ' + Math.round(a.x || a.y) +
+      ' px. Auf Folie 1 zeigen gestrichelte Linien diesen Rand.'
+    : 'Folie 1 passt ganz in die Kachel im Profil.'}));
+  hinweisListe(fuss, profilRandPruefen(daten.slides, daten.stil).map(n => '„' + n + '“ reicht in diesen Rand'), '');
+}
+function hinweisListe(ziel, liste, leer){
+  if (!liste || !liste.length){
+    if (leer) ziel.appendChild(q('div', {class: 'unter gut', html: esc(leer)}));
+    return;
+  }
+  const ul = document.createElement('ul');
+  liste.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+  ziel.appendChild(ul);
+}
+async function vorschauFormat(h){
+  vMeldung = '';
+  if (h === +D.stil.hoehe) vUmgestellt = null;
+  else {
+    const basis = D, wahl = ++vWahl;
+    let e = null;
+    try { e = await formatUmstellen(D, h); } catch (x) { e = null; }
+    if (wahl !== vWahl || basis !== D || !vorschauOffen()) return;   // inzwischen anders gewaehlt
+    vUmgestellt = e;
+    if (!e) vMeldung = 'Umstellen geht hier nicht.';
+  }
+  vorschauZeichnen();
+}
+function formatUebernehmen(){
+  if (!vUmgestellt) return;
+  merke();                                  // Zurueck holt das alte Format wieder
+  const alt = formatName(D.stil);
+  D = vUmgestellt.daten;
+  D.stil = Object.assign({}, STIL_STD, D.stil || {});
+  vUmgestellt = null; sel = null; gemerkteMk = null;
+  vMeldung = 'Umgestellt auf ' + formatName(D.stil) + '. Zurueck oben in der Leiste (' + tt('Strg+Z') + ') holt ' + alt + ' wieder.';
+  alles(); knoepfe();                       // alles() zeichnet die offene Vorschau neu
+}
+
+// Folie 1 im Format, das das Profilraster beschneidet (4:5): gestrichelt, was dort
+// wegfaellt. Nur Anzeige, nicht im Bild und nicht in der Canva-Datei.
+function profilLinien(rah){
+  rah.querySelectorAll('.profilrand').forEach(x => x.remove());
+  if (akt !== 0) return;
+  const a = profilAusschnitt(D.stil.breite, D.stil.hoehe);
+  const linie = (art, pos, wort) => {
+    const l = q('div', {class: 'profilrand ' + art});
+    l.style[art === 'senk' ? 'left' : 'top'] = (pos * k) + 'px';
+    if (wort) l.appendChild(q('span', {html: wort}));
+    rah.appendChild(l);
+  };
+  if (a.x >= 1){ linie('senk', a.x, 'Rand im Profil'); linie('senk', D.stil.breite - a.x, ''); }
+  if (a.y >= 1){ linie('waag', a.y, 'Rand im Profil'); linie('waag', D.stil.hoehe - a.y, ''); }
+}
+function projektLabel(){
+  const o = document.querySelector('#projekt option:checked');
+  if (o && D && o.value === PROJEKT) o.textContent = PROJEKT + ' (' + D.slides.length + ' Slides, ' + formatName(D.stil) + ')';
+}
+
+document.getElementById('rVorschau').onclick = vorschauAuf;
+document.getElementById('vZu').onclick = vorschauZu;
+document.querySelectorAll('#vFormat button').forEach(b => { b.onclick = () => vorschauFormat(+b.dataset.h); });
+document.getElementById('vHell').onclick = () => {
+  const v = document.getElementById('vorschau'), hell = !v.classList.contains('hell');
+  v.classList.toggle('hell', hell);
+  document.getElementById('vHell').textContent = hell ? 'Dunkel' : 'Hell';
+  try { localStorage.setItem('igHell', hell ? '1' : '0'); } catch (e) {}
+};
+document.getElementById('vName').addEventListener('input', e => {
+  const v = e.target.value.replace(/[^A-Za-z0-9._]/g, '').slice(0, 30);
+  if (v !== e.target.value) e.target.value = v;
+  try { if (v) localStorage.setItem('igName', v); else localStorage.removeItem('igName'); } catch (x) {}
+  igNamenSetzen(document.getElementById('vorschau'));
+});
+window.addEventListener('resize', () => { if (vorschauOffen()) vorschauSkalieren(); });
+
+// ------------------------------------------------------------- Markenpaket
+// Fuer alle Karussells: Farben (1. Akzent, 2. Dunkel, 3. Hell, dann weitere),
+// Schriften fuer Ueberschrift und Text, Logos, Instagram-Name. Liegt im
+// Karussell-Ordner (marke/); Anwenden rechnet marke.py, dasselbe wie k.py.
+const ROLLEN = ['Akzent', 'Dunkel', 'Hell'];
+async function markeLaden(){
+  try {
+    const r = await fetch('marke', {cache: 'no-store'});
+    const m = r.ok ? await r.json() : null;
+    if (m && Array.isArray(m.farben) && Array.isArray(m.logos)){ MARKE = m; markeGeladen = true; return true; }
+  } catch (e) {}
+  return false;                 // dann nichts speichern: sonst ersetzt ein leeres Paket das echte
+}
+async function markePost(aktion, mehr){
+  try {
+    return await (await fetch(mitProjekt('marke'), {method: 'POST',
+      body: JSON.stringify(Object.assign({aktion: aktion}, mehr || {}))})).json();
+  } catch (e) { return {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+}
+function markeFehler(t){ document.getElementById('mFehler').textContent = t || ''; }
+function markeOffen(){ return document.getElementById('marke').style.display === 'flex'; }
+function markeSpeichern(){
+  if (!markeGeladen){ markeFehler('Das Markenpaket ist nicht lesbar, Aenderungen werden nicht gespeichert.'); return; }
+  clearTimeout(markeTimer);
+  markeTimer = setTimeout(markeJetztSpeichern, 350);
+}
+async function markeJetztSpeichern(){
+  clearTimeout(markeTimer);
+  markeTimer = null;
+  if (!markeGeladen) return;
+  const j = await markePost('speichern', {marke: MARKE});
+  if (j.ok){ MARKE = j.marke; markeFehler(''); } else markeFehler(j.fehler);
+  werkzeugSchriftenFuellen();
+  if (D) baueRegler();
+}
+// Markenschriften zuerst, nur was im Cockpit auch geladen ist
+function markenSchriften(){
+  return [MARKE.titel, MARKE.text].filter((n, i, a) => n && a.indexOf(n) === i && alleSchriften().indexOf(n) >= 0);
+}
+function schriftListe(){
+  const m = markenSchriften();
+  return m.concat(alleSchriften().filter(n => m.indexOf(n) < 0));
+}
+function schriftOptionen(wert){
+  const m = markenSchriften();
+  return schriftListe().map(n => '<option value="' + esc(n) + '"' + (n === wert ? ' selected' : '') +
+    ' style="font-family:&quot;' + esc(n) + '&quot;">' + esc(n) + (m.indexOf(n) >= 0 ? ' (Marke)' : '') + '</option>').join('');
+}
+async function markeAuf(){
+  markeFehler('');
+  if (!markeTimer) await markeLaden();      // Aenderungen von k.py nicht zuruecksetzen
+  if (!markeGeladen) markeFehler('Das Markenpaket ist nicht lesbar (marke/marke.json).');
+  document.getElementById('marke').style.display = 'flex';
+  markeZeichnen();
+}
+function markeZu(){
+  if (markeTimer) markeJetztSpeichern();
+  document.getElementById('marke').style.display = 'none';
+}
+function markeZeichnen(){
+  const mf = document.getElementById('mFarben');
+  mf.innerHTML = '';
+  MARKE.farben.forEach((c, i) => {
+    const box = q('div', {class: 'mFarbe'}), feld = q('div', {class: 'feld'});
+    feld.style.background = c;
+    const inp = document.createElement('input');
+    inp.type = 'color'; inp.value = c; inp.title = 'Farbe aendern';
+    inp.oninput = () => { feld.style.background = inp.value; };
+    inp.onchange = () => { MARKE.farben[i] = inp.value; markeSpeichern(); probeZeichnen(); };
+    const weg = q('button', {class: 'weg', html: '&times;', title: 'entfernen'});
+    weg.onclick = () => { MARKE.farben.splice(i, 1); markeSpeichern(); markeZeichnen(); };
+    feld.append(inp, weg);
+    const s = document.createElement('span'); s.textContent = ROLLEN[i] || 'weitere';
+    box.append(feld, s);
+    mf.appendChild(box);
+  });
+  if (MARKE.farben.length < 12){
+    const box = q('div', {class: 'mFarbe'}), feld = q('div', {class: 'feld', html: '+'});
+    const inp = document.createElement('input');
+    inp.type = 'color'; inp.value = '#808080'; inp.title = 'Farbe hinzufuegen';
+    inp.onchange = () => { MARKE.farben.push(inp.value); markeSpeichern(); markeZeichnen(); };
+    feld.appendChild(inp);
+    const s = document.createElement('span'); s.textContent = ROLLEN[MARKE.farben.length] || 'weitere';
+    box.append(feld, s);
+    mf.appendChild(box);
+  }
+  [['mTitel', 'titel'], ['mText', 'text']].forEach(([id, k]) => {
+    const s = document.getElementById(id);
+    s.innerHTML = '<option value="">wie die Vorlage</option>' + alleSchriften().map(n =>
+      '<option value="' + esc(n) + '"' + (n === MARKE[k] ? ' selected' : '') + ' style="font-family:&quot;' + esc(n) + '&quot;">' +
+      esc(n) + '</option>').join('');
+    s.onchange = () => { MARKE[k] = s.value; markeSpeichern(); probeZeichnen(); };
+  });
+  probeZeichnen();
+  const ml = document.getElementById('mLogos');
+  ml.innerHTML = '';
+  MARKE.logos.forEach(l => {
+    const k = q('div', {class: 'mLogo'});
+    k.title = 'Klick: auf die aktuelle Folie setzen';
+    const img = document.createElement('img');
+    img.src = 'marke/' + encodeURIComponent(l) + '?' + Date.now(); img.alt = '';
+    const weg = q('button', {class: 'weg', html: '&times;', title: 'Logo entfernen'});
+    weg.onclick = async ev => {
+      ev.stopPropagation();
+      const j = await markePost('logo-weg', {datei: l});
+      if (j.ok){ MARKE = j.marke; markeZeichnen(); } else markeFehler(j.fehler);
+    };
+    k.onclick = () => logoEinsetzen(l);
+    k.append(img, weg);
+    ml.appendChild(k);
+  });
+  if (MARKE.logos.length < 8){
+    const neu = q('button', {class: 'mLogo neu', html: '<div>+ Logo<br><span style="opacity:.6">PNG, SVG, JPG</span></div>'});
+    neu.onclick = () => document.getElementById('mLogoDatei').click();
+    ml.appendChild(neu);
+  }
+  document.getElementById('mName').value = MARKE.name || '';
+}
+// Probe in Markenfarben und -schriften
+function probeZeichnen(){
+  const p = document.getElementById('mProbe'), f = MARKE.farben;
+  const t = p.querySelector('.t'), x = p.querySelector('.x');
+  t.style.fontFamily = MARKE.titel ? "'" + MARKE.titel + "', sans-serif" : '';
+  x.style.fontFamily = MARKE.text ? "'" + MARKE.text + "', sans-serif" : '';
+  p.style.background = f[2] || '#f4f5f6';
+  t.style.color = x.style.color = f[1] || '#111111';
+  p.style.borderLeftColor = f[0] || 'transparent';
+}
+// Logo aus dem Markenpaket auf die aktuelle Folie, unten links (wie marke.logo_block)
+async function logoEinsetzen(datei){
+  if (!D) return;
+  const j = await markePost('logo-ins-projekt', {datei: datei});
+  if (!j.ok){ markeFehler(j.fehler); melde('Logo ging nicht: ' + (j.fehler || ''), 6000); return; }
+  merke();
+  const st = D.stil, v = Math.max(0.2, Math.min(+j.verhaeltnis || 1, 8));
+  let w = 160, h = w / v;
+  if (h > 120){ h = 120; w = 120 * v; }
+  const rand = Math.round(st.breite * 0.089);
+  const b = {id: neueId(), typ: 'bild', datei: j.datei, x: rand, y: Math.round(st.hoehe - rand - h),
+             w: Math.round(w), h: Math.round(h)};
+  bloecke().push(b);
+  sel = b.id; auswahl = [b.id];
+  if (markeOffen()) markeZu();
+  alles();
+  melde('Logo eingesetzt, unten links. Zum Verschieben ziehen.', 5000);
+}
+async function markeAnwenden(){
+  if (!D) return;
+  const wahl = {farben: document.getElementById('mAFarben').checked,
+                schriften: document.getElementById('mASchriften').checked,
+                logo: document.getElementById('mALogo').checked};
+  if (!wahl.farben && !wahl.schriften && !wahl.logo) return;
+  if (document.getElementById('konflikt').style.display === 'flex'){
+    markeFehler('Erst oben entscheiden, welche Fassung gilt, dann anwenden.'); return;
+  }
+  const knopfEl = document.getElementById('mAnwenden');
+  knopfEl.disabled = true;
+  wechseltGerade = true;                     // die Dateipruefung soll nicht dazwischenfunken
+  clearTimeout(sicherTimer);
+  try {
+    if (markeTimer) await markeJetztSpeichern();
+    if (!(await speichern())){ markeFehler('Sichern ging nicht, nichts angewendet.'); return; }
+    const j = await markePost('anwenden', Object.assign({stand: meinStand}, wahl));
+    if (!j.ok){ markeFehler(j.fehler); return; }
+    try { meinStand = (await (await fetch('stand', {cache: 'no-store'})).text()).trim(); } catch (e) {}
+    await vonDatei();                        // laedt neu, Zurueck holt den alten Stand
+    markeZu();
+    melde(j.meldung + '. Zurueck holt alles wieder.', 8000);
+  } finally { wechseltGerade = false; knopfEl.disabled = false; }
+}
+// Eigene Schriftdatei (TTF, OTF, WOFF): ablegen, Schriftregeln neu einlesen, ueberall anbieten
+async function schriftDateiHochladen(f){
+  melde('lade Schrift ' + f.name + ' ...', 0);
+  let j;
+  try { j = await (await fetch('schriftdatei?name=' + encodeURIComponent(f.name), {method: 'POST', body: f})).json(); }
+  catch (e) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+  if (!j.ok){ melde('Schrift ging nicht: ' + (j.fehler || ''), 8000); markeFehler(j.fehler); return null; }
+  const css = document.getElementById('googleCss');
+  css.href = 'fonts/google.css?' + Date.now();
+  await new Promise(r => { css.onload = r; setTimeout(r, 1500); });
+  await schriftenLaden();
+  try { await document.fonts.load("400 40px '" + j.family + "'"); await document.fonts.load("700 40px '" + j.family + "'"); }
+  catch (e) {}
+  werkzeugSchriftenFuellen();
+  if (D) baueRegler();
+  if (markeOffen()) markeZeichnen();
+  if (document.getElementById('schriften').style.display === 'flex') schriftenZeigen();
+  melde('Schrift ' + j.family + ' ist da und steht in jeder Schriftauswahl.', 6000);
+  return j.family;
+}
+
+document.getElementById('rMarke').onclick = markeAuf;
+document.getElementById('mZu').onclick = markeZu;
+document.getElementById('marke').addEventListener('mousedown', e => { if (e.target.id === 'marke') markeZu(); });
+document.getElementById('mAnwenden').onclick = markeAnwenden;
+document.getElementById('mGoogle').onclick = () => { markeZu(); schriftenAuf(); };
+document.getElementById('mSchriftDatei').onclick = () => document.getElementById('mSchriftWahl').click();
+document.getElementById('sDatei').onclick = () => document.getElementById('mSchriftWahl').click();
+document.getElementById('mSchriftWahl').onchange = async e => {
+  const liste = [].slice.call(e.target.files);
+  e.target.value = '';
+  for (const f of liste) await schriftDateiHochladen(f);
+};
+document.getElementById('mLogoDatei').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  let j;
+  try { j = await (await fetch('markelogo?name=' + encodeURIComponent(f.name), {method: 'POST', body: f})).json(); }
+  catch (x) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+  if (j.ok){ MARKE = j.marke; markeFehler(''); markeZeichnen(); } else markeFehler(j.fehler);
+};
+document.getElementById('mName').addEventListener('input', e => {
+  const v = e.target.value.replace(/^@/, '').replace(/[^A-Za-z0-9._]/g, '').slice(0, 30);
+  if (v !== e.target.value.replace(/^@/, '')) e.target.value = v;
+  MARKE.name = v;
+  markeSpeichern();
+});
+
 (async () => {
   await schriftenLaden();
   await schriftBereit();
+  await markeLaden();
+  werkzeugSchriftenFuellen();                 // jetzt mit den Markenschriften vorn
   const j = await projekteFuellen();
   if (j && j.aktuell) await projektLaden(j.aktuell);
   else { melde('Noch kein Karussell da. Leg oben mit Neu eins an.', 0); dialogAuf('neu'); }
