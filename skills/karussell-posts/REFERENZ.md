@@ -24,7 +24,9 @@ Code (dieser Skill, wird bei jedem Update ersetzt):
 | `cockpit/lib/` | Moveable und Selecto (MIT): Ziehen, Skalieren, Drehen, Rahmenauswahl |
 | `cockpit/bib/` | `icons.json` (Lucide ISC, Tabler MIT, 8.350 Icons), `index.json` Schlagwörter, `de.json` deutsche Suchwörter, `fonts.json` Google-Fonts-Verzeichnis |
 | `cockpit/fonts/` | sieben eingebaute Schriften (OFL) |
-| `cockpit/vorlagen/` | mitgelieferte Vorlagen (klar-hell, dunkel-verlauf, gelb-fett) |
+| `cockpit/marke.py` | Markenpaket: lesen, prüfen, anwenden, Logos |
+| `cockpit/vorlagen/` | 15 mitgelieferte Vorlagen (Liste mit Zweck: `k.py vorlagen`) |
+| `CODEINDEX.md` | Funktionen mit Zeilennummern, nur zum Weiterbauen am Cockpit |
 
 Karussell-Ordner des Users (festgelegt mit `einrichten.py --ordner`, gemerkt
 in `~/.scb-creator-kit/einstellungen.json` unter `karussell_ordner`, die
@@ -45,6 +47,30 @@ modelle/                         Freisteller, optional, zählen nur mit passende
 Karussell Cockpit.bat / .command Doppelklick-Start, bei jedem Start erneuert
 ```
 
+## Einrichten
+
+`<python> einrichten.py` (still): Exit 0 = alles da. Exit 3 = nur die
+Freisteller fehlen, das ist optional (das Cockpit lädt sie beim ersten
+„Hintergrund entfernen“ auf Nachfrage selbst). Exit 2 = etwas Pflichtiges fehlt:
+
+- **Pakete oder Browser fehlen:** kurz erklären („Für das Karussell-Cockpit
+  brauche ich ein paar kostenlose Python-Bausteine und einen Browser für den
+  Export, etwa 200 MB, einmalig.“), per AskUserQuestion Ja/Nein, bei Ja
+  `<python> einrichten.py --pakete`. Fehlt Python selbst: Setup-Assistent
+  `scb-setup`, Schritt 2.
+- **Karussell-Ordner fehlt:** `<python> einrichten.py --vorschlag` zeigt den
+  Standard (Bilder/SCB Karussells). Per AskUserQuestion fragen: „Wo sollen
+  deine Karussells liegen?“ mit dem Vorschlag (empfohlen) und „anderer
+  Ordner“. Dann `<python> einrichten.py --ordner "<pfad>"`. Das legt auch
+  eine Doppelklick-Datei „Karussell Cockpit“ in den Ordner.
+  Mac: lieber nicht Schreibtisch oder Dokumente nehmen (macOS fragt dann
+  nach Terminal-Zugriff, iCloud „Speicher optimieren“ lagert Dateien aus);
+  der Vorschlag unter Bilder hat beides nicht.
+
+Freisteller gezielt vorab laden (nur wenn der User das will):
+`<python> einrichten.py --modelle schnell` (180 MB) bzw. `genau` (973 MB),
+mit Prüfsumme, sie landen in `~/.scb-creator-kit/modelle`.
+
 ## Der billigste Weg zuerst
 
 | Wunsch | Weg | Kosten |
@@ -60,7 +86,7 @@ Karussell Cockpit.bat / .command Doppelklick-Start, bei jedem Start erneuert
 verloren). Dort nur `k.py setze`. `--erzwingen` nur auf ausdrücklichen Wunsch.
 
 Erst wenn eine **neue Funktion** ins Cockpit soll, wird Code gelesen, dann
-über den Funktionsindex unten gezielt mit `offset`/`limit`.
+über das Code-Verzeichnis `CODEINDEX.md` gezielt mit `offset`/`limit`.
 
 ## k.py: alle Felder
 
@@ -255,29 +281,3 @@ keine Seiten, Skripte oder Verknüpfungen.
   (z. B. SVG-Hintergrund mit Rahmenlinie) verliert beim Formatwechsel etwas
   am Rand; `k.py format` und die Vorschau melden das. Rahmen besser als Form
   im Cockpit bauen, die wächst sauber mit.
-
-## Funktionsindex
-
-Zeilennummern verschieben sich. Stimmen sie nicht, `Grep` auf den Namen.
-
-**bauen.py** · _mac_wandeln:34 · browser_auf:48 · laden:63 · segmente:68 · stand:87 · stand_von:94 · vorlagen_json:106 · _vorlagen_info:124 · vorschau_bauen:134 · format_umstellen:164 · format_ok:210 · _browser:219 · oeffnen:230 · icon_paket:251 · modelle_stand:264 · modell_laden_starten:270 · pdf_schreiben:299 · pdf_bauen:331 · projekte_json:354 · _aufbereiten:377 · bild_ablegen:408 · freistellen_auftrag:440 · _skript_hashes:489 · Kanal:505 · Server:873 · server:880 · zahl:942 · _dict:951 · farbwert:959 · braucht_raster:968 · _schattenrand:1004 · _gaeste_pruefen:1011 · _rastern:1026 · messen:1062 · _hl:1112 · _run:1125 · _texteffekte:1150 · _einzug:1189 · _textbox:1199 · _bild:1238 · _raster:1256 · _mitFont:1263 · _ebenen:1276 · _fliesstext:1290 · _hintergrund:1314 · pptx_bauen:1339 · kontaktbogen:1391 · komplett:1413 · belegt:1433
-
-**projekt.py** · einstellungen:29 · einstellungen_kaputt:37 · ssl_kontext:47 · vorschlag:61 · gesetzt:67 · _datenordner:71 · ordner_setzen:76 · _pfade:94 · geraet:120 · datei_ok:127 · slug:143 · gueltig:152 · liste:156 · aktuelles:163 · setzen:174 · ordner:181 · export:190 · auftrag_datei:194 · lesen:198 · sicher_schreiben:202 · _endlich:229 · json_bytes:242 · schreiben:252 · stil:256 · _frei:261 · _verknuepft:275 · _nur_daten:283 · neu:299 · duplizieren:313 · vorlage_ordner:330 · vorlage_gueltig:339 · vorlagen:343 · als_vorlage:351 · neu_aus_vorlage:364 · _ohne_vorlagen_info:374 · kurztext:395 · aus_argv:412
-
-**k.py** · lesen:66 · schreiben:70 · nackt:74 · wert:78 · sauber:96 · zeile:106 · folie:148 · element:154 · neue_id:161 · _google:178 · pruefen:203 · stil_setzen:243 · ebenen_von:264 · felder_setzen:275 · icons_suchen:314 · server_da:344 · post:351 · main:361
-
-**einrichten.py** · _da:33 · fehlende_pakete:37 · browser_da:44 · pakete_installieren:57 · modell_ordner:88 · modell_laden:92 · startdatei:140 · pruefen:202 · main:244
-
-**freisteller.py** · name_von:52 · _echt:62 · pfad:79 · vorhanden:92 · _sitzung:96 · _rechnen:111 · maske:125 · zielname:138 · freistellen:143
-
-**schriften.py** · verzeichnis:34 · _eintrag:43 · installiert:55 · namen:73 · ordnername:78 · suchen:82 · _holen:96 · _css_schreiben:108 · laden:119 · ttf_datei:169 · _tabellen:189 · _namen:221 · _familienname:247 · datei_lesen:254 · _datei_lesen:266 · eigene_laden:301
-
-**texte.py** · lesen:27 · schreiben:84
-
-**vorlage.py** · stufen:42 · kodiere:47 · dekodiere:52 · zaehlen:56 · abstand:65 · genau:69 · hexf:81 · hell:85 · laden:92 · deckt:111 · app_farbe:116 · flaechenfarbe:129 · plausibel:146 · _median_je_groesse:153 · postflaeche:163 · randpixel:190 · normieren:199 · ist_foto:207 · schriftfarben:213 · laeufe:245 · zeilen:262 · zeilenabstaende:279 · zwei_gruppen:290 · format_von:309 · messen:316 · pct:386 · ausgeben:390 · vorschlag:417
-
-**schriftprobe.py** · google:29 · schrift:39 · bauen:61
-
-**render.js** · zerlege:34 · gleich:55 · serialisiere:57 · attr:76 · inline:91 · absaetze:104 · frei:135 · groesseVon:137 · abstandVon:143 · nameVon:148 · stilAnwenden:158 · ebenen:170 · blockBauen:182 · farbeOder:228 · istGeraet:230 · istMaske:231 · zahlOder:232 · bildUrl:234 · eingepasst:236 · sternPunkte:243 · formSvg:253 · maskeForm:315 · maskeUrl:332 · maskeAnwenden:339 · farbeHell:358 · geraetTeile:365 · geraetBauen:410 · rahmenZeichnen:433 · boxWirkung:440 · grenze:448 · textSchatten:449 · textWirkung:456 · hintergrundCss:484 · ausschnittVon:500 · farbeMitDeckkraft:506 · schattenCss:514 · bildWirkung:522 · setzeBox:548 · renderSlide:560 · nahtlosBloecke:644 · renderFolie:651 · profilAusschnitt:704 · unsichtbar:710 · profilRandPruefen:722 · streckbar:775 · bildVerhaeltnis:781 · formatUmstellen:790 · alleSchriften:930 · schriftenLaden:933 · benutzteSchriften:940 · schriftBereit:950
-
-**cockpit.html** · mitProjekt:533 · q:537 · tt:545 · melde:554 · slide:560 · bloecke:561 · blockVon:562 · istBild:563 · neueId:564 · posVon:572 · posSchreiben:577 · imRaster:588 · insRaster:589 · schmutzig:595 · datenHolen:597 · konflikt:602 · vonDatei:604 · speichern:619 · pruefeDatei:634 · knopfStand:654 · autoSichern:660 · merke:673 · knoepfe:681 · springe:685 · schiebeEbene:693 · spanFuer:705 · markierung:710 · feldFuer:724 · aktuelleMk:728 · formatiere:730 · markiereWieder:748 · werkzeugeZeigen:764 · abwaehlen:785 · schieber:794 · farbe:812 · zahl:834 · auswahlFeld:841 · bildWaehlen:851 · ikon:878 · anordnenTeil:882 · knopf:893 · befehleTeil:898 · mehrfachRegler:911 · tastenRegler:924 · bildMasseLaden:953 · ausschnittGeometrie:965 · setzeTief:973 · zuschnittStart:980 · zuschnittEnde:988 · geistZeigen:995 · zuschnittAendern:1023 · zuschnittZiehen:1031 · zuschnittZoom:1056 · istBilddatei:1068 · folienPunkt:1072 · bilderEinsetzen:1076 · abschnitt:1113 · bildRegler:1131 · iconIndexLaden:1206 · iconsSuchen:1214 · elementeAuf:1248 · elementeZu:1254 · elementeTab:1255 · iconsZeigen:1290 · formEinfuegen:1305 · iconEinfuegen:1315 · rahmenVorschau:1330 · knopfMitBild:1342 · rahmenSetzen:1349 · rahmenEinfuegen:1369 · rahmenTeil:1385 · projektBilder:1410 · bildschriftTeil:1418 · nachbarnZeichnen:1450 · gaesteLive:1467 · nahtlosNachGeste:1505 · nahtlosTeil:1518 · panoramaTeil:1530 · panoramaEinfuegen:1547 · schattenTeil:1560 · formRegler:1577 · texteffektVorlagen:1615 · texteffektRegler:1628 · hintergrundTeil:1661 · schriftenAuf:1703 · schriftenZu:1712 · schriftenZeigen:1713 · schriftHolen:1736 · werkzeugSchriftenFuellen:1752 · markenfarben:1759 · paletteTeil:1767 · modellLaden:1793 · freistellen:1811 · bloeckeRegler:1846 · blockRegler:1935 · baueRegler:2044 · boxVon:2112 · auswahlAbgleichen:2115 · mitGruppen:2123 · waehle:2133 · gesperrtDabei:2141 · einfrieren:2145 · rechteck:2147 · zielSetzen:2154 · gesteStart:2188 · ersteBewegung:2193 · gesteEnde:2200 · felderZeigen:2217 · moveableAnlegen:2224 · zeichneBuehne:2413 · loeschen:2440 · verschieben:2450 · kopieVon:2457 · kopieren:2467 · einsetzen:2472 · einfuegen:2486 · duplizieren:2501 · gruppieren:2505 · entgruppieren:2512 · sperren:2518 · drehenAuf:2525 · ausrichten:2532 · verteilen:2555 · zoomAnzeigen:2570 · zoomSetzen:2574 · zeichneMinis:2595 · mitZyklus:2612 · zeichne:2613 · alles:2618 · fertigstellen:2714 · formatName:2841 · projekteFuellen:2845 · projektLaden:2856 · projektWechsel:2881 · galerieZeigen:2897 · dialogAuf:2942 · dialogZu:2963 · dialogOk:2964 · auftragAuf:2997 · auftragZu:3007 · auftragSenden:3008 · vorschauOffen:3080 · igName:3082 · vorschauAuf:3098 · vorschauZu:3111 · vorschauSkalieren:3117 · vorschauZeichnen:3126 · beitragBauen:3155 · igNamenSetzen:3187 · zeigeFolie:3201 · wischen:3214 · profilBauen:3255 · kachelFuellen:3295 · fussBauen:3305 · hinweisListe:3330 · vorschauFormat:3339 · formatUebernehmen:3352 · profilLinien:3365 · projektLabel:3378 · markeLaden:3405 · markePost:3413 · markeFehler:3419 · markeOffen:3420 · markeSpeichern:3421 · markeJetztSpeichern:3426 · markenSchriften:3436 · schriftListe:3439 · schriftOptionen:3443 · markeAuf:3448 · markeZu:3455 · markeZeichnen:3459 · probeZeichnen:3519 · logoEinsetzen:3529 · markeAnwenden:3546 · schriftDateiHochladen:3571

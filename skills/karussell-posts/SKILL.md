@@ -1,23 +1,13 @@
 ---
 name: karussell-posts
 description: >
-  Karussell-Cockpit: Instagram-Karussells (4:5 oder 3:4) frei gestalten wie in
-  Canva, lokal im Browser, mit Claude als Helfer. Ziehen, Drehen, Ausrichten,
-  Google Fonts, Formen und über 8.000 Icons, Text-Effekte, Hintergrund
-  entfernen, Bild in Form, Screenshots im Handy- oder Laptop-Rahmen, Bild in
-  der Schrift, nahtlose Karussells (Panorama über mehrere Folien), 15 Vorlagen
-  für verschiedene Karussell-Arten (Anleitung, Fehler, Vergleich, Checkliste,
-  Zitate, Ranking, Vorher/Nachher, Prompts und mehr), Markenpaket (Farben,
-  Schriften, Logos, Name für alle Karussells, mit einem Klick angewendet),
-  eigene Schriftdateien,
-  Markenfarben, Instagram-Vorschau (Profilraster und Wischen) mit Formatwahl
-  3:4 oder 4:5. Ausgabe als Bilder für Instagram,
-  Canva-Datei (PPTX) und PDF. Verwende diesen Skill bei: "mach mir ein
-  Karussell", "Carousel-Post erstellen", "Slides für Instagram", "Karussell zu
-  [Thema]", "mach aus dem Reel ein Karussell", "Infografik-Post",
+  Karussell-Cockpit: Instagram-Karussells lokal im Browser gestalten wie in
+  Canva (Vorlagen, Markenpaket, Instagram-Vorschau, Ausgabe als Bilder,
+  Canva-Datei und PDF), Claude hilft per Einzeiler. Verwende diesen Skill bei:
+  "mach mir ein Karussell", "Carousel-Post erstellen", "Slides für Instagram",
+  "Karussell zu [Thema]", "mach aus dem Reel ein Karussell", "Infografik-Post",
   "Karussell-Cockpit", "Karussell nachbauen", "Karussell als PDF",
-  "nahtloses Karussell", "Panorama-Karussell", "Instagram-Vorschau",
-  "Karussell auf 3:4 umstellen".
+  "nahtloses Karussell", "Instagram-Vorschau", "Markenpaket".
 ---
 
 # Karussell-Cockpit
@@ -42,34 +32,18 @@ laufen im Ordner `<skill>/cockpit`.
 4. **Daten liegen nie im Kit.** Projekte, Exporte, eigene Vorlagen und
    geladene Schriften liegen im Karussell-Ordner des Users und überleben
    jedes Update.
-5. Details zu Datenmodell, allen `k.py`-Feldern, Endpunkten und Fallen:
-   `<skill>/REFERENZ.md`, nur bei Bedarf und nur den nötigen Abschnitt lesen.
+5. Details zu Einrichten, Datenmodell, allen `k.py`-Feldern, Endpunkten und
+   Fallen: `<skill>/REFERENZ.md`, nur bei Bedarf und nur den nötigen Abschnitt
+   (Grep auf die Überschrift, dann mit `offset`/`limit` lesen). Das
+   Code-Verzeichnis `CODEINDEX.md` nur zum Weiterbauen am Cockpit.
 
 ## 1. Einrichten (einmal, still prüfen)
 
     <python> einrichten.py
 
-Exit 0 = alles da, weiter mit 2. Exit 3 = nur die Freisteller fehlen, das ist
-optional (das Cockpit lädt sie beim ersten „Hintergrund entfernen“ auf
-Nachfrage selbst). Exit 2 = etwas Pflichtiges fehlt:
-
-- **Pakete oder Browser fehlen:** kurz erklären („Für das Karussell-Cockpit
-  brauche ich ein paar kostenlose Python-Bausteine und einen Browser für den
-  Export, etwa 200 MB, einmalig.“), per AskUserQuestion Ja/Nein, bei Ja
-  `<python> einrichten.py --pakete`. Fehlt Python selbst: Setup-Assistent
-  `scb-setup`, Schritt 2.
-- **Karussell-Ordner fehlt:** `<python> einrichten.py --vorschlag` zeigt den
-  Standard (Bilder/SCB Karussells). Per AskUserQuestion fragen: „Wo sollen
-  deine Karussells liegen?“ mit dem Vorschlag (empfohlen) und „anderer
-  Ordner“. Dann `<python> einrichten.py --ordner "<pfad>"`. Das legt auch
-  eine Doppelklick-Datei „Karussell Cockpit“ in den Ordner.
-  Mac: lieber nicht Schreibtisch oder Dokumente nehmen (macOS fragt dann
-  nach Terminal-Zugriff, iCloud „Speicher optimieren“ lagert Dateien aus);
-  der Vorschlag unter Bilder hat beides nicht.
-
-Freisteller gezielt vorab laden (nur wenn der User das will):
-`<python> einrichten.py --modelle schnell` (180 MB) bzw. `genau` (973 MB),
-mit Prüfsumme, sie landen in `~/.scb-creator-kit/modelle`.
+Exit 0 = alles da, Exit 3 = nur die optionalen Freisteller fehlen: weiter mit 2.
+Exit 2 = etwas Pflichtiges fehlt: REFERENZ.md, Abschnitt „Einrichten“, und
+genau danach vorgehen.
 
 ## 2. Cockpit öffnen
 
