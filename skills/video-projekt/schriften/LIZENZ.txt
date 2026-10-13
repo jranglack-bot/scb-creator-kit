@@ -1,0 +1,8 @@
+Poppins Black (Indian Type Foundry) und Playfair Display Italic (Claus Eggers Soerensen)
+stehen unter der SIL Open Font License 1.1 (https://openfontlicense.org).
+Quelle: Google Fonts, github.com/google/fonts (ofl/poppins, ofl/playfairdisplay).
+
+Wofuer: die "Zweifachschrift" fuer Hooks im Cockpit (dicke Woerter Poppins Black,
+duenne Woerter Playfair Display kursiv, weicher Schatten). build_editor.py bettet
+die Dateien fuers Cockpit ein (schriften_data.js), render_projekt.py kopiert sie
+in den Projektordner (schriften/), damit ffmpeg beim Einbrennen dieselben nimmt.

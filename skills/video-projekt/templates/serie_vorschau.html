@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Serien-Vorschau</title>
+<style>
+:root { --bg:#16181d; --karte:#20232a; --rand:#30343c; --fg:#e8eaed; --leise:#9aa0a6; --akz:#4dd0c4; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 system-ui,-apple-system,'Segoe UI',sans-serif; }
+header { position:sticky; top:0; z-index:20; display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  padding:10px 16px; background:#1b1e24ee; border-bottom:1px solid var(--rand); backdrop-filter:blur(6px); }
+header h1 { font-size:15px; margin:0 8px 0 0; }
+button, select { background:#2b2f37; color:var(--fg); border:1px solid var(--rand); border-radius:7px;
+  padding:6px 12px; font:inherit; cursor:pointer; }
+button:hover { border-color:var(--akz); }
+button.an { background:var(--akz); color:#10221f; border-color:var(--akz); }
+.leise { color:var(--leise); font-size:12.5px; }
+#hinweise { margin:10px 16px 0; padding:10px 14px; background:var(--karte); border:1px solid var(--rand);
+  border-radius:9px; font-size:13px; display:none; }
+#hinweise ul { margin:4px 0 0; padding-left:18px; }
+#raster { display:grid; gap:18px; padding:16px; grid-template-columns:repeat(auto-fill, minmax(var(--kachel, 240px), 1fr)); }
+.kachel { background:var(--karte); border:1px solid var(--rand); border-radius:12px; padding:10px; min-width:0; }
+.kachel.ton { border-color:var(--akz); }
+.titel { display:flex; justify-content:space-between; gap:8px; font-size:12.5px; margin-bottom:8px; }
+.titel b { white-space:nowrap; }
+.titel span { color:var(--leise); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.buehne { position:relative; width:100%; background:#000; overflow:hidden; border-radius:9px; cursor:pointer; }
+.buehne video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+.buehne.fuellen video { object-fit:cover; }
+.knoepfe { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.knoepfe a, .knoepfe button { font-size:12px; padding:4px 9px; color:var(--fg); text-decoration:none;
+  background:#2b2f37; border:1px solid var(--rand); border-radius:6px; }
+.knoepfe a:hover { border-color:var(--akz); }
+/* Text-Overlays: gleiche Darstellung wie im Cockpit (templates/editor.html) */
+.stagetext { position:absolute; transform:translate(-50%,-50%); text-align:center; z-index:5; display:none;
+  line-height:1.3; white-space:pre; width:max-content; pointer-events:none;
+  text-shadow:0 0 6px #000,0 0 12px #000,2px 2px 2px #000; }
+.stagetext .capbg { padding:.08em .35em; border-radius:.18em;
+  box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+.capbg.blockbg { display:inline-block; padding:.18em .55em; border-radius:.14em;
+  box-decoration-break:slice; -webkit-box-decoration-break:slice; }
+.ta-fade { animation:taFade .4s ease-out; }
+.ta-left { animation:taLeft .45s ease-out; }
+.ta-right { animation:taRight .45s ease-out; }
+.ta-up { animation:taUp .45s ease-out; }
+.ta-pop { animation:taPop .35s cubic-bezier(.2,1.6,.4,1); }
+@keyframes taFade { from { opacity:0; } }
+@keyframes taLeft { from { opacity:0; translate:-130px 0; } }
+@keyframes taRight { from { opacity:0; translate:130px 0; } }
+@keyframes taUp { from { opacity:0; translate:0 110px; } }
+@keyframes taPop { from { opacity:0; scale:.4; } }
+@media (max-width:600px) { #raster { padding:16px; grid-template-columns:1fr 1fr; gap:10px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="kopf">Serien-Vorschau</h1>
+  <button id="spielen" class="an">Anhalten</button>
+  <button id="vorn">Alle von vorn</button>
+  <label class="leise">Größe
+    <select id="groesse"><option value="180">klein</option><option value="240" selected>mittel</option><option value="340">groß</option></select>
+  </label>
+  <span class="leise" id="info">Klick auf ein Reel: Ton an für dieses. Die Musik hörst du erst im fertigen Video.</span>
+</header>
+<div id="hinweise"><b>Bitte ansehen</b><ul id="hListe"></ul></div>
+<div id="raster"></div>
+<script>
+// Daten kommen aus serie_data.js (serie_reels.py). Der Tab holt sie alle 3 s
+// nach, Aenderungen erscheinen ohne neues Fenster.
+const SCHRIFT_CSS = { 'Arial Rounded MT Bold': "'Arial Rounded MT Bold','Arial Rounded MT'" };
+const ANIM = { fade:'ta-fade', left:'ta-left', right:'ta-right', up:'ta-up', pop:'ta-pop' };
+let S = null, laeuft = true, kacheln = [];
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const hex = (v, std) => /^#?[0-9a-fA-F]{6}$/.test(String(v || '')) ? String(v).replace('#', '') : std;
+function schrift(n){ return (SCHRIFT_CSS[n] || "'" + String(n || 'Segoe UI').replace(/'/g, '') + "'") + ',sans-serif'; }
+function kastenFarbe(tx){
+  const h = hex(tx.box_color, '000000'), a = tx.box_alpha != null ? +tx.box_alpha : 0.55;
+  return 'rgba(' + parseInt(h.slice(0,2),16) + ',' + parseInt(h.slice(2,4),16) + ',' + parseInt(h.slice(4,6),16) + ',' + a + ')';
+}
+function zeilen(tx){ return Array.isArray(tx.lines) && tx.lines.length ? tx.lines : String(tx.text || '').split('\n'); }
+
+function bauen(){
+  const R = document.getElementById('raster');
+  kacheln.forEach(k => { k.v.pause(); k.v.removeAttribute('src'); k.v.load(); });
+  R.innerHTML = ''; kacheln = [];
+  document.getElementById('kopf').textContent = 'Serie ' + (S.name || '') + ' · ' + S.reels.length + ' Reels';
+  const hl = document.getElementById('hListe'); hl.innerHTML = '';
+  (S.hinweise || []).forEach(h => { const li = document.createElement('li'); li.textContent = h; hl.appendChild(li); });
+  document.getElementById('hinweise').style.display = (S.hinweise || []).length ? 'block' : 'none';
+  S.reels.forEach(r => {
+    const k = document.createElement('div'); k.className = 'kachel';
+    const t = document.createElement('div'); t.className = 'titel';
+    t.innerHTML = '<b>Reel ' + (+r.nr) + '</b><span></span>';
+    t.querySelector('span').textContent = String(r.video || '').split('/').pop();
+    const b = document.createElement('div'); b.className = 'buehne' + (S.modus === 'fuellen' ? ' fuellen' : '');
+    b.style.aspectRatio = (+S.W || 1080) + ' / ' + (+S.H || 1920);
+    const v = document.createElement('video');
+    v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+    v.src = encodeURI(r.video);
+    // play() direkt nach dem Bauen scheitert, wenn der Tab noch im Hintergrund lud
+    v.addEventListener('canplay', () => { if (laeuft && v.paused) v.play().catch(() => {}); });
+    b.appendChild(v);
+    const texte = (r.texts || []).map(tx => {
+      const d = document.createElement('div'); d.className = 'stagetext';
+      const inner = zeilen(tx).map(esc).join('<br>');
+      d.innerHTML = tx.box === false ? inner
+        : '<span class="capbg' + (tx.box_style === 'block' ? ' blockbg' : '') + '"></span>';
+      if (tx.box !== false){ const sp = d.querySelector('.capbg'); sp.innerHTML = inner; sp.style.background = kastenFarbe(tx); }
+      d.style.fontFamily = schrift(tx.font);
+      d.style.fontWeight = tx.bold === false ? '500' : '800';
+      d.style.color = '#' + hex(tx.color, 'FFFFFF');
+      d.style.left = ((tx.x != null ? +tx.x : 0.5) * 100) + '%';
+      d.style.top = ((tx.y != null ? +tx.y : 0.3) * 100) + '%';
+      b.appendChild(d);
+      return {d: d, tx: tx, an: false};
+    });
+    const kn = document.createElement('div'); kn.className = 'knoepfe';
+    const c = document.createElement('a'); c.href = encodeURI(r.ordner + '/editor.html'); c.target = '_blank';
+    c.textContent = 'Im Cockpit ändern'; c.title = 'Öffnet nur dieses Reel im normalen Cockpit';
+    kn.appendChild(c);
+    if (r.fertig){ const f = document.createElement('a'); f.href = encodeURI(r.fertig); f.target = '_blank'; f.textContent = 'Fertiges Video'; kn.appendChild(f); }
+    k.appendChild(t); k.appendChild(b); k.appendChild(kn);
+    R.appendChild(k);
+    const kachel = {k: k, b: b, v: v, r: r, texte: texte};
+    b.onclick = () => tonAn(kachel);
+    kacheln.push(kachel);
+    if (laeuft) v.play().catch(() => {});
+  });
+  groesseSetzen();
+}
+function tonAn(kachel){
+  const an = kachel.v.muted;
+  kacheln.forEach(x => { x.v.muted = true; x.k.classList.remove('ton'); });
+  if (an){ kachel.v.muted = false; kachel.k.classList.add('ton'); if (kachel.v.paused) kachel.v.play().catch(() => {}); }
+}
+function groesseSetzen(){
+  document.documentElement.style.setProperty('--kachel', document.getElementById('groesse').value + 'px');
+  requestAnimationFrame(() => kacheln.forEach(x => {
+    const f = x.b.clientWidth / (+S.W || 1080);
+    x.texte.forEach(o => { o.d.style.fontSize = ((+o.tx.size || 72) * f) + 'px'; });
+  }));
+}
+// Je Bild: Schnitte ueberspringen (Rohzeit wie im Cockpit), Texte ein- und ausblenden
+function takt(){
+  kacheln.forEach(x => {
+    const t = x.v.currentTime;
+    const s = (x.r.schnitte || []).find(c => t >= c[0] && t < c[1] - 0.02);
+    if (s){ if (s[1] >= (x.v.duration || 1e9) - 0.05) x.v.currentTime = 0; else x.v.currentTime = s[1]; }
+    x.texte.forEach(o => {
+      const sicht = t >= (+o.tx.start || 0) && t < (+o.tx.end || 0);
+      if (sicht && !o.an){
+        o.d.style.display = 'block';
+        o.d.className = 'stagetext' + (ANIM[o.tx.anim || 'fade'] ? ' ' + ANIM[o.tx.anim || 'fade'] : '');
+        void o.d.offsetWidth;
+      } else if (!sicht && o.an) o.d.style.display = 'none';
+      o.an = sicht;
+    });
+  });
+  requestAnimationFrame(takt);
+}
+document.getElementById('spielen').onclick = e => {
+  laeuft = !laeuft;
+  e.target.textContent = laeuft ? 'Anhalten' : 'Abspielen';
+  e.target.classList.toggle('an', laeuft);
+  kacheln.forEach(x => laeuft ? x.v.play().catch(() => {}) : x.v.pause());
+};
+document.getElementById('vorn').onclick = () => kacheln.forEach(x => { x.v.currentTime = 0; x.texte.forEach(o => { o.an = false; o.d.style.display = 'none'; }); });
+document.getElementById('groesse').onchange = groesseSetzen;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && laeuft) kacheln.forEach(x => { if (x.v.paused) x.v.play().catch(() => {}); });
+});
+window.addEventListener('resize', groesseSetzen);
+
+function nachladen(){
+  const s = document.createElement('script');
+  s.src = 'serie_data.js?' + Date.now();
+  s.onload = () => {
+    s.remove();
+    if (window.SERIE && (!S || window.SERIE.rev !== S.rev)){ S = window.SERIE; bauen(); }
+  };
+  s.onerror = () => s.remove();
+  document.head.appendChild(s);
+}
+nachladen();
+setInterval(nachladen, 3000);
+requestAnimationFrame(takt);
+</script>
+</body>
+</html>

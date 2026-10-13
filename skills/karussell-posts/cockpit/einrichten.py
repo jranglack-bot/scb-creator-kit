@@ -136,14 +136,139 @@ def modell_laden(modell, fortschritt=None):
 
 
 # ------------------------------------------------------------ Startdatei
+# Standard: ohne Terminalfenster. Windows bekommt eine Verknuepfung "Karussell Cockpit"
+# auf pythonw (Python ohne Konsole), der Mac eine kleine App (osacompile). Beide starten
+# bauen.py --cockpit --still: Meldungen gehen in ~/.scb-creator-kit/karussell-cockpit.log.
+# Geht das nicht (kein pythonw, kein osacompile), bleibt es bei .bat bzw. .command.
+
+STEMPEL = P.KIT_HOME / "karussell-startdatei.txt"   # wofuer die Startdatei zuletzt gebaut wurde
+
+
+def _stempel_gleich(text, ziel):
+    try:
+        return ziel.exists() and STEMPEL.read_text(encoding="utf-8") == text
+    except OSError:
+        return False
+
+
+def _stempel(text):
+    try:
+        P.KIT_HOME.mkdir(parents=True, exist_ok=True)
+        STEMPEL.write_text(text, encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _symbol():
+    """Eigenes Symbol (Folienstapel in der Cockpit-Farbe), einmal mit Pillow gezeichnet."""
+    ziel = P.KIT_HOME / "karussell-cockpit.ico"
+    if ziel.is_file():
+        return ziel
+    try:
+        from PIL import Image, ImageDraw
+        b = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+        d = ImageDraw.Draw(b)
+        d.rounded_rectangle((8, 8, 248, 248), 52, fill=(34, 40, 43, 255))
+        for i, farbe in enumerate([(77, 101, 94, 255), (110, 150, 138, 255), (127, 179, 163, 255)]):
+            o = 42 + i * 26
+            d.rounded_rectangle((o, 52 + i * 22, o + 120, 52 + i * 22 + 150), 16, fill=farbe,
+                                outline=(18, 32, 28, 255), width=4)
+        P.KIT_HOME.mkdir(parents=True, exist_ok=True)
+        b.save(ziel, sizes=[(256, 256), (64, 64), (48, 48), (32, 32), (16, 16)])
+        return ziel
+    except Exception:
+        return None
+
+
+def _verknuepfung_windows(bauen):
+    """Karussell Cockpit.lnk: pythonw.exe bauen.py --cockpit --still. Kein Fenster."""
+    pyw = Path(sys.executable).with_name("pythonw.exe")
+    if not pyw.is_file():
+        return None
+    ziel = P.DATEN / "Karussell Cockpit.lnk"
+    symbol = _symbol()
+    stempel = "lnk|%s|%s|%s" % (pyw, bauen, symbol or "")
+    if _stempel_gleich(stempel, ziel):
+        return ziel
+    if ziel.is_symlink():
+        ziel.unlink()
+    befehl = ("$s = (New-Object -ComObject WScript.Shell).CreateShortcut($env:KC_ZIEL);"
+              "$s.TargetPath = $env:KC_EXE; $s.Arguments = $env:KC_ARGS; $s.WorkingDirectory = $env:KC_ORDNER;"
+              "$s.Description = 'Karussell Cockpit'; if ($env:KC_SYMBOL) { $s.IconLocation = $env:KC_SYMBOL };"
+              "$s.Save()")
+    umgebung = dict(os.environ, KC_ZIEL=str(ziel), KC_EXE=str(pyw), KC_ORDNER=str(P.HIER),
+                    KC_ARGS='"%s" --cockpit --still' % bauen, KC_SYMBOL=str(symbol or ""))
+    try:
+        r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", befehl],
+                           env=umgebung, capture_output=True, timeout=60, creationflags=0x08000000)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode or not ziel.is_file():
+        return None
+    _stempel(stempel)
+    return ziel
+
+
+def _app_mac(bauen):
+    """Karussell Cockpit.app (AppleScript, osacompile): startet das Cockpit im Hintergrund."""
+    import shlex
+    import tempfile
+    if not shutil.which("osacompile"):
+        return None
+    ziel = P.DATEN / "Karussell Cockpit.app"
+    stempel = "app|%s|%s" % (sys.executable, bauen)
+    if _stempel_gleich(stempel, ziel):
+        return ziel
+    # Gleiche Python-Suche wie die .command: nur ein Python mit den Cockpit-Paketen.
+    # PATH um Homebrew ergaenzen, sonst fehlt ffmpeg (Videos) beim Start aus dem Finder.
+    skript = ('export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; cd {hier} || exit 1; PY=""; '
+              'for K in {exe} python3 /opt/homebrew/bin/python3 /usr/local/bin/python3 /usr/bin/python3; do '
+              'command -v "$K" >/dev/null 2>&1 || continue; '
+              '[ "$(command -v "$K")" = /usr/bin/python3 ] && ! xcode-select -p >/dev/null 2>&1 && continue; '
+              '"$K" -c "import playwright, pptx, PIL" >/dev/null 2>&1 && PY="$K" && break; done; '
+              'if [ -z "$PY" ]; then echo "Python mit den Cockpit-Paketen nicht gefunden. '
+              'Sag Claude: richte das Karussell-Cockpit ein." >&2; exit 1; fi; '
+              'nohup "$PY" {bauen} --cockpit --still >/dev/null 2>&1 &').format(
+                  exe=shlex.quote(sys.executable), hier=shlex.quote(str(P.HIER)), bauen=shlex.quote(str(bauen)))
+    apple = 'do shell script "%s"' % skript.replace("\\", "\\\\").replace('"', '\\"')
+    with tempfile.TemporaryDirectory() as t:
+        neu = Path(t) / "Karussell Cockpit.app"
+        try:
+            r = subprocess.run(["osacompile", "-o", str(neu), "-e", apple], capture_output=True, timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        if r.returncode or not neu.is_dir():
+            return None
+        if ziel.is_symlink():
+            ziel.unlink()
+        elif ziel.exists():
+            shutil.rmtree(ziel)
+        shutil.move(str(neu), str(ziel))
+    _stempel(stempel)
+    return ziel
+
 
 def startdatei():
     """Doppelklick-Datei in den Karussell-Ordner legen. Wird bei jedem
     Cockpit-Start erneuert, damit sie nach einem Kit-Update weiter stimmt.
+    Standard ist der Start ohne Terminalfenster (Verknuepfung bzw. App, siehe oben);
+    nur wenn das nicht geht, die .bat bzw. .command von frueher.
     Wechselt zuerst in den Code-Ordner und sucht Python nie im Karussell-Ordner
     (dort koennten fremde Dateien liegen). Geschrieben ueber eine Zwischendatei,
     damit nie einer Verknuepfung gefolgt wird."""
     bauen = P.HIER / "bauen.py"
+    P.DATEN.mkdir(parents=True, exist_ok=True)
+    still = _verknuepfung_windows(bauen) if platform.system() == "Windows" else \
+        _app_mac(bauen) if platform.system() == "Darwin" else None
+    if still:
+        for alt in ("Karussell Cockpit.bat", "Karussell Cockpit.command"):   # alte Startdatei weg
+            a = P.DATEN / alt
+            if a.is_file() and not a.is_symlink():
+                try:
+                    a.unlink()
+                except OSError:
+                    pass
+        return still
     if platform.system() == "Windows":
         ziel = P.DATEN / "Karussell Cockpit.bat"
         q = lambda x: str(x).replace("%", "%%")

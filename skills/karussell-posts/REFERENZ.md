@@ -44,7 +44,9 @@ schriften/                       geladene Google Fonts (google.css, google.json,
 modelle/                         Freisteller, optional, zählen nur mit passender Prüfsumme
                                  (Standardort: ~/.scb-creator-kit/modelle)
 .auftraege/<name>.json           Wünsche aus dem Knopf „An Claude“
-Karussell Cockpit.bat / .command Doppelklick-Start, bei jedem Start erneuert
+Karussell Cockpit.lnk / .app   Doppelklick-Start ohne Terminalfenster (pythonw bzw.
+                               osacompile), bei jedem Start erneuert; ohne pythonw oder
+                               osacompile wie früher .bat / .command
 ```
 
 ## Einrichten
@@ -112,6 +114,10 @@ gesperrt. Zahlen höchstens ±100.000.
 - Formen: `form` (rechteck|kreis|dreieck|raute|stern|linie|pfeil|icon),
   `icon` (lucide/x, tabler/x, tabler-voll/x), `fuellung` (#hex oder keine),
   `rand.breite/.farbe`, `ecken`, `staerke`, `strich` (voll|gestrichelt|gepunktet)
+- Serie: `feld` (Text oder Bild, Name der Tabellenspalte, `feld=` nimmt es raus)
+- Video (Bild-Block mit `datei` .mp4): `von`, `bis` (Sekunden, Ausschnitt), `stumm=1` (ohne Ton
+  ausgeben). Alles andere wie bei Bildern (Ausschnitt, Zoom, Spiegeln, Filter, Ecken, Rahmen,
+  Form, Gerät, Deckkraft); nicht drehen (gedreht bleibt die Folie ein Bild)
 - Folie: `k.py hintergrund 3|alle art=farbe|verlauf|bild farbe=#.. farbe2=#.. winkel=135 datei=x.png` (`aus` = global)
 - Stil: `k.py stil bg text akzent schrift palette randX randOben randUnten titel textgroesse titelAbstand textAbstand`
 - Auszeichnungen im Text, überlagerbar: `<b> <i> <u> <m> <c=akzent> <c=#ff0000> <f=Poppins>`, Zeilenumbruch `\n`
@@ -127,6 +133,35 @@ gesperrt. Zahlen höchstens ±100.000.
 
 - **x und y vorhanden = frei gesetzt.** Ohne x/y fließt der Block im Raster
   und wird bei Platznot gemeinsam verkleinert. Formen stehen immer frei.
+- 9:16 (1080 × 1920): `stil.ziel` = `story` (Standard) | `reel` | `aus` steuert nur die
+  Anzeige auf der Bühne (`ZIEL_ZONEN` in render.js; Reel zusätzlich die 3:4-Mitte, die das
+  Profil zeigt). Neue Projekte mit `--format 916`, Umrechnen mit `k.py format 9:16` oder als
+  Kopie mit `k.py story`. Ränder des fließenden Layouts 420/330.
+- Video (video.py): Hochladen über `POST /video?name=` (in Stücken auf die Platte, bis 2 GB),
+  umgewandelt in H.264/AAC, höchstens 1080 × 1920, 30 Bilder/s, ohne Metadaten (Grafikkarte:
+  QSV bzw. VideoToolbox, sonst libx264), daneben `<datei>.jpg` als Standbild. Auf der Bühne
+  läuft das Video (`VIDEO_MODUS = 'spielen'`), sonst überall das Standbild. Ausgabe
+  (`bauen.messen` → `video.folie_mp4`): das Chromium von Playwright spielt kein H.264, darum
+  drei Ebenen als PNG (unten, Maske, oben) und ffmpeg legt das echte Video dazwischen.
+  `bilder/slide-NN.mp4` statt PNG, das Standbild liegt in `standbilder/`. Ein bewegtes
+  Video je Folie (das unterste), höchstens 60 s, Filter in ffmpeg angenähert.
+- Serie (Massenerstellung, gerechnet in `serieBauen`, render.js, für das Cockpit
+  und für `k.py serie` über `vorlage.html?serie=1`): `feld` an Text oder Bild =
+  Spalte; `{{Name}}` im Text ersetzt nur diese Stelle. Ohne festgelegte Felder
+  gelten bei einer Folie alle Texte (Überschrift „Hook“, dann „Text“, „Text 2“
+  …), bei mehreren Folien keine (Namen dort „F3 …“). Gleicher Name = gleiche
+  Spalte. Ganzer Text: das häufigste Format der Vorlage gilt für den neuen Text,
+  Tags in der Zelle kommen dazu. Leere Textzelle = Block fällt weg, leere
+  Bildzelle = Bild der Vorlage, ein neues Bild setzt `ausschnitt` zurück. Frei
+  gesetzte, ungedrehte Texte werden in 5-%-Schritten bis 50 % kleiner, bis sie
+  nicht in das nächste Element darunter (in der Breite überlappend) bzw. den
+  unteren Rand laufen; Hinweise je Zeile. Eine Folie als Vorlage = je Zeile eine
+  Folie (neues Karussell `<name>-serie` oder hinten angehängt, Block-IDs neu
+  durchnummeriert); mehrere = je Zeile ein Karussell `<name>-01` …
+  (`P.serie_anlegen`: Kopie der Vorlage samt Bildern, `slides` ersetzt, `serie`
+  und `vorlage` fallen weg). Grenzen: 100 Folien, 30 Karussells, 40 Spalten,
+  2.000 Zeichen je Zelle. `serie: {modus, spalten, zeilen}` oben in inhalt.json
+  ist die Tabelle der Vorlage, beim nächsten Öffnen ist sie wieder da.
 - `nahtlos: true`: der Block darf über den Rand ragen (x negativ oder x + w
   größer als die Breite) und erscheint auf den Nachbarfolien weiter, wie auf
   einer durchgehenden Leinwand. Teile von früheren Folien liegen dort unter den
@@ -184,7 +219,33 @@ ziehen, dann läuft es dort weiter (Schalter „nahtlos“ setzt sich selbst, im
 Panel unter Position abschaltbar). Folien-Panel: **Panorama-Bild über mehrere
 Folien**. In der Canva-Datei sind die Teile auf den Nachbarfolien Bilder;
 nahtloser Text wird ganz zum Bild, damit beide Hälften genau passen. Schriftauswahl: **+ Google Fonts**. Kopfleiste: **Neu** (Galerie),
-**Duplizieren**, **Als Vorlage**, **An Claude**, **Vorschau**.
+**Duplizieren**, **Als Vorlage**, **Serie**, **An Claude**, **Vorschau**.
+**Verwalten** (neben der Projektauswahl): alle Karussells als Kacheln mit Folie 1, neueste
+zuerst; Klick wählt (mehrere), Doppelklick öffnet, **Löschen** verschiebt in
+`papierkorb/<name>__<zeit>/` (projekt/, export/, info.json). Reiter **Papierkorb**:
+Zurückholen (bei gleichem Namen mit -2), einzeln oder alles endgültig löschen.
+Folien-Panel: **Als Story oder Reel-Titelbild (9:16)** legt eine Kopie in 9:16 an (nur diese
+Slide oder alle); in 9:16-Projekten steht dort stattdessen **Zonen zeigen für** Story,
+Reel-Titelbild oder keine. Blockliste: **+ Video**; Videos lassen sich auch auf die Folie oder
+auf ein Bild bzw. einen Rahmen ziehen (ersetzt dessen Datei). Im Video-Panel: Start, Ende,
+Ton an/aus, anderes Video.
+Serie (auch im Folien-Panel) öffnet den einfachen Weg: links die Slide als
+Vorschau (Hook und Text darin verschieben, waagerecht rastet die Mitte ein,
+‹ › blättert durch die Bilder), rechts 1. Bilder (wählen oder hineinziehen,
+wiederholen sich der Reihe nach, ohne Bilder bleibt das Foto der Slide),
+2. Hooks und 3. Texte darunter (eine pro Zeile, mit Leerzeilen getrennt dürfen
+Einträge mehrzeilig sein, Nummern und Aufzählungszeichen fallen weg), je ein
+Größenregler, **Los**. Hat die Slide keine Texte, legt der Dialog Hook und
+Text an; bei mehr als zwei Texten wählt man, welcher Hook und welcher Text
+ist. Position, Größe und Listen gehen beim Schliessen in die Vorlage
+(`serie.einfach`). **Erweitert …** öffnet die Tabelle: oben „Diese Slide: je
+Zeile ein Bild“ oder „Ganzes Karussell: je Zeile ein Karussell“, links Felder
+anhaken und benennen, rechts die Tabelle. Einfügen aus Excel oder Sheets direkt in eine Zelle (Strg+V, füllt
+nach rechts und unten) oder über **Liste einfügen** (Excel mit Kopfzeile,
+„Hook: …“/„Text: …“-Blöcke, Absätze, eine Zeile je Eintrag; Aufzählungszeichen
+fallen weg). Bildzelle: klicken oder mehrere Bilder hineinziehen (füllt nach
+unten), Rechtsklick = wieder das Bild der Vorlage. Nach dem Erstellen geht es
+direkt zu **Bilder für Instagram**.
 Vorschau: das Karussell als Kachel im Profilraster (oben links, daneben die
 anderen Karussells, neueste zuerst) und als Beitrag zum Durchwischen
 (ziehen, Pfeiltasten, waagerecht auf dem Trackpad), Instagram hell oder
@@ -238,7 +299,11 @@ dem Original, das Original steht im Feld `original`.
 Alle nehmen `?projekt=<name>`. `GET /stand`, `/projekte`, `/vorlagen`,
 `/modelle`, `/karussell.zip`, `/karussell.pdf` · `POST /speichern`, `/bild?name=`,
 `/ordner` (Body bilder|pptx|pdf), `/rendern` (Body bilder|bilder:3,5|pptx|pdf), `/format` (Body 3:4|4:5),
-`/projekt` (JSON aktion oeffnen|neu|duplizieren|vorlage, bei neu mit Vorlage `marke: true`), `/schrift` (JSON family),
+GET `/papierkorb`, `/projekt` aktion loeschen (namen) | zurueckholen (eintrag) | leeren (eintraege oder alle),
+`/video?name=` (Video im Body, Antwort JSON datei, dauer, w, h, ton), Videos mit Range-Anfragen,
+`/projekt` (JSON aktion oeffnen|neu|duplizieren|vorlage|serie, bei neu mit Vorlage `marke: true`,
+bei serie `von` und `karussells: [{name, slides}]`, schon gerechnet), `/serie` (JSON auftrag, anhaengen, name;
+rechnet über vorlage.html, für k.py), `/schrift` (JSON family),
 `/marke` (GET: Markenpaket; POST JSON aktion speichern|logo-weg|logo-ins-projekt|anwenden), `/markelogo?name=`,
 `/schriftdatei?name=` (Datei im Body), GET `/marke/<logo>`,
 `/auftrag`, `/freistellen` (JSON datei, modell), `/modell` (JSON modell), `/bildkopie`.
@@ -251,6 +316,15 @@ keine Seiten, Skripte oder Verknüpfungen.
 
 ## Fallen
 
+- Start ohne Fenster (`bauen.py --cockpit --still`): Meldungen in
+  `~/.scb-creator-kit/karussell-cockpit.log`; Unterprogramme laufen unter Windows mit
+  CREATE_NO_WINDOW. Ein zweiter Start fragt `GET /codestand`; ist der Code neuer, bittet er
+  das laufende Cockpit per `POST /beenden` um Platz (abgelehnt, solange eine Ausgabe läuft).
+  Gesucht wird der Prozess als `pythonw.exe … bauen.py --cockpit --still`.
+- Videos brauchen ffmpeg und ffprobe (sonst sagt der Upload es; Video-Folien bleiben
+  dann Bilder). Das Chromium von Playwright spielt kein H.264: im Export nie auf ein
+  laufendes `<video>` warten, sondern mit dem Standbild `<datei>.jpg` rechnen.
+- `video.py` geändert: wie `bauen.py`, Server neu starten.
 - `bauen.py` oder `projekt.py` geändert: Server neu starten (Code liegt im
   Speicher). Vorher `curl http://127.0.0.1:8720/stand`, den User nicht mitten
   im Bearbeiten unterbrechen. `cockpit.html`, `render.js`, `stil.css` reichen

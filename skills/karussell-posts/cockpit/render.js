@@ -190,7 +190,8 @@ function blockBauen(b){
     // > .bildflaeche (Bild als cover, Ausschnitt, Filter)
     const sp = document.createElement('div'); sp.className = 'spiegel';
     const fl = document.createElement('div'); fl.className = 'bildflaeche';
-    if (b.datei) fl.style.backgroundImage = bildUrl(b.datei);   // leer: Platzhalter aus dem Cockpit-CSS
+    if (istVideo(b)) videoBauen(fl, b);
+    else if (b.datei) fl.style.backgroundImage = bildUrl(b.datei);   // leer: Platzhalter aus dem Cockpit-CSS
     sp.appendChild(fl); el.appendChild(sp);
     el.dataset.datei = b.datei || '';   // stil.css erkennt daran die Prompt-Kacheln
     if (!b.datei) el.classList.add('leer');
@@ -545,6 +546,45 @@ function bildWirkung(el, b){
   boxWirkung(el, b);
 }
 
+// ------------------------------------------------------------ Videos
+// Ein Bild-Block darf ein Video sein (datei .mp4, beim Hochladen als H.264 umgewandelt,
+// daneben das Standbild <datei>.jpg). Auf der Buehne im Cockpit laeuft es
+// (VIDEO_MODUS 'spielen'), ueberall sonst steht das Standbild ('standbild'): in den
+// Minis, in der Vorschau und im Export, dort setzt bauen.py die Folie als MP4 zusammen.
+// Das Standbild sitzt als background wie ein Foto, das Video mit object-fit: cover
+// und derselben Position, damit beide genau gleich liegen.
+const VIDEO_OK = /\.(mp4|m4v|mov|webm)$/i;
+let VIDEO_MODUS = 'standbild';
+const VIDEO_ZEIT = {};          // Wiedergabestelle je Datei: neu Zeichnen springt nicht auf Anfang
+function istVideo(b){ return !!b && typeof b.datei === 'string' && VIDEO_OK.test(b.datei) && DATEI_OK.test(b.datei); }
+function videoBereich(b){
+  const von = Math.max(0, Math.min(+b.von || 0, 36000));
+  const bis = +b.bis > von ? Math.min(+b.bis, 36000) : 0;
+  return {von: von, bis: bis};
+}
+function videoBauen(fl, b){
+  fl.style.backgroundImage = bildUrl(b.datei + '.jpg');          // Standbild, auch als Platzhalter
+  if (VIDEO_MODUS !== 'spielen') return;
+  const v = document.createElement('video');
+  v.className = 'vid';
+  v.muted = true; v.playsInline = true; v.preload = 'auto';
+  v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+  const a = ausschnittVon(b), z = videoBereich(b);
+  v.style.objectPosition = a.x + '% ' + a.y + '%';
+  v.src = BASIS + b.datei;
+  const merk = VIDEO_ZEIT[b.datei];
+  const start = (merk >= z.von && (!z.bis || merk < z.bis)) ? merk : z.von;
+  v.addEventListener('loadedmetadata', () => { try { v.currentTime = start; } catch (e) {} v.play().catch(() => {}); }, {once: true});
+  // play() scheitert, solange der Tab im Hintergrund laedt: beim ersten Abspielbereit nochmal
+  v.addEventListener('canplay', () => { if (v.paused && v.isConnected) v.play().catch(() => {}); });
+  v.addEventListener('timeupdate', () => {
+    VIDEO_ZEIT[b.datei] = v.currentTime;
+    if ((z.bis && v.currentTime >= z.bis) || v.currentTime < z.von - 0.3) v.currentTime = z.von;
+  });
+  v.addEventListener('ended', () => { v.currentTime = z.von; v.play().catch(() => {}); });
+  fl.appendChild(v);
+}
+
 function setzeBox(el, p){
   el.style.left  = p.x + 'px';
   el.style.top   = p.y + 'px';
@@ -771,7 +811,19 @@ function profilRandPruefen(slides, stil){
 // Gibt {daten, hinweise} zurueck, d selbst bleibt unveraendert. Cockpit und
 // k.py (ueber vorlage.html) rechnen beide hier, damit beide dasselbe tun.
 const AM_RAND = 2;                                   // px: so nah gilt als "am Rand"
-const FORMAT_RAENDER = {1350: {randOben: 354, randUnten: 94}, 1440: {randOben: 377, randUnten: 100}};
+// 1920 = 9:16 (Story, Reel-Titelbild): fliessender Text beginnt unter Instagrams oberer Leiste
+const FORMAT_RAENDER = {1350: {randOben: 354, randUnten: 94}, 1440: {randOben: 377, randUnten: 100},
+                        1920: {randOben: 420, randUnten: 330}};
+// Wo Instagram bei 9:16 seine Bedienung ueber das Bild legt (1080 x 1920). Story: oben
+// Name und Fortschritt, unten das Antwortfeld. Reel: Zonen wie im Skill reel-layout
+// (oben 14 %, unten ab 80 %, rechts ab 915 px zwischen 30 und 88 % Hoehe).
+const ZIEL_ZONEN = {
+  story: [{x: 0, y: 0, w: 1080, h: 250, name: 'Oben: Name und Fortschritt'},
+          {x: 0, y: 1640, w: 1080, h: 280, name: 'Unten: Antwortfeld'}],
+  reel: [{x: 0, y: 0, w: 1080, h: 269, name: 'Oben frei lassen'},
+         {x: 0, y: 1536, w: 1080, h: 384, name: 'Unten: Name und Caption'},
+         {x: 915, y: 576, w: 165, h: 960, name: 'Herz, Kommentare'}]
+};
 function streckbar(b){
   if (b.h === undefined || b.h === null || b.h === '' || !isFinite(+b.h)) return false;
   if (b.typ === 'bild') return !istMaske(b) && !(istGeraet(b) && GERAETE[b.geraet] > 0);
@@ -922,6 +974,230 @@ async function formatUmstellen(d, hoeheNeu){
   profilRandPruefen(slides, stilNeu).forEach(n =>
     hinweise.push('Folie 1: „' + n + '“ reicht in den Rand, der im Profil wegfaellt'));
   return {daten: neu, hinweise: hinweise.slice(0, 40)};
+}
+
+// ------------------------------------------------------------ Serie (Massenerstellung)
+// Wie die Massenerstellung in Canva: eine Vorlage (eine Folie oder mehrere) wird je
+// Tabellenzeile kopiert. Ein Text mit "feld" bekommt den Wert seiner Spalte ganz, das
+// Format der Vorlage bleibt (fett, Farbe ...). {{Name}} im Text ersetzt nur diese Stelle.
+// Ein Bild mit "feld" bekommt die Bilddatei aus der Zelle. Gleicher Name = gleiche
+// Spalte, auch ueber mehrere Folien. Position und Look bleiben; ein Text, der laenger
+// ist als in der Vorlage, wird kleiner, bis er nicht in das Element darunter laeuft.
+// Cockpit und k.py (ueber vorlage.html) rechnen beide hier.
+const SERIE_MAX_ZEILEN = 100, SERIE_MAX_KARUSSELLS = 30, SERIE_MAX_ZELLE = 2000, SERIE_MAX_SPALTEN = 40;
+const SERIE_MIN = 0.5;                         // kleiner als die Haelfte wird kein Text
+// Ohne \s* um den Namen: sonst rechnet "{{" mit Tausenden Leerzeichen Sekunden (serieName trimmt)
+const PLATZHALTER = /\{\{([^{}<>\n]{1,60})\}\}/g;
+const SERIE_MAX_STELLEN = 10, SERIE_MAX_FELDER = 400;
+
+function serieName(v){
+  return String(v == null ? '' : v).slice(0, 200).replace(/[\u0000-\u001f\u007f<>{}]/g, '')
+    .replace(/\s+/g, ' ').trim().slice(0, 40);
+}
+// Schluessel mit Vorsilbe: ein Feld namens "constructor" oder "__proto__" trifft nie
+// eine geerbte Eigenschaft der Zeilen-Objekte
+function serieSchluessel(n){ const s = serieName(n).toLocaleLowerCase('de'); return s ? 'k:' + s : ''; }
+function platzhalterVon(text){
+  const aus = [];
+  String(text || '').slice(0, 20000).replace(PLATZHALTER, (m, n) => {
+    n = serieName(n); if (n && aus.length < SERIE_MAX_STELLEN && aus.indexOf(n) < 0) aus.push(n); return m;
+  });
+  return aus;
+}
+
+// Texte und Bilder der Vorlage als moegliche Felder:
+// [{folie, id, typ, art: 'ganz'|'stelle', name, an}]. an = festgelegt ("feld" am Block
+// oder {{Name}} im Text). Ist bei einer einzelnen Folie noch nichts festgelegt, sind
+// alle Texte angehakt, die Ueberschrift heisst Hook, die anderen Text, Text 2 ...
+function serieFelder(slides, folien){
+  const aus = [], mehr = folien.length > 1, fest = new Set(), zaehler = Object.create(null);
+  const liste = i => (slides[i] && Array.isArray(slides[i].bloecke) ? slides[i].bloecke : []).slice(0, MAX_BLOECKE)
+    .filter(b => b && typeof b === 'object' && b.id && b.typ !== 'form');
+  folien.forEach(i => liste(i).forEach(b => {
+    if (serieName(b.feld)) fest.add(serieSchluessel(b.feld));
+    if (b.typ !== 'bild') platzhalterVon(b.text).forEach(n => fest.add(serieSchluessel(n)));
+  }));
+  const vorschlag = basis => {
+    for (;;){
+      zaehler[basis] = (zaehler[basis] || 0) + 1;
+      const n = basis + (zaehler[basis] > 1 ? ' ' + zaehler[basis] : '');
+      if (!fest.has(serieSchluessel(n))) return n;
+    }
+  };
+  folien.forEach(i => liste(i).forEach(b => {
+    const vor = mehr ? 'F' + (i + 1) + ' ' : '', n = serieName(b.feld);
+    if (b.typ === 'bild'){
+      aus.push({folie: i, id: b.id, typ: 'bild', art: 'ganz', name: n || vorschlag(vor + 'Bild'), an: !!n});
+      return;
+    }
+    const stellen = platzhalterVon(b.text);
+    if (stellen.length){
+      stellen.forEach(s => aus.push({folie: i, id: b.id, typ: 'text', art: 'stelle', name: s, an: true}));
+      return;
+    }
+    aus.push({folie: i, id: b.id, typ: 'text', art: 'ganz',
+              name: n || vorschlag(vor + (b.rolle === 'titel' ? 'Hook' : 'Text')), an: !!n});
+  }));
+  if (!mehr && !aus.some(f => f.an)) aus.forEach(f => { if (f.typ === 'text') f.an = true; });
+  return aus.slice(0, SERIE_MAX_FELDER);
+}
+
+// Neuer Text im Format der Vorlage: das haeufigste Format ihrer Buchstaben gilt fuer
+// den ganzen neuen Text, Auszeichnungen in der Zelle (<m>, <c=akzent> ...) kommen dazu.
+function serieText(vorlage, wert){
+  let basis = {}, best = 0;
+  const zaehl = new Map();
+  zerlege(vorlage).forEach(x => {
+    if (!x.c.trim()) return;
+    const k = FORMATE.map(t => x.f[t] === undefined ? '' : String(x.f[t])).join('\u0001');
+    const n = (zaehl.get(k) || 0) + 1;
+    zaehl.set(k, n);
+    if (n > best){ best = n; basis = x.f; }
+  });
+  return serialisiere(zerlege(wert).map(x => ({c: x.c, f: Object.assign({}, basis, x.f)})));
+}
+
+// Vom unteren Rand eines Textes bis wohin er wachsen darf: bis kurz vor das naechste
+// Element, das darunter anfaengt und sich mit ihm ueberschneidet, sonst bis zum
+// unteren Rand. Was in der Vorlage schon tiefer reicht, gilt als gewollt.
+function serieGrenze(layout, id, st){
+  const t = layout[id];
+  if (!t) return null;
+  const oben = +t.y || 0, l = +t.x || 0, r = l + (+t.w || 0);
+  const luft = Math.max(16, Math.round((+t.groesse || 40) * 0.3));
+  let g = (+st.hoehe || 1350) - Math.max(0, Math.min(+st.randUnten || 0, 160));
+  Object.keys(layout).forEach(k => {
+    const o = layout[k];
+    if (k === id || !o || !((+o.y || 0) > oben + 1)) return;
+    const ol = +o.x || 0, or_ = ol + (+o.w || 0);
+    if (or_ <= l + 2 || ol >= r - 2) return;
+    g = Math.min(g, (+o.y || 0) - luft);
+  });
+  return Math.max(g, oben + (+t.hBox || 0));
+}
+
+// auftrag: {folien: [Index der Vorlage-Folien], spalten: [Name], zeilen: [[Zelle]],
+//           felder: [{folie, id, art, name}] (fehlt: die festgelegten aus serieFelder),
+//           zusammen: true = alle Zeilen in ein Karussell, false = je Zeile eins,
+//           anpassen: true = zu lange Texte verkleinern, startId: erste neue Block-Nummer}
+// -> {karussells: [[Folie ...] ...], hinweise: [...], zeilen: Anzahl}. daten bleibt unveraendert.
+function serieBauen(daten, auftrag){
+  const slides = daten && Array.isArray(daten.slides) ? JSON.parse(JSON.stringify(daten.slides)) : [];
+  const st = Object.assign({}, STIL_STD, daten && daten.stil || {});
+  const a = auftrag && typeof auftrag === 'object' ? auftrag : {};
+  const folien = (Array.isArray(a.folien) ? a.folien : []).map(n => +n)
+    .filter((n, i, l) => Number.isInteger(n) && n >= 0 && n < slides.length && l.indexOf(n) === i).slice(0, 20);
+  if (!folien.length) throw new Error('Keine Vorlage-Folie gewaehlt');
+  const felder = (Array.isArray(a.felder) ? a.felder : serieFelder(slides, folien).filter(f => f.an))
+    .filter(f => f && folien.indexOf(+f.folie) >= 0)
+    .map(f => ({folie: +f.folie, id: String(f.id), art: f.art === 'stelle' ? 'stelle' : 'ganz', name: serieName(f.name)}))
+    .filter(f => f.name);
+  if (!felder.length) throw new Error('Kein Feld markiert: erst Texte oder Bilder als Feld waehlen');
+  const spalten = (Array.isArray(a.spalten) ? a.spalten : []).slice(0, SERIE_MAX_SPALTEN).map(serieName);
+  const namen = new Set(felder.map(f => serieSchluessel(f.name)));
+  const fremd = spalten.filter(n => n && !namen.has(serieSchluessel(n)));
+  if (fremd.length) throw new Error('Spalte ohne Feld in der Vorlage: ' + fremd.slice(0, 5).join(', ') +
+    '. Felder: ' + Array.from(new Set(felder.map(f => f.name))).join(', '));
+  const spalteVon = Object.create(null);
+  spalten.forEach((n, i) => { const k = serieSchluessel(n); if (k && spalteVon[k] === undefined) spalteVon[k] = i; });
+  const zeilen = (Array.isArray(a.zeilen) ? a.zeilen : []).slice(0, 1000)
+    .map(z => (Array.isArray(z) ? z : []).slice(0, SERIE_MAX_SPALTEN)
+      .map(c => String(c == null ? '' : c).replace(/\r\n?/g, '\n').slice(0, SERIE_MAX_ZELLE)))
+    .filter(z => z.some(c => c.trim()));
+  const zusammen = a.zusammen !== false;
+  if (!zeilen.length) throw new Error('Die Tabelle ist leer');
+  if (zusammen && zeilen.length * folien.length > SERIE_MAX_ZEILEN)
+    throw new Error('Hoechstens ' + SERIE_MAX_ZEILEN + ' Folien auf einmal (' + zeilen.length * folien.length + ' gewuenscht)');
+  if (!zusammen && zeilen.length > SERIE_MAX_KARUSSELLS)
+    throw new Error('Hoechstens ' + SERIE_MAX_KARUSSELLS + ' Karussells auf einmal (' + zeilen.length + ' Zeilen)');
+
+  const hinweise = [], hinweis = t => { if (hinweise.length < 60) hinweise.push(t); };
+  const karussells = [], alleZusammen = [];
+  unsichtbar(tmp => {
+    // Die Vorlage einmal messen: wo jeder Text steht und wie weit er wachsen darf
+    const grenzen = {}, faktoren = {};
+    folien.forEach(i => {
+      tmp.innerHTML = '';
+      const L = renderSlide(slides[i], st, tmp).masse;
+      faktoren[i] = L.faktor; grenzen[i] = {};
+      felder.filter(f => f.folie === i).forEach(f => { grenzen[i][f.id] = serieGrenze(L.layout, f.id, st); });
+    });
+    const start = Date.now();
+    zeilen.forEach((z, zi) => {
+      // Notbremse: k.py wartet im Browser ohne eigene Zeitgrenze, der Server haelt solange die Sperre
+      if (Date.now() - start > 120000) throw new Error('Serie abgebrochen, das dauert zu lange (bei Zeile ' + (zi + 1) + ')');
+      const wert = name => { const i = spalteVon[serieSchluessel(name)]; return i === undefined ? null : (z[i] || ''); };
+      const neue = folien.map(i => {
+        const s = JSON.parse(JSON.stringify(slides[i]));
+        const f_ = felder.filter(f => f.folie === i), weg = new Set();
+        (s.bloecke || []).slice(0, MAX_BLOECKE).forEach(b => {
+          if (!b || typeof b !== 'object') return;
+          const ganz = f_.find(f => f.id === b.id && f.art === 'ganz');
+          if (ganz){
+            const v = wert(ganz.name);
+            if (v === null){ /* Spalte fehlt: wie in der Vorlage */ }
+            else if (b.typ === 'bild'){
+              const d = v.trim();
+              if (d && DATEI_OK.test(d)){ b.datei = d; delete b.original; delete b.ausschnitt; }
+              else if (d) hinweis('Zeile ' + (zi + 1) + ': „' + d.slice(0, 40) + '“ ist kein Bildname, das Bild der Vorlage bleibt');
+            }
+            else if (!v.trim()) weg.add(b.id);
+            else b.text = serieText(b.text, v);
+          }
+          if (b.typ !== 'bild' && b.typ !== 'form' && f_.some(f => f.id === b.id && f.art === 'stelle'))
+            b.text = String(b.text || '').replace(PLATZHALTER, (m, n) => {
+              const v = wert(serieName(n)); return v === null ? m : v;
+            });
+          delete b.feld;
+        });
+        if (weg.size){
+          s.bloecke = s.bloecke.filter(b => !b || !weg.has(b.id));
+          if (Array.isArray(s.ebenen)) s.ebenen = s.ebenen.filter(e => !weg.has(e));
+        }
+        if (a.anpassen !== false) serieAnpassen(s, i, zi);
+        return s;
+      });
+      if (zusammen) alleZusammen.push.apply(alleZusammen, neue); else karussells.push(neue);
+    });
+
+    // Zu lange Texte stufenweise kleiner, bis sie an ihre Grenze passen
+    function serieAnpassen(s, i, zi){
+      tmp.innerHTML = '';
+      const r = renderSlide(s, st, tmp);
+      felder.filter(f => f.folie === i).forEach(f => {
+        const b = (s.bloecke || []).find(x => x && x.id === f.id), bx = r.boxen[f.id], g = grenzen[i][f.id];
+        if (!b || !bx || g == null || b.typ === 'bild' || b.typ === 'form' || !frei(b) || +b.dreh) return;
+        const y = +b.y || 0, g0 = groesseVon(b, st), fk = r.masse.faktor;
+        if (b._serie || y + bx.offsetHeight <= g + 0.5) return;
+        let s_ = 1;
+        while (s_ > SERIE_MIN){
+          s_ = Math.max(SERIE_MIN, s_ * 0.95);
+          bx.style.fontSize = (g0 * fk * s_) + 'px';
+          if (y + bx.offsetHeight <= g + 0.5) break;
+        }
+        b.groesse = Math.max(8, Math.floor(g0 * s_));
+        b._serie = 1;                              // mehrere Felder in einem Text: nur einmal
+        const passt = y + bx.offsetHeight <= g + 0.5;
+        hinweis('Zeile ' + (zi + 1) + ': „' + f.name + '“ ' + (passt
+          ? 'auf ' + Math.round(s_ * 100) + ' % verkleinert'
+          : 'passt auch halb so gross nicht ganz, bitte kuerzen'));
+      });
+      (s.bloecke || []).forEach(b => { if (b) delete b._serie; });
+      if (r.masse.faktor < faktoren[i] - 0.02)
+        hinweis('Zeile ' + (zi + 1) + ': Texte im Raster auf ' + Math.round(r.masse.faktor / faktoren[i] * 100) + ' % verkleinert');
+    }
+  });
+  if (zusammen){
+    // Eindeutige Block-Nummern im ganzen Karussell (wie Folie duplizieren)
+    let n = Math.max(1, Math.floor(+a.startId) || 1);
+    alleZusammen.forEach(s => {
+      const karte = {};
+      (s.bloecke || []).forEach(b => { if (b && typeof b === 'object'){ karte[b.id] = 'b' + n; b.id = 'b' + n; n++; } });
+      if (Array.isArray(s.ebenen)) s.ebenen = s.ebenen.map(e => karte[e] || e);
+    });
+    karussells.push(alleZusammen);
+  }
+  return {karussells: karussells, hinweise: hinweise, zeilen: zeilen.length};
 }
 
 // Google Fonts, die im Cockpit geladen wurden (schriften.py), kommen dazu

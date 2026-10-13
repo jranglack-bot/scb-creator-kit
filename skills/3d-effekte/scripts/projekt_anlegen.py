@@ -213,7 +213,7 @@ HF_KOPF = """<!DOCTYPE html>
         border: 6px solid rgba(150,178,255,0.95); border-radius: 28px; box-shadow: 0 0 48px rgba(89,127,217,0.65); }}
       .schild {{ position: absolute; right: 44px; top: 200px; opacity: 0; color: #fff; transform-origin: 100% 0;
         font: 700 58px "Arial Rounded MT Bold", "Arial Rounded MT", Arial, sans-serif;
-        padding: 14px 34px; background: rgba(8,12,28,0.86); border: 4px solid #597fd9; border-radius: 60px; }}
+        padding: 14px 34px; background: rgba(8,12,28,0.86); border: 4px solid #007bff; border-radius: 60px; }}
     </style>
   </head>
   <body>

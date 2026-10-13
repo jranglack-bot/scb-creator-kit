@@ -242,6 +242,11 @@ textarea{min-height:64px}
 #rahmen .profilrand span{position:absolute;left:5px;top:6px;font:600 10px/1.4 system-ui;color:#fff;
   background:#000a;border-radius:8px;padding:0 6px;white-space:nowrap}
 #rahmen .profilrand.waag span{left:6px;top:4px}
+/* 9:16: wo Instagram Leisten und Knoepfe drueberlegt (nur Anzeige, nicht im Bild) */
+#rahmen .zielzone{position:absolute;pointer-events:none;z-index:4;border:1px dashed rgba(240,110,110,.85);
+  background:repeating-linear-gradient(135deg,rgba(240,110,110,.20) 0 10px,rgba(240,110,110,.07) 10px 20px)}
+#rahmen .zielzone span{position:absolute;left:6px;top:5px;font:600 10px/1.4 system-ui;color:#fff;background:#000a;
+  border-radius:8px;padding:0 6px;white-space:nowrap}
 /* Instagram-Vorschau */
 #vorschau{flex-direction:column;align-items:stretch;justify-content:flex-start;background:#15191b;
   --ig-bg:#000;--ig-fg:#f5f5f5;--ig-sub:#a8a8a8;--ig-linie:#262626;--ig-skel:#262626;--ig-knopf:#363636}
@@ -330,6 +335,96 @@ textarea{min-height:64px}
 #vorschau .igKachel .igStapel{position:absolute;top:7px;right:7px;color:#fff;z-index:3;
   filter:drop-shadow(0 0 2px rgba(0,0,0,.6))}
 #vorschau .igKachel .igStapel svg{width:18px;height:18px}
+/* Serie (Massenerstellung) */
+#serie .karte{width:1080px}
+#serie h3{font-size:11px;margin:14px 0 7px;opacity:.75;text-transform:uppercase;letter-spacing:.08em}
+#srModus{margin-top:4px;flex-wrap:wrap}
+.srRaster{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px}
+#srFelder{display:flex;flex-direction:column;gap:5px;max-height:46vh;overflow-y:auto;padding-right:2px}
+.srFeld{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;align-items:center;padding:6px 8px;
+  border:1px solid var(--rand);border-radius:7px}
+.srFeld.an{border-color:var(--akz);background:#1b2023}
+.srFeld input[type=checkbox]{accent-color:var(--akz);margin:0;cursor:pointer}
+#serie .srFeld input[type=text]{padding:4px 7px;font:600 13px system-ui}
+.srFeld .was{grid-column:2;font-size:11px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srTabelle{max-height:46vh;overflow:auto;border:1px solid var(--rand);border-radius:8px;background:#1b2023}
+.srTabelle table{border-collapse:collapse;width:100%}
+.srTabelle th{position:sticky;top:0;z-index:1;background:var(--ui2);font-size:12px;text-align:left;
+  padding:6px 8px;border-bottom:1px solid var(--rand);white-space:nowrap}
+.srTabelle td{border-bottom:1px solid #2d3438;padding:3px 4px;vertical-align:top}
+.srTabelle td.nr{width:28px;text-align:right;font-size:11px;opacity:.5;padding-top:10px}
+.srTabelle textarea{min-height:0;min-width:150px;resize:none;overflow:hidden;border-color:transparent;
+  background:transparent;padding:6px}
+.srTabelle textarea:focus{border-color:var(--akz);background:#12181b;outline:0}
+.srBild{width:64px;height:64px;border-radius:6px;border:1px dashed var(--rand);background:#12181b center/cover no-repeat;
+  cursor:pointer;font-size:10px;opacity:.85;display:flex;align-items:center;justify-content:center;text-align:center;
+  line-height:1.25;padding:3px}
+.srBild.voll{border-style:solid;font-size:0}
+.srBild.ziel{outline:2px dashed var(--akz)}
+.srTabelle td.weg{width:30px}
+.srTabelle td.weg button{padding:3px 7px;font-size:11px;background:transparent;opacity:.45}
+.srTabelle td.weg button:hover{opacity:1;background:#9c4040}
+#srEinfuegen{display:none;margin-top:8px}
+#srEinfuegen textarea{min-height:130px}
+.srAusgabe{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.srAusgabe .wahl{margin-top:0;flex:1 1 250px}
+#srNameFeld{flex:1 1 230px}
+#srNameFeld label{margin-top:0}
+#srErgebnis{display:none;margin-top:6px}
+#srFertig{font-size:14px;margin:0 0 6px}
+#srHinweise{margin:4px 0 0;padding-left:18px;font-size:12px;opacity:.85;max-height:34vh;overflow:auto}
+@media (max-width: 1100px){ .srRaster{grid-template-columns:minmax(0,1fr)} }
+/* Verwalten: alle Karussells, Papierkorb */
+#verwalten .karte{width:980px}
+.pvRaster{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;max-height:58vh;overflow-y:auto;padding:2px}
+.pvKarte{position:relative;display:flex;flex-direction:column;gap:6px;padding:8px;background:#1b2023;border:2px solid transparent;
+  border-radius:9px;cursor:pointer;text-align:left;font-weight:400}
+.pvKarte:hover{border-color:#4b565c}
+.pvKarte.an{border-color:#e06c6c;background:#2a1f20}
+.pvMini{position:relative;width:100%;overflow:hidden;border-radius:5px;background:#e7ecee}
+.pvMini .slide{transform-origin:0 0;pointer-events:none}
+.pvKarte b{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pvKarte span{font-size:11px;opacity:.65}
+.pvKarte .marke{position:absolute;top:12px;left:12px;z-index:3;font:600 10px system-ui;background:#000b;color:#fff;border-radius:8px;padding:1px 7px}
+.pvKarte .haken{position:absolute;top:10px;right:10px;z-index:3;width:22px;height:22px;border-radius:50%;background:#000a;
+  border:2px solid #fff;color:#fff;font-size:13px;line-height:18px;text-align:center}
+.pvKarte.an .haken{background:#e06c6c;border-color:#e06c6c}
+.pvZeile{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:8px 10px;background:#1b2023;border-radius:7px;margin-bottom:6px;font-size:13px}
+.pvZeile span{opacity:.65;font-size:12px}
+button.gefahr{background:#9c4040;color:#fff}
+button.gefahr:hover{background:#b24c4c}
+/* Serie einfach: links Vorschau, rechts Bilder, Hooks, Texte */
+#serieE .karte{width:1040px}
+#serieE h3{font-size:11px;margin:12px 0 6px;opacity:.8;text-transform:uppercase;letter-spacing:.08em}
+#serieE h3:first-child{margin-top:0}
+.seRaster{display:grid;grid-template-columns:380px minmax(0,1fr);gap:22px;align-items:start}
+#seBuehne{position:relative;width:380px;overflow:hidden;border-radius:8px;background:#000;touch-action:none;
+  box-shadow:0 6px 24px #0008}
+#seBuehne .slide{transform-origin:0 0}
+#seBuehne .box.seZiehbar{cursor:grab}
+#seBuehne .box.seZiehbar:hover{outline:2px dashed #7fb3a3;outline-offset:4px}
+#seBuehne.zieht,#seBuehne.zieht .box{cursor:grabbing!important}
+.seNav{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px}
+.seNav span{font-size:13px;min-width:110px;text-align:center}
+#seVorschauHinweis{font-size:12px;color:#e5c07b;min-height:16px;margin-top:4px;text-align:center}
+.seBilder{display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px dashed var(--rand);border-radius:8px;min-height:84px;align-items:center}
+.seBilder.ziel{border-color:var(--akz);background:#1b2023}
+.seBild{position:relative;width:62px;height:76px;border-radius:6px;background:#12181b center/cover no-repeat;border:1px solid #0006}
+.seBild b{position:absolute;left:4px;top:3px;font-size:11px;color:#fff;text-shadow:0 1px 3px #000}
+.seBild button{position:absolute;right:2px;top:2px;width:18px;height:18px;padding:0;border-radius:50%;font-size:11px;
+  line-height:18px;background:#000b;color:#fff;display:none}
+.seBild:hover button{display:block}
+.seBilder .seNeu{width:62px;height:76px;padding:4px;font-size:11px;line-height:1.25;font-weight:600}
+#serieE textarea{min-height:92px;font-size:13px}
+.seZeile{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12px}
+.seZeile input[type=range]{flex:1;accent-color:var(--akz)}
+.seZeile output{width:46px;text-align:right;opacity:.8}
+.seZeile select{background:#1b2023;color:var(--fg);border:1px solid var(--rand);border-radius:5px;padding:3px 5px;font:12px system-ui;max-width:220px}
+#seZaehler{margin-top:12px;padding:9px 11px;border-radius:8px;background:#1b2023;font-size:13px}
+#seZaehler .warn{color:#e5c07b}
+#seErgebnis{display:none}
+#seErgebnis ul{margin:4px 0 0;padding-left:18px;font-size:12px;opacity:.85;max-height:34vh;overflow:auto}
+@media (max-width: 1000px){ .seRaster{grid-template-columns:minmax(0,1fr)} #seBuehne{margin:0 auto} }
 </style>
 <script src="lib/moveable.min.js"></script>
 <script src="lib/selecto.min.js"></script>
@@ -339,9 +434,11 @@ textarea{min-height:64px}
   <h1>Karussell Cockpit</h1>
   <div id="projektwahl">
     <select id="projekt" title="Welches Karussell"></select>
+    <button id="pVerwalten" title="Alle Karussells ansehen, loeschen und aus dem Papierkorb zurueckholen">Verwalten</button>
     <button id="pNeu" title="Neues Karussell, leer oder aus einer Vorlage">Neu</button>
     <button id="pDup" title="Gleicher Look und gleiche Texte unter neuem Namen">Duplizieren</button>
     <button id="pVorlage" title="Dieses Karussell als Vorlage fuer neue speichern">Als Vorlage</button>
+    <button id="pSerie" title="Viele auf einmal, wie die Massenerstellung in Canva: gleiche Gestaltung, je Tabellenzeile neue Texte oder Bilder">Serie</button>
     <button id="pClaude" title="Wunsch zu den markierten Elementen an Claude geben">An Claude</button>
   </div>
   <span id="status"></span>
@@ -431,6 +528,8 @@ textarea{min-height:64px}
         <div><b>4:5, fuer automatisches Posten</b><span>Standard. Nimmt jede Posting-Automatik an. Im Profil fehlen links und rechts je 34 px.</span></div></label>
       <label class="wahl"><input type="radio" name="fmt" value="34">
         <div><b>3:4, am groessten im Feed</b><span>Fuellt die Kachel im Profil ganz. Zum Posten in der App, Automatiken nehmen 3:4 nicht immer an.</span></div></label>
+      <label class="wahl"><input type="radio" name="fmt" value="916">
+        <div><b>9:16, Story oder Reel-Titelbild</b><span>Hochformat ueber den ganzen Bildschirm. Zonen zeigen, wo Instagram seine Leisten drueberlegt.</span></div></label>
     </div>
     <div class="fehler" id="dFehler"></div>
     <div class="knoepfe">
@@ -502,6 +601,142 @@ textarea{min-height:64px}
     <p class="unter" style="margin:8px 0 0">Dunkle Vorlagen bleiben dunkel, helle bleiben hell. Ueberschriften bekommen die Ueberschrift-Schrift. Zurueck holt alles wieder.</p>
     <div class="fehler" id="mFehler"></div>
     <div class="knoepfe"><button id="mZu">Schliessen</button></div>
+  </div>
+</div>
+<div id="serie" class="dlg">
+  <div class="karte">
+    <h2>Serie: viele auf einmal</h2>
+    <p class="unter">Wie die Massenerstellung in Canva. Gestaltung, Positionen und Fotos bleiben, je Tabellenzeile kommen neue Texte (oder Bilder) hinein.</p>
+    <div id="srHaupt">
+      <div class="reiter" id="srModus">
+        <button data-m="folie"></button>
+        <button data-m="alle"></button>
+      </div>
+      <div class="srRaster">
+        <div>
+          <h3>Felder</h3>
+          <div id="srFelder"></div>
+          <p class="hint" style="margin-top:8px">Haken = wird je Zeile ersetzt, der Name ist die Spalte. Gleicher Name = gleicher Inhalt. Steht <b>{{Name}}</b> in einem Text, wird nur diese Stelle ersetzt. Leere Textzelle = Text faellt weg, leere Bildzelle = Bild der Vorlage.</p>
+        </div>
+        <div>
+          <h3>Tabelle</h3>
+          <div class="srTabelle" id="srTabelle"></div>
+          <div class="reihe" style="margin-top:8px;flex-wrap:wrap">
+            <button class="klein" id="srZeile">+ Zeile</button>
+            <button class="klein" id="srListe" title="Liste aus ChatGPT, Notizen, Excel oder Google Sheets auf einmal einfuegen">Liste einfuegen</button>
+            <button class="klein" id="srLeeren">Tabelle leeren</button>
+            <span class="hint" style="margin:0 0 0 4px">Aus Excel oder Google Sheets geht auch direkt: in eine Zelle klicken, Strg+V.</span>
+          </div>
+          <div id="srEinfuegen">
+            <textarea id="srText" spellcheck="false"></textarea>
+            <div class="reihe" style="margin-top:6px">
+              <button class="klein an" id="srUebernehmen">Uebernehmen</button>
+              <button class="klein" id="srTextZu">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h3>Ergebnis</h3>
+      <div class="srAusgabe">
+        <label class="wahl" id="srWahlNeu"><input type="radio" name="srZiel" value="neu" checked>
+          <div><b id="srNeuTitel">Neues Karussell</b><span id="srNeuText">Die Vorlage bleibt, wie sie ist.</span></div></label>
+        <label class="wahl" id="srWahlDran"><input type="radio" name="srZiel" value="dran">
+          <div><b>Hinten an dieses Karussell</b><span id="srDranText"></span></div></label>
+        <div id="srNameFeld"><label id="srNameLabel">Name</label><input type="text" id="srName" maxlength="55" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <label class="mHaken" style="margin-top:10px"><input type="checkbox" id="srAnpassen" checked> Zu lange Texte kleiner machen, damit sie nicht in das Element darunter laufen</label>
+    </div>
+    <div id="srErgebnis"><p id="srFertig"></p><p class="unter" id="srHinweisTitel" style="margin:8px 0 0">Bitte ansehen:</p><ul id="srHinweise"></ul></div>
+    <div class="fehler" id="srFehler"></div>
+    <div class="knoepfe">
+      <button id="srAb">Schliessen</button>
+      <button id="srBilder" class="haupt" style="display:none">Bilder fuer Instagram</button>
+      <button id="srOk" class="haupt">Erstellen</button>
+    </div>
+  </div>
+</div>
+<div id="serieE" class="dlg">
+  <div class="karte">
+    <h2>Serie: viele Bilder auf einmal</h2>
+    <p class="unter">Bilder rein, Hooks rein, Texte rein, los. Bild 1 bekommt Hook 1 und Text 1, Bild 2 Hook 2 und Text 2 und so weiter.</p>
+    <div id="seHaupt" class="seRaster">
+      <div>
+        <div id="seBuehne"></div>
+        <div class="seNav"><button class="klein" id="seZurueck">&#8249;</button><span id="seNr"></span><button class="klein" id="seVor">&#8250;</button></div>
+        <div id="seVorschauHinweis"></div>
+        <p class="hint" style="margin-top:4px;text-align:center">Überschrift und Text in der Vorschau an ihren Platz ziehen. Gilt für alle Bilder.</p>
+      </div>
+      <div>
+        <h3>1. Bilder</h3>
+        <div class="seBilder" id="seBilder"></div>
+        <p class="hint" style="margin-top:6px">Mehr Texte als Bilder: die Bilder wiederholen sich (1, 2, 3, 1, 2 …). Ohne Bilder bleibt das Foto dieser Slide.</p>
+        <h3>2. Hooks (Überschrift)</h3>
+        <textarea id="seHooks" spellcheck="true" placeholder="Eine Hook pro Zeile, einfach einfügen.&#10;Soll eine Hook selbst zwei Zeilen haben: Einträge mit einer Leerzeile trennen."></textarea>
+        <div class="seZeile">Größe <input type="range" id="seHookGr" min="24" max="200" step="1"><output id="seHookGrW"></output>
+          <select id="seHookBlock" title="Welcher Text der Slide ist die Hook"></select></div>
+        <h3>3. Text darunter</h3>
+        <textarea id="seTexte" spellcheck="true" placeholder="Ein Text pro Zeile, in derselben Reihenfolge wie die Hooks.&#10;Leer lassen, wenn nur die Hook drauf soll."></textarea>
+        <div class="seZeile">Größe <input type="range" id="seTextGr" min="16" max="140" step="1"><output id="seTextGrW"></output>
+          <select id="seTextBlock" title="Welcher Text der Slide ist der Text darunter"></select></div>
+        <div id="seZaehler"></div>
+        <div class="seZeile" style="margin-top:10px"><label class="mHaken" style="margin:0"><input type="checkbox" id="seAnpassen" checked> Zu lange Hooks kleiner machen, damit sie nicht in den Text laufen</label></div>
+        <div class="seZeile"><span style="white-space:nowrap">Neues Karussell:</span><input type="text" id="seName" maxlength="55" autocomplete="off" spellcheck="false" style="padding:6px 8px;font-size:13px"></div>
+      </div>
+    </div>
+    <div id="seErgebnis"><p id="seFertig" style="font-size:14px;margin:0 0 6px"></p><p class="unter" id="seHinweisTitel" style="margin:8px 0 0">Bitte ansehen:</p><ul id="seHinweise"></ul></div>
+    <div class="fehler" id="seFehler"></div>
+    <div class="knoepfe">
+      <button id="seErweitert" class="klein" style="margin-right:auto" title="Tabelle mit eigenen Feldern, ganze Karussells je Zeile, hinten anhängen">Erweitert …</button>
+      <button id="seAb">Schliessen</button>
+      <button id="seBilderIG" class="haupt" style="display:none">Bilder fuer Instagram</button>
+      <button id="seOk" class="haupt">Los</button>
+    </div>
+  </div>
+</div>
+<div id="verwalten" class="dlg">
+  <div class="karte">
+    <div class="reiter" id="pvReiter">
+      <button data-t="karussells" class="an">Meine Karussells</button>
+      <button data-t="korb">Papierkorb</button>
+      <span class="unter" style="margin:0 0 0 auto" id="pvInfo"></span>
+    </div>
+    <div id="pvKarussells">
+      <p class="unter" style="margin:10px 0">Anklicken waehlt aus (auch mehrere), Doppelklick oeffnet. Geloeschtes kommt in den Papierkorb und laesst sich zurueckholen.</p>
+      <div class="pvRaster" id="pvRaster"></div>
+    </div>
+    <div id="pvKorb" style="display:none">
+      <p class="unter" style="margin:10px 0">Hier liegt, was du geloescht hast, samt fertigen Bildern. Zurueckholen geht, bis du den Papierkorb leerst.</p>
+      <div id="pvKorbListe" style="max-height:58vh;overflow-y:auto"></div>
+    </div>
+    <div class="fehler" id="pvFehler"></div>
+    <div class="knoepfe">
+      <button id="pvAlle" class="klein" style="margin-right:auto">Alle auswaehlen</button>
+      <button id="pvLeeren" class="gefahr" style="display:none;margin-right:auto">Papierkorb leeren</button>
+      <button id="pvZu">Schliessen</button>
+      <button id="pvOeffnen">Oeffnen</button>
+      <button id="pvLoeschen" class="gefahr">Loeschen</button>
+    </div>
+  </div>
+</div>
+<div id="zielDlg" class="dlg">
+  <div class="karte">
+    <h2>Story oder Reel-Titelbild</h2>
+    <p class="unter">Macht daraus ein neues Karussell im Hochformat 9:16. Das Original bleibt, wie es ist.</p>
+    <div id="zForm">
+      <label class="wahl"><input type="radio" name="zArt" value="story" checked>
+        <div><b>Story</b><span>Zum Ankuendigen in der Story. Zonen zeigen, wo Instagram oben Name und Fortschritt und unten das Antwortfeld drueberlegt.</span></div></label>
+      <label class="wahl"><input type="radio" name="zArt" value="reel">
+        <div><b>Reel-Titelbild</b><span>Titelbild fuer ein Reel. Im Profil sieht man nur die Mitte (3:4), Linien zeigen sie. Dazu die Zonen, die das Reel ueberdeckt.</span></div></label>
+      <label class="mHaken" style="margin-top:12px"><input type="checkbox" id="zAlle"> <span id="zAlleText">Alle Slides</span></label>
+      <label>Name des neuen Karussells</label>
+      <input type="text" id="zName" maxlength="55" autocomplete="off" spellcheck="false">
+    </div>
+    <div id="zErgebnis" style="display:none"><p id="zFertig" style="font-size:14px;margin:0 0 6px"></p><ul id="zHinweise" style="margin:4px 0 0;padding-left:18px;font-size:12px;opacity:.85"></ul></div>
+    <div class="fehler" id="zFehler"></div>
+    <div class="knoepfe">
+      <button id="zAb">Abbrechen</button>
+      <button id="zOk" class="haupt">Anlegen</button>
+    </div>
   </div>
 </div>
 <input type="file" id="mLogoDatei" accept=".png,.jpg,.jpeg,.webp,.svg" style="display:none">
@@ -951,6 +1186,7 @@ const bildMasse = {};                   // url -> {w, h} der Originaldatei
 const offeneAbschnitte = {};            // welche Panel-Abschnitte offen sind
 
 function bildMasseLaden(url){
+  if (VIDEO_OK.test(url)) url += '.jpg';            // Video: Standbild hat dieselben Masse
   if (bildMasse[url]) return Promise.resolve(bildMasse[url]);
   return new Promise(fertig => {
     const i = new Image();
@@ -1014,7 +1250,7 @@ async function geistZeigen(){
     sp.style.width = w + 'px'; sp.style.height = h + 'px';
   } else sp.style.inset = rand + 'px';
   const bildEl = document.createElement('img');
-  bildEl.src = BASIS + b.datei;
+  bildEl.src = BASIS + b.datei + (istVideo(b) ? '.jpg' : '');
   bildEl.style.cssText = 'position:absolute;left:' + g.L + 'px;top:' + g.T + 'px;width:' + g.W +
                          'px;height:' + g.H + 'px;filter:' + (el.querySelector('.bildflaeche').style.filter || 'none');
   sp.appendChild(bildEl); geist.appendChild(sp);
@@ -1107,6 +1343,99 @@ async function bilderEinsetzen(dateien, punkt, ersetzeId){
   auswahl = ids; sel = ids[ids.length - 1];
   alles();
   melde(ids.length === 1 ? 'Bild eingefuegt.' : ids.length + ' Bilder eingefuegt.', 4000);
+}
+
+// ----- Videos: hochladen (der Server wandelt in H.264 und legt ein Standbild daneben)
+function istVideodatei(f){
+  return /^video\//.test(f.type || '') || /\.(mp4|mov|m4v|webm|mkv|avi)$/i.test(f.name || '');
+}
+async function videoHochladen(f){
+  melde('Video wird vorbereitet (' + Math.max(1, Math.round((f.size || 0) / 1e6)) + ' MB), das dauert einen Moment ...', 0);
+  let j;
+  try { j = await (await fetch(mitProjekt('video?name=' + encodeURIComponent(f.name || 'video.mp4')), {method: 'POST', body: f})).json(); }
+  catch (e) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+  if (!j.ok){ melde('Video ging nicht: ' + (j.fehler || ''), 10000); return null; }
+  return j;
+}
+function videoWaehlen(cb){
+  const i = document.createElement('input');
+  i.type = 'file'; i.accept = 'video/*,.mp4,.mov,.m4v,.webm';
+  i.onchange = () => { const f = i.files && i.files[0]; if (f) cb(f); };
+  i.click();
+}
+// Neues Video: fuellt die ganze Folie ganz hinten, wenn dort noch nichts die Folie fuellt,
+// sonst mittig. Auf einem Bild oder Rahmen abgelegt: ersetzt dessen Datei (Form bleibt).
+async function videosEinsetzen(dateien, punkt, ersetzeId){
+  const neu = [];
+  for (const f of dateien.slice(0, 5)){
+    const j = await videoHochladen(f);
+    if (!j) return;
+    neu.push(j);
+  }
+  if (!neu.length) return;
+  merke();
+  const st = D.stil;
+  if (ersetzeId && neu.length === 1){
+    const b = blockVon(ersetzeId);
+    if (b && b.typ === 'bild' && !b.gesperrt){
+      b.datei = neu[0].datei; delete b.original; delete b.ausschnitt; delete b.von; delete b.bis;
+      alles(); melde('Video eingesetzt. Strg+Z holt das alte zurueck.', 6000); return;
+    }
+  }
+  einfrieren();
+  const voll = bloecke().some(x => x.typ === 'bild' && frei(x) && +x.x <= 0 && +x.y <= 0 &&
+                                   +x.w >= st.breite && +x.h >= st.hoehe);
+  const ids = [];
+  neu.forEach((n, i) => {
+    const b = {id: neueId(), typ: 'bild', datei: n.datei};
+    if (!voll && i === 0){
+      Object.assign(b, {x: 0, y: 0, w: st.breite, h: st.hoehe});
+      bloecke().push(b);
+      slide().ebenen = [b.id].concat(ebenen(slide()).filter(x => x !== b.id));   // ganz hinten
+    } else {
+      let w = st.breite * 0.6, h = w * (n.h || 9) / (n.w || 16);
+      if (h > st.hoehe * 0.6){ h = st.hoehe * 0.6; w = h * (n.w || 16) / (n.h || 9); }
+      const p = punkt || {x: st.breite / 2, y: st.hoehe / 2};
+      Object.assign(b, {x: Math.round(p.x - w / 2 + 30 * i), y: Math.round(p.y - h / 2 + 30 * i),
+                        w: Math.round(w), h: Math.round(h)});
+      bloecke().push(b);
+    }
+    ids.push(b.id);
+  });
+  auswahl = ids; sel = ids[ids.length - 1];
+  alles();
+  const d = neu[0].dauer;
+  melde((neu.length === 1 ? 'Video eingesetzt' : neu.length + ' Videos eingesetzt') +
+        (d > 60 ? '. Es ist ' + Math.round(d) + ' s lang, im Karussell sind hoechstens 60 s erlaubt: rechts Start und Ende setzen.' : '.'), 9000);
+}
+// Einstellungen eines Videos: Ton, Start, Ende (im Bild-Panel)
+function videoTeil(f, b){
+  const d = abschnitt('Video', true);
+  const z = videoBereich(b);
+  d.appendChild(q('div', {class: 'hint', html: 'Auf der Folie laeuft es hier in Endlosschleife. In den Bildern fuer Instagram wird diese Folie ein MP4 (hoechstens 60 s).'}));
+  const zwei = q('div', {class: 'zwei'});
+  const feld = (bez, wert, setzen) => {
+    const box = q('div', {}, [q('label', {html: bez})]);
+    const i = q('input', {type: 'number', min: '0', step: '0.1'});
+    i.value = wert ? String(Math.round(wert * 10) / 10) : '';
+    i.placeholder = bez.indexOf('Ende') === 0 ? 'bis Schluss' : '0';
+    i.onchange = () => { merke(); setzen(i.value === '' ? 0 : Math.max(0, +i.value || 0)); alles(); };
+    box.appendChild(i);
+    return box;
+  };
+  zwei.appendChild(feld('Start (Sekunde)', z.von, v => { if (v) b.von = v; else delete b.von; }));
+  zwei.appendChild(feld('Ende (Sekunde)', z.bis, v => { if (v) b.bis = v; else delete b.bis; }));
+  d.appendChild(zwei);
+  const r = q('div', {class: 'knopfreihe'});
+  r.appendChild(knopf(b.stumm ? 'Ton ist aus' : 'Ton ist an', 'Ton im fertigen Video (auf der Buehne immer stumm)',
+    () => { merke(); if (b.stumm) delete b.stumm; else b.stumm = true; alles(); }, !b.stumm));
+  r.appendChild(knopf('anderes Video', '', () => videoWaehlen(async fl => {
+    const j = await videoHochladen(fl);
+    if (!j) return;
+    merke(); b.datei = j.datei; delete b.ausschnitt; delete b.von; delete b.bis; alles(); melde('Video ersetzt.', 4000);
+  })));
+  d.appendChild(r);
+  f.appendChild(d);
 }
 
 // ----- Panel: Abschnitte fuer Bilder
@@ -1408,7 +1737,7 @@ function rahmenTeil(f, b){
 
 // ----- Bild in der Schrift (Text-Panel)
 function projektBilder(){
-  const n = [], dazu = x => { if (x && DATEI_OK.test(x) && !/\.svg$/i.test(x) && n.indexOf(x) < 0) n.push(x); };
+  const n = [], dazu = x => { if (x && DATEI_OK.test(x) && !/\.svg$/i.test(x) && !VIDEO_OK.test(x) && n.indexOf(x) < 0) n.push(x); };
   D.slides.forEach(sl => {
     (sl.bloecke || []).forEach(b => { dazu(b.datei); dazu(b.original); dazu(b.bildfuellung); });
     if (sl.hg) dazu(sl.hg.datei);
@@ -1915,6 +2244,9 @@ function bloeckeRegler(){
   const rb = knopf('+ Rahmen: Bild in Form, Handy, Laptop', 'Bild in Kreis, Herz, Bogen ... oder Screenshot im Geraet',
                    () => elementeAuf('rahmen'));
   rb.style.width = '100%';
+  const vk = knopf('+ Video', 'Video als Folie oder im Rahmen. Wird beim Ausgeben ein MP4 (hoechstens 60 s)',
+                   () => videoWaehlen(fl => videosEinsetzen([fl], null, null)));
+  vk.style.width = '100%'; vk.style.marginTop = '6px';
   const zwei3 = q('div', {class: 'zwei'});
   zwei3.appendChild(knopf('+ Logo', 'Logo aus deinem Markenpaket', () => {
     if (MARKE.logos.length === 1) logoEinsetzen(MARKE.logos[0]); else markeAuf();
@@ -1923,6 +2255,7 @@ function bloeckeRegler(){
   f.appendChild(zwei);
   f.appendChild(zwei2);
   f.appendChild(rb);
+  f.appendChild(vk);
   f.appendChild(zwei3);
   f.appendChild(q('div', {class: 'hint', html:
     'Ein Klick waehlt den Block aus, darunter kannst du ihn bearbeiten. ' +
@@ -1939,12 +2272,15 @@ function blockRegler(){
   const f = q('fieldset', {class: 'aktiv'},
               [q('legend', {html: (b.typ === 'bild' ? 'Bild' : b.typ === 'form' ? (b.form === 'icon' ? 'Icon' : 'Form') : 'Textblock') + ' bearbeiten'})]);
 
-  if (b.typ === 'bild'){
+  if (b.typ === 'bild' && istVideo(b)){
+    videoTeil(f, b);                          // Video: Start, Ende, Ton; kein Freistellen
+    bildRegler(f, b);
+  } else if (b.typ === 'bild'){
     const w = q('button', {class: 'klein' + (b.datei ? '' : ' an'), html: b.datei ? 'andere Datei waehlen' : 'Bild waehlen'});
     w.style.width = '100%';
     w.onclick = () => bildWaehlen(n => { merke(); b.datei = n; delete b.original; delete b.ausschnitt; alles(); });
     f.appendChild(w);
-    if (!b.datei) f.appendChild(q('div', {class: 'hint', html: tt('Oder ein Bild aus dem Explorer direkt auf den Rahmen ziehen.')}));
+    if (!b.datei) f.appendChild(q('div', {class: 'hint', html: tt('Oder ein Bild oder Video aus dem Explorer direkt auf den Rahmen ziehen.')}));
     if (b.datei && !/\.svg$/i.test(b.original || b.datei || '')){
       const fr = q('div', {class: 'knopfreihe'});
       fr.appendChild(knopf('Hintergrund entfernen', 'unter 1 Sekunde', () => freistellen(b.id, 'schnell')));
@@ -2070,6 +2406,19 @@ function baueRegler(){
   const run = q('button', {class: 'klein', html: 'Slide nach hinten'});
   run.onclick = () => { if (akt === D.slides.length-1) return; merke(); const x = D.slides[akt+1]; D.slides[akt+1] = D.slides[akt]; D.slides[akt] = x; akt++; alles(); };
   nav2.appendChild(hoch); nav2.appendChild(run); f1.appendChild(nav2);
+  const sr = knopf('Serie: viele Bilder nach dieser Slide', 'Bilder, Hooks und Texte einfuegen, je Zeile ein Bild', seAuf);
+  sr.style.width = '100%'; sr.style.marginTop = '8px';
+  f1.appendChild(sr);
+  if (zielVon(D.stil)){
+    // 9:16: welche Instagram-Zonen die Buehne zeigt
+    const namen = {story: 'Story', reel: 'Reel-Titelbild', aus: 'keine'};
+    f1.appendChild(auswahlFeld('Zonen zeigen fuer', namen[zielVon(D.stil)], ['Story', 'Reel-Titelbild', 'keine'],
+      v => { D.stil.ziel = {'Story': 'story', 'Reel-Titelbild': 'reel', 'keine': 'aus'}[v] || 'story'; }, false));
+  } else {
+    const st9 = knopf('Als Story oder Reel-Titelbild (9:16)', 'Diese Slide (oder alle) als neues Karussell im Hochformat 9:16', zielAuf);
+    st9.style.width = '100%'; st9.style.marginTop = '6px';
+    f1.appendChild(st9);
+  }
   hintergrundTeil(f1);
   panoramaTeil(f1);
   R.appendChild(f1);
@@ -2425,7 +2774,9 @@ function zeichneBuehne(){
   rah.style.marginLeft = rah.style.marginRight = pano ? Math.round(D.stil.breite * k) + 'px' : '';
   profilLinien(rah);
   const cache = zyklusCache || new Map();    // jede Nachbarfolie nur einmal unsichtbar aufbauen
-  const r = renderFolie(D.slides, akt, D.stil, fl, cache);
+  VIDEO_MODUS = 'spielen';                  // Videos laufen nur auf der Buehne, sonst Standbild
+  let r;
+  try { r = renderFolie(D.slides, akt, D.stil, fl, cache); } finally { VIDEO_MODUS = 'standbild'; }
   nachbarnZeichnen(rah, cache);
   r.el.style.transform = 'scale(' + k + ')';
   letzteLayout = r.masse.layout;
@@ -2612,6 +2963,7 @@ let zyklusCache = null;
 function mitZyklus(f){ zyklusCache = new Map(); try { f(); } finally { zyklusCache = null; } }
 function zeichne(){
   clearTimeout(timer);
+  if (!D) return;                            // Fenster geaendert, bevor ein Karussell geladen ist
   timer = setTimeout(() => mitZyklus(() => { zeichneBuehne(); zeichneMinis(); }), 60);
   autoSichern();
 }
@@ -2649,6 +3001,11 @@ function alles(){
 })();
 document.addEventListener('mouseup', () => setTimeout(werkzeugeZeigen, 10));
 document.addEventListener('keyup', () => setTimeout(werkzeugeZeigen, 10));
+// Videos auf der Buehne wieder anwerfen, wenn der Tab sichtbar wird
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible')
+    document.querySelectorAll('#flaeche video').forEach(v => { if (v.paused) v.play().catch(() => {}); });
+});
 document.addEventListener('keydown', e => {
   const tg = (e.target.tagName || '').toLowerCase();
   const tippt = tg === 'input' || tg === 'textarea' || tg === 'select' || e.target.isContentEditable;
@@ -2663,6 +3020,10 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && document.getElementById('elemente').style.display === 'flex') elementeZu();
     if (e.key === 'Escape' && document.getElementById('schriften').style.display === 'flex') schriftenZu();
     if (e.key === 'Escape' && markeOffen()) markeZu();
+    if (e.key === 'Escape' && serieOffen()) serieZu();
+    if (e.key === 'Escape' && seOffen()) seZu();
+    if (e.key === 'Escape' && zielOffen()) zielZu();
+    if (e.key === 'Escape' && pvOffen()) pvZu();
     return;
   }
   if ((e.key === 'Escape' || e.key === 'Enter') && zuschnitt && !tippt){ e.preventDefault(); zuschnittEnde(); return; }
@@ -2815,9 +3176,11 @@ window.addEventListener('resize', zeichne);
       (async () => { for (const f of schriftDateien) await schriftDateiHochladen(f); })();
       if (schriftDateien.length === e.dataTransfer.files.length) return;
     }
-    const dateien = [].slice.call(e.dataTransfer.files).filter(istBilddatei);
-    if (!dateien.length){ melde('Nur Bilder lassen sich ablegen (PNG, JPG, WEBP, GIF, SVG).', 5000); return; }
     const auf = e.target.closest && e.target.closest('#flaeche .box.bild');
+    const videos = [].slice.call(e.dataTransfer.files).filter(istVideodatei);
+    if (videos.length){ videosEinsetzen(videos, folienPunkt(e.clientX, e.clientY), auf ? auf.dataset.art : null); return; }
+    const dateien = [].slice.call(e.dataTransfer.files).filter(istBilddatei);
+    if (!dateien.length){ melde('Nur Bilder und Videos lassen sich ablegen (PNG, JPG, WEBP, GIF, SVG, MP4, MOV).', 5000); return; }
     bilderEinsetzen(dateien, folienPunkt(e.clientX, e.clientY), auf ? auf.dataset.art : null);
   });
   // Strg+V: Bild aus der Zwischenablage (Screenshot, kopiertes Bild) oder eigene Ablage
@@ -2840,7 +3203,7 @@ window.addEventListener('resize', zeichne);
 
 function formatName(p){
   const b = +p.breite || 0, h = +p.hoehe || 0;     // immer Zahlen, nie Text ins HTML
-  return h === 1350 ? '4:5' : h === 1440 ? '3:4' : b + 'x' + h;
+  return h === 1350 ? '4:5' : h === 1440 ? '3:4' : (h === 1920 && b === 1080) ? '9:16' : b + 'x' + h;
 }
 async function projekteFuellen(){
   let j;
@@ -3053,6 +3416,963 @@ document.getElementById('projekt').onchange = async e => {
   if (j.ok) melde('Geoeffnet: ' + j.name, 3000);
   else { melde(j.fehler || 'Ging nicht.', 6000); projekteFuellen(); }
 };
+
+// ------------------------------------------------------------- Serie (Massenerstellung)
+// Wie die Massenerstellung in Canva: Vorlage (diese Slide oder das ganze Karussell),
+// Felder anhaken und benennen, Tabelle fuellen, Erstellen. Gerechnet wird in render.js
+// (serieBauen), genau wie bei k.py serie. Felder ("feld" am Block) und Tabelle (D.serie)
+// bleiben in der Vorlage: beim naechsten Oeffnen ist alles wieder da.
+let SR = null;            // {modus: 'folie'|'alle', folie, felder, zeilen: [{schluessel: wert}], fertig}
+function serieOffen(){ return document.getElementById('serie').style.display === 'flex'; }
+function serieFolien(){ return SR.modus === 'alle' ? D.slides.slice(0, 20).map((s, i) => i) : [SR.folie]; }
+function serieSpalten(){
+  const aus = [], da = new Set();
+  SR.felder.forEach(f => {
+    const k = serieSchluessel(f.name);
+    if (f.an && k && !da.has(k)){ da.add(k); aus.push({name: serieName(f.name), k: k, bild: f.typ === 'bild'}); }
+  });
+  return aus.slice(0, SERIE_MAX_SPALTEN);
+}
+function serieLaden(){
+  const s = D.serie && typeof D.serie === 'object' ? D.serie : {};
+  const sp = (Array.isArray(s.spalten) ? s.spalten : []).slice(0, SERIE_MAX_SPALTEN).map(serieSchluessel);
+  return (Array.isArray(s.zeilen) ? s.zeilen : []).slice(0, SERIE_MAX_ZEILEN).map(r => {
+    const o = {};
+    (Array.isArray(r) ? r : []).forEach((c, i) => { if (sp[i]) o[sp[i]] = String(c == null ? '' : c).slice(0, SERIE_MAX_ZELLE); });
+    return o;
+  });
+}
+// Felder an die Bloecke der Vorlage schreiben, die Tabelle nach D.serie (Zurueck holt beides)
+function serieMerken(){
+  const vorher = JSON.stringify(D);
+  SR.felder.forEach(f => {
+    if (f.art !== 'ganz' || !D.slides[f.folie]) return;
+    const b = (D.slides[f.folie].bloecke || []).find(x => x && x.id === f.id);
+    if (!b) return;
+    if (f.an && serieName(f.name)) b.feld = serieName(f.name); else delete b.feld;
+  });
+  const sp = serieSpalten();
+  const zeilen = SR.zeilen.map(z => sp.map(s => z[s.k] || '')).filter(r => r.some(c => c.trim()));
+  const einfach = D.serie && D.serie.einfach;            // Listen der einfachen Serie behalten
+  if (zeilen.length) D.serie = Object.assign({modus: SR.modus, spalten: sp.map(s => s.name), zeilen: zeilen},
+                                             einfach ? {einfach: einfach} : {});
+  else if (einfach) D.serie = {einfach: einfach};
+  else delete D.serie;
+  if (JSON.stringify(D) === vorher) return;
+  historie.push(vorher);
+  if (historie.length > 50) historie.shift();
+  zukunft.length = 0;
+  knoepfe(); autoSichern();
+}
+function serieAuf(){
+  if (!D || !PROJEKT) return;
+  SR = {modus: D.serie && D.serie.modus === 'alle' && D.slides.length > 1 ? 'alle' : 'folie',
+        folie: akt, felder: [], zeilen: serieLaden(), fertig: false};
+  SR.felder = serieFelder(D.slides, serieFolien());
+  while (SR.zeilen.length < 3) SR.zeilen.push({});
+  document.getElementById('srName').value = PROJEKT + '-serie';
+  document.querySelector('input[name=srZiel][value=neu]').checked = true;
+  document.getElementById('srHaupt').style.display = '';
+  document.getElementById('srErgebnis').style.display = 'none';
+  document.getElementById('srEinfuegen').style.display = 'none';
+  document.getElementById('srOk').style.display = '';
+  document.getElementById('srBilder').style.display = 'none';
+  document.getElementById('srFehler').textContent = '';
+  document.getElementById('serie').style.display = 'flex';
+  serieZeichnen();
+}
+function serieZu(){
+  if (SR && !SR.fertig) serieMerken();
+  SR = null;
+  document.getElementById('serie').style.display = 'none';
+}
+function serieZeichnen(){
+  const n = Math.min(D.slides.length, 20);
+  document.querySelectorAll('#srModus button').forEach(b => {
+    b.classList.toggle('an', b.dataset.m === SR.modus);
+    b.textContent = b.dataset.m === 'folie' ? 'Diese Slide (' + (SR.folie + 1) + '): je Zeile ein Bild'
+                                            : 'Ganzes Karussell (' + n + ' Slides): je Zeile ein Karussell';
+    b.style.display = b.dataset.m === 'alle' && D.slides.length < 2 ? 'none' : '';
+  });
+  const einzeln = SR.modus === 'folie';
+  document.getElementById('srWahlDran').style.display = einzeln ? '' : 'none';
+  document.getElementById('srWahlNeu').style.display = einzeln ? '' : 'none';
+  document.getElementById('srDranText').textContent = 'Neue Slides nach Slide ' + D.slides.length + '.';
+  document.getElementById('srNameLabel').textContent = einzeln ? 'Name des neuen Karussells' : 'Namen beginnen mit (dann -01, -02 ...)';
+  serieZielZeigen();
+  serieFelderZeichnen();
+  serieTabelleZeichnen();
+  serieKnopf();
+}
+function serieZielZeigen(){
+  const dran = SR.modus === 'folie' && document.querySelector('input[name=srZiel]:checked').value === 'dran';
+  document.getElementById('srNameFeld').style.visibility = dran ? 'hidden' : '';
+}
+function serieFelderZeichnen(){
+  const L = document.getElementById('srFelder');
+  L.innerHTML = '';
+  if (!SR.felder.length){
+    L.appendChild(q('div', {class: 'hint', html: 'Auf dieser Slide gibt es keinen Text und kein Bild.'}));
+    return;
+  }
+  SR.felder.forEach(f => {
+    const b = D.slides[f.folie] && (D.slides[f.folie].bloecke || []).find(x => x && x.id === f.id);
+    const z = q('div', {class: 'srFeld' + (f.an ? ' an' : '')});
+    const cb = q('input', {type: 'checkbox'});
+    cb.checked = f.an; cb.disabled = f.art === 'stelle';
+    cb.title = f.art === 'stelle' ? 'Platzhalter im Text, wird immer ersetzt' : 'je Zeile ersetzen';
+    cb.onchange = () => { f.an = cb.checked; serieZeichnen(); };
+    const n = q('input', {type: 'text', maxlength: '40', spellcheck: 'false'});
+    n.value = f.name; n.disabled = f.art === 'stelle';
+    n.onchange = () => {
+      const neu = serieName(n.value);
+      if (!neu){ n.value = f.name; return; }
+      const alt = serieSchluessel(f.name), kn = serieSchluessel(neu);
+      SR.zeilen.forEach(r => { if (r[alt] !== undefined && !String(r[kn] || '').trim()) r[kn] = r[alt]; });
+      f.name = neu; serieZeichnen();
+    };
+    const was = q('span', {class: 'was'});
+    was.textContent = (SR.modus === 'alle' ? 'Slide ' + (f.folie + 1) + ' · ' : '') +
+      (f.art === 'stelle' ? '{{' + f.name + '}} in ' : f.typ === 'bild' ? 'Bild: ' : '') + (b ? nameVon(b) : f.id);
+    was.title = was.textContent;
+    z.appendChild(cb); z.appendChild(n); z.appendChild(was);
+    L.appendChild(z);
+  });
+}
+function serieHoehe(t){ t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 2, 220) + 'px'; }
+function serieTabelleZeichnen(){
+  const T = document.getElementById('srTabelle');
+  const pos = T.scrollTop;
+  T.innerHTML = '';
+  const sp = serieSpalten();
+  if (!sp.length){
+    T.appendChild(q('div', {class: 'hint', html: 'Links mindestens ein Feld anhaken.', style: 'padding:12px;margin:0'}));
+    return;
+  }
+  const tab = q('table'), kopf = q('tr');
+  kopf.appendChild(q('th', {html: '#'}));
+  sp.forEach(s => { const th = q('th'); th.textContent = s.name; kopf.appendChild(th); });
+  kopf.appendChild(q('th'));
+  tab.appendChild(kopf);
+  SR.zeilen.forEach((z, zi) => {
+    const tr = q('tr');
+    tr.appendChild(q('td', {class: 'nr', html: String(zi + 1)}));
+    sp.forEach((s, si) => {
+      const td = q('td');
+      if (s.bild) td.appendChild(serieBildZelle(z, zi, s));
+      else {
+        const t = q('textarea', {rows: '1'});
+        t.value = z[s.k] || '';
+        t.oninput = () => { z[s.k] = t.value; serieHoehe(t); serieKnopf(); };
+        t.addEventListener('paste', e => serieInZelle(e, zi, si));
+        td.appendChild(t);
+      }
+      tr.appendChild(td);
+    });
+    const weg = q('td', {class: 'weg'}), wb = q('button', {html: '&#10005;', title: 'Zeile loeschen'});
+    wb.onclick = () => { SR.zeilen.splice(zi, 1); if (!SR.zeilen.length) SR.zeilen.push({}); serieTabelleZeichnen(); serieKnopf(); };
+    weg.appendChild(wb); tr.appendChild(weg);
+    tab.appendChild(tr);
+  });
+  T.appendChild(tab);
+  T.querySelectorAll('textarea').forEach(serieHoehe);
+  T.scrollTop = pos;
+}
+function serieBildZelle(z, zi, s){
+  const wert = z[s.k] || '';
+  const d = q('div', {class: 'srBild' + (wert ? ' voll' : '')});
+  if (wert && DATEI_OK.test(wert)) d.style.backgroundImage = bildUrl(wert);
+  d.textContent = wert ? '' : 'Bild der Vorlage';
+  d.title = (wert ? wert + '. Klick: anderes Bild, Rechtsklick: wieder das der Vorlage. '
+                  : 'Klick: Bild waehlen. ') + 'Mehrere Bilder hierher ziehen fuellt nach unten.';
+  d.onclick = () => {
+    const i = document.createElement('input');
+    i.type = 'file'; i.accept = 'image/*'; i.multiple = true;
+    i.onchange = () => serieBilderLaden([].slice.call(i.files || []), zi, s);
+    i.click();
+  };
+  d.oncontextmenu = e => { e.preventDefault(); delete z[s.k]; serieTabelleZeichnen(); };
+  d.addEventListener('dragover', e => { e.preventDefault(); d.classList.add('ziel'); });
+  d.addEventListener('dragleave', () => d.classList.remove('ziel'));
+  d.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation(); d.classList.remove('ziel');
+    serieBilderLaden([].slice.call((e.dataTransfer && e.dataTransfer.files) || []).filter(istBilddatei), zi, s);
+  });
+  return d;
+}
+async function serieBilderLaden(dateien, zi, s){
+  dateien = dateien.slice(0, SERIE_MAX_ZEILEN - zi);
+  for (let i = 0; i < dateien.length; i++){
+    melde('lade Bild ' + (i + 1) + ' von ' + dateien.length + ' ...', 0);
+    let r, name;
+    try {
+      r = await fetch(mitProjekt('bild?name=' + encodeURIComponent(dateien[i].name || 'bild.png')), {method: 'POST', body: dateien[i]});
+      name = (await r.text()).trim();
+    } catch (e) { melde('Upload fehlgeschlagen.', 6000); return; }
+    if (!r.ok){ melde('Upload fehlgeschlagen: ' + name, 8000); return; }
+    if (!SR) return;                                  // Dialog inzwischen zu
+    (SR.zeilen[zi + i] || (SR.zeilen[zi + i] = {}))[s.k] = name;
+  }
+  if (!SR) return;
+  melde(dateien.length === 1 ? 'Bild uebernommen.' : dateien.length + ' Bilder uebernommen.', 3000);
+  serieTabelleZeichnen(); serieKnopf();
+}
+// Tabelle aus Excel oder Google Sheets: Tab zwischen den Spalten, Zellen mit
+// Zeilenumbruch oder Anfuehrungszeichen stehen in "..."
+function serieTsv(text){
+  const zeilen = [[]];
+  let zelle = '', i = 0, inQ = false;
+  while (i < text.length){
+    const c = text[i];
+    if (inQ){
+      if (c === '"' && text[i + 1] === '"'){ zelle += '"'; i += 2; continue; }
+      if (c === '"'){ inQ = false; i++; continue; }
+      zelle += c; i++; continue;
+    }
+    if (c === '"' && zelle === ''){ inQ = true; i++; continue; }
+    if (c === '\t'){ zeilen[zeilen.length - 1].push(zelle); zelle = ''; i++; continue; }
+    if (c === '\n'){ zeilen[zeilen.length - 1].push(zelle); zelle = ''; zeilen.push([]); i++; continue; }
+    zelle += c; i++;
+  }
+  zeilen[zeilen.length - 1].push(zelle);
+  return zeilen.filter(z => z.some(c => c.trim())).slice(0, SERIE_MAX_ZEILEN + 1);
+}
+// Freier Text -> Zeilen der Tabelle. Versteht: Tabelle aus Excel/Sheets (Kopfzeile mit den
+// Spaltennamen darf dabei sein), "Hook: ..." / "Text: ..." untereinander (aus ChatGPT oder
+// Notizen), Absaetze (1. Zeile = 1. Spalte ...) und eine Zeile je Eintrag.
+function serieLesen(text, sp, ab){
+  ab = ab || 0;
+  text = String(text || '').slice(0, 400000).replace(/\r\n?/g, '\n').replace(/^(?:[ \t]*\n)+/, '').trimEnd();
+  if (!text || !sp.length) return [];
+  const kVon = n => { const k = serieSchluessel(n); return sp.some(s => s.k === k) ? k : null; };
+  const reihe = werte => { const o = {}; werte.forEach((c, i) => { if (sp[ab + i]) o[sp[ab + i].k] = c.trim(); }); return o; };
+  const ohneZeichen = z => z.replace(/^\s*(?:\d{1,3}[.)]|[-•*–])\s+/, '');
+  if (text.indexOf('\t') >= 0 || text[0] === '"'){
+    const r = serieTsv(text), kopf = r[0].map(kVon);
+    if (kopf.some(Boolean) && r[0].every((c, i) => !c.trim() || kopf[i]))
+      return r.slice(1).map(z => { const o = {}; z.forEach((c, i) => { if (kopf[i]) o[kopf[i]] = c.trim(); }); return o; });
+    return r.map(reihe);
+  }
+  // Name vor dem Doppelpunkt ohne \s* drumherum (sonst langsam bei langen Leerzeichen-Zeilen), trimmt serieName
+  const zeilen = text.split('\n'), NAME = /^([^:\n]{1,60}):\s?(.*)$/;
+  if (zeilen.some(z => { const m = z.match(NAME); return m && kVon(m[1]); })){
+    const aus = [];
+    let o = null, zuletzt = null;
+    zeilen.forEach(z => {
+      const m = z.match(NAME), k = m && kVon(m[1]);
+      if (k){
+        if (!o || o[k] !== undefined){ o = {}; aus.push(o); }
+        o[k] = m[2].trim(); zuletzt = k;
+      } else if (!z.trim()) zuletzt = null;
+      else if (o && zuletzt) o[zuletzt] += '\n' + z.trim();
+    });
+    return aus;
+  }
+  const absaetze = text.split(/\n\s*\n/);
+  if (absaetze.length > 1 && sp.length - ab > 1)
+    return absaetze.map(a => {
+      const z = a.split('\n').map(ohneZeichen).filter(x => x.trim()), frei_ = sp.length - ab;
+      return reihe(z.length > frei_ ? z.slice(0, frei_ - 1).concat([z.slice(frei_ - 1).join('\n')]) : z);
+    });
+  return zeilen.filter(z => z.trim()).map(z => reihe([ohneZeichen(z)]));
+}
+function serieUebernehmen(neu, ab){
+  // ab Zeile ab einsetzen, leere Zeilen am Ende vorher weg
+  neu = neu.filter(o => Object.keys(o).some(k => String(o[k]).trim()));
+  if (!neu.length) return 0;
+  neu.forEach((o, i) => {
+    if (ab + i >= SERIE_MAX_ZEILEN) return;
+    const z = SR.zeilen[ab + i] || (SR.zeilen[ab + i] = {});
+    Object.keys(o).forEach(k => { z[k] = o[k]; });
+  });
+  serieTabelleZeichnen(); serieKnopf();
+  return Math.min(neu.length, SERIE_MAX_ZEILEN - ab);
+}
+function serieInZelle(e, zi, si){
+  const txt = ((e.clipboardData && e.clipboardData.getData('text/plain')) || '').slice(0, 400000);
+  if (!/[\t\n]/.test(txt.trimEnd())) return;               // ein einzelner Text: normal einfuegen
+  e.preventDefault();
+  const n = serieUebernehmen(serieLesen(txt, serieSpalten(), si), zi);
+  melde(n + (n === 1 ? ' Zeile' : ' Zeilen') + ' eingefuegt.', 4000);
+}
+function serieKnopf(){
+  const sp = serieSpalten();
+  const n = SR.zeilen.filter(z => sp.some(s => String(z[s.k] || '').trim())).length;
+  const b = document.getElementById('srOk');
+  b.disabled = !n || !sp.length;
+  b.textContent = SR.modus === 'alle' ? (n === 1 ? '1 Karussell' : n + ' Karussells') + ' erstellen'
+                                      : (n === 1 ? '1 Bild' : n + ' Bilder') + ' erstellen';
+}
+async function serieErstellen(){
+  const fehler = document.getElementById('srFehler');
+  fehler.textContent = '';
+  const sp = serieSpalten(), aktive = SR.felder.filter(f => f.an && serieName(f.name));
+  const zeilen = SR.zeilen.map(z => sp.map(s => z[s.k] || '')).filter(r => r.some(c => c.trim()));
+  if (!aktive.length){ fehler.textContent = 'Links mindestens ein Feld anhaken.'; return; }
+  if (!zeilen.length){ fehler.textContent = 'Die Tabelle ist noch leer.'; return; }
+  const dran = SR.modus === 'folie' && document.querySelector('input[name=srZiel]:checked').value === 'dran';
+  serieMerken();
+  const auftrag = {folien: serieFolien(), spalten: sp.map(s => s.name), zeilen: zeilen,
+                   felder: aktive.map(f => ({folie: f.folie, id: f.id, art: f.art, name: f.name})),
+                   zusammen: SR.modus === 'folie', anpassen: document.getElementById('srAnpassen').checked,
+                   startId: +neueId().slice(1)};
+  const ok = document.getElementById('srOk');
+  ok.disabled = true;
+  melde('rechne die Serie ...', 0);
+  await new Promise(r => setTimeout(r, 30));              // erst die Meldung zeigen
+  let erg;
+  try { erg = serieBauen(D, auftrag); }
+  catch (e) { ok.disabled = false; melde('', 0); fehler.textContent = String(e && e.message || e); return; }
+  let text, einer = true;
+  if (dran){
+    const alt = D.slides.length;
+    merke();
+    D.slides.push.apply(D.slides, erg.karussells[0]);
+    akt = alt; sel = null; alles();
+    text = erg.karussells[0].length + ' neue Slides hinten angehaengt (Slide ' + (alt + 1) + ' bis ' + D.slides.length + ').';
+  } else {
+    const basis = serieName(document.getElementById('srName').value) || PROJEKT + '-serie';
+    const liste = erg.karussells.length === 1 ? [{name: basis, slides: erg.karussells[0]}]
+      : erg.karussells.map((k_, i) => ({name: basis + '-' + String(i + 1).padStart(2, '0'), slides: k_}));
+    SR.fertig = true;                                  // ab hier ist D das neue Karussell
+    const j = await projektWechsel({aktion: 'serie', von: PROJEKT, karussells: liste});
+    if (!j.ok){ SR.fertig = false; ok.disabled = false; melde('', 0); fehler.textContent = j.fehler || 'Das ging nicht.'; return; }
+    einer = j.namen.length === 1;
+    text = einer ? 'Neues Karussell „' + j.name + '“ mit ' + erg.karussells[0].length + ' Slides, ist jetzt offen.'
+                 : j.namen.length + ' Karussells angelegt (' + j.namen[0] + ' bis ' + j.namen[j.namen.length - 1] +
+                   '), offen ist das erste. Die anderen stehen oben in der Auswahl.';
+  }
+  SR.fertig = true;
+  ok.disabled = false; melde('', 0);
+  document.getElementById('srHaupt').style.display = 'none';
+  document.getElementById('srErgebnis').style.display = 'block';
+  document.getElementById('srFertig').textContent = text;
+  const ul = document.getElementById('srHinweise');
+  ul.innerHTML = '';
+  erg.hinweise.forEach(h => { const li = document.createElement('li'); li.textContent = h; ul.appendChild(li); });
+  document.getElementById('srHinweisTitel').style.display = erg.hinweise.length ? '' : 'none';
+  ok.style.display = 'none';
+  document.getElementById('srBilder').style.display = einer ? '' : 'none';
+}
+document.getElementById('pSerie').onclick = seAuf;
+document.getElementById('srAb').onclick = serieZu;
+document.getElementById('srOk').onclick = serieErstellen;
+document.getElementById('srBilder').onclick = () => { serieZu(); document.getElementById('rBilder').click(); };
+document.querySelectorAll('#srModus button').forEach(b => {
+  b.onclick = () => {
+    if (!SR || SR.modus === b.dataset.m) return;
+    SR.modus = b.dataset.m;
+    SR.felder = serieFelder(D.slides, serieFolien());
+    serieZeichnen();
+  };
+});
+document.querySelectorAll('input[name=srZiel]').forEach(r => { r.onchange = serieZielZeigen; });
+document.getElementById('srZeile').onclick = () => {
+  if (SR.zeilen.length >= SERIE_MAX_ZEILEN) return;
+  SR.zeilen.push({}); serieTabelleZeichnen();
+  const t = document.querySelectorAll('#srTabelle tr:last-child textarea')[0];
+  if (t) t.focus();
+};
+document.getElementById('srLeeren').onclick = () => { SR.zeilen = [{}, {}, {}]; serieTabelleZeichnen(); serieKnopf(); };
+document.getElementById('srListe').onclick = () => {
+  const sp = serieSpalten();
+  document.getElementById('srText').placeholder = sp.length > 1
+    ? 'So zum Beispiel, je Eintrag ein Block:\n\n' + sp.map(s => s.name + ': ...').join('\n') + '\n\n' +
+      sp.map(s => s.name + ': ...').join('\n') + '\n\nOder aus Excel/Sheets mit Kopfzeile ' + sp.map(s => s.name).join(', ') +
+      '. Oder Absaetze: 1. Zeile = ' + sp[0].name + ', 2. Zeile = ' + sp[1].name + ' ...'
+    : 'Eine Zeile je Eintrag.';
+  document.getElementById('srText').value = '';
+  document.getElementById('srEinfuegen').style.display = 'block';
+  document.getElementById('srText').focus();
+};
+document.getElementById('srTextZu').onclick = () => { document.getElementById('srEinfuegen').style.display = 'none'; };
+document.getElementById('srUebernehmen').onclick = () => {
+  const ab = SR.zeilen.reduce((n, z, i) => Object.keys(z).some(k => String(z[k]).trim()) ? i + 1 : n, 0);
+  const n = serieUebernehmen(serieLesen(document.getElementById('srText').value, serieSpalten(), 0), ab);
+  SR.zeilen = SR.zeilen.filter((z, i) => i < ab + n || Object.keys(z).some(k => String(z[k]).trim()));
+  if (!SR.zeilen.length) SR.zeilen.push({});
+  serieTabelleZeichnen(); serieKnopf();
+  document.getElementById('srEinfuegen').style.display = 'none';
+  melde(n ? n + (n === 1 ? ' Zeile' : ' Zeilen') + ' uebernommen.' : 'Nichts erkannt.', 4000);
+};
+(function(){
+  const d = document.getElementById('serie');
+  d.addEventListener('mousedown', e => { if (e.target.id === 'serie') serieZu(); });
+  // Dateien neben ein Bildfeld fallen gelassen: nicht als Seite oeffnen
+  d.addEventListener('dragover', e => e.preventDefault());
+  d.addEventListener('drop', e => e.preventDefault());
+})();
+
+// ------------------------------------------------------------- Serie einfach
+// Der einfache Weg (Standard hinter dem Knopf Serie): links die Slide als Vorschau,
+// Ueberschrift und Text darin verschieben, rechts Bilder, Hooks und Texte einfuegen,
+// Los. Gerechnet wird wie in der erweiterten Serie mit serieBauen (Spalten Hook, Text,
+// Bild). Gearbeitet wird an einer Kopie der Slide; Position und Groesse gehen erst
+// beim Schliessen oder bei Los zurueck in die Slide (Zurueck holt sie wieder).
+let SE = null;   // {akt, folie, hookId, textId, bildId, bilder: [], k, geaendert, fertig}
+function seOffen(){ return document.getElementById('serieE').style.display === 'flex'; }
+function seBlock(id){ return (SE.folie.bloecke || []).find(b => b && b.id === id) || null; }
+function seTexte(){ return (SE.folie.bloecke || []).filter(b => b && b.typ !== 'bild' && b.typ !== 'form'); }
+function seNaechsteId(){
+  let max = 0;
+  D.slides.concat([SE.folie]).forEach(s => (s.bloecke || []).forEach(b => {
+    const n = +String(b && b.id || '').slice(1); if (n > max) max = n;
+  }));
+  return 'b' + (max + 1);
+}
+// Liste aus einem Textfeld: eine Zeile je Eintrag; gibt es Leerzeilen, trennen die
+// (dann darf ein Eintrag selbst mehrere Zeilen haben). Aufzaehlungszeichen fallen weg.
+function seListe(text){
+  text = String(text || '').slice(0, 200000).replace(/\r\n?/g, '\n').trim();
+  if (!text) return [];
+  const weg = z => z.replace(/^\s*(?:\d{1,3}[.)]|[-•*–])\s+/, '').trim();
+  const teile = /\n[ \t]*\n/.test(text) ? text.split(/\n[ \t]*\n/) : text.split('\n');
+  return teile.map(t => t.split('\n').map(weg).filter(Boolean).join('\n')).filter(Boolean).slice(0, SERIE_MAX_ZEILEN);
+}
+function seListen(){
+  return {hooks: seListe(document.getElementById('seHooks').value),
+          texte: seListe(document.getElementById('seTexte').value)};
+}
+function seAnzahl(){
+  const l = seListen();
+  return Math.min(SERIE_MAX_ZEILEN, Math.max(l.hooks.length, l.texte.length) || SE.bilder.length);
+}
+function seZeile(i){
+  const l = seListen();
+  return [l.hooks[i] || '', l.texte[i] || '', SE.bilder.length ? SE.bilder[i % SE.bilder.length] : ''];
+}
+function seFelder(){
+  const f = [];
+  if (SE.hookId) f.push({folie: 0, id: SE.hookId, art: 'ganz', name: 'Hook'});
+  if (SE.textId) f.push({folie: 0, id: SE.textId, art: 'ganz', name: 'Text'});
+  if (SE.bildId) f.push({folie: 0, id: SE.bildId, art: 'ganz', name: 'Bild'});
+  return f;
+}
+function seAuftrag(zeilen, zusammen){
+  return {folien: [0], felder: seFelder(), spalten: ['Hook', 'Text', 'Bild'], zeilen: zeilen,
+          zusammen: zusammen, anpassen: document.getElementById('seAnpassen').checked, startId: 1};
+}
+// Bloecke der Slide finden: festgelegtes feld, sonst die groesste Ueberschrift bzw. der
+// naechste Text; das groesste Bild ist das Foto. Fehlt Hook oder Text, kommen sie dazu.
+function seVorbereiten(){
+  const st = D.stil, t = seTexte();
+  const nachFeld = n => t.find(b => serieSchluessel(b.feld) === serieSchluessel(n));
+  const g = b => groesseVon(b, st);
+  let hook = nachFeld('Hook') || t.filter(b => b.rolle === 'titel').sort((a, b) => g(b) - g(a))[0]
+             || t.slice().sort((a, b) => g(b) - g(a))[0];
+  let text = nachFeld('Text') || t.find(b => b !== hook && b.rolle !== 'titel') || t.find(b => b !== hook);
+  const bilder = (SE.folie.bloecke || []).filter(b => b && b.typ === 'bild');
+  const flaeche = b => frei(b) ? (+b.w || 0) * (+b.h || 0) : st.breite * st.hoehe;
+  const bild = bilder.find(b => serieSchluessel(b.feld) === serieSchluessel('Bild'))
+               || bilder.slice().sort((a, b) => flaeche(b) - flaeche(a))[0];
+  const aufFoto = !!bild || !!(SE.folie.hg && SE.folie.hg.art === 'bild');
+  const farbe = aufFoto ? '#ffffff' : st.text;
+  if (!hook){
+    hook = {id: seNaechsteId(), typ: 'text', rolle: 'titel', text: '<b>Hier steht die Hook</b>',
+            x: 80, y: Math.round(st.hoehe * 0.12), w: st.breite - 160, groesse: 92, farbe: farbe};
+    if (aufFoto) hook.schatten = {};
+    SE.folie.bloecke.push(hook); SE.geaendert = true;
+  }
+  if (!text){
+    text = {id: seNaechsteId(), typ: 'text', rolle: 'text', text: 'Hier steht der Text darunter',
+            x: 80, y: Math.round(st.hoehe * 0.42), w: st.breite - 160, groesse: 46, farbe: farbe};
+    if (aufFoto) text.schatten = {};
+    SE.folie.bloecke.push(text); SE.geaendert = true;
+  }
+  SE.hookId = hook.id; SE.textId = text.id; SE.bildId = bild ? bild.id : null;
+}
+// Ein Foto als ganzer Hintergrund, falls die Slide noch keins hat und Bilder kommen
+function seFotoBlock(){
+  if (SE.bildId) return;
+  const id = seNaechsteId();
+  SE.folie.bloecke.push({id: id, typ: 'bild', datei: SE.bilder[0], x: 0, y: 0,
+                         w: D.stil.breite, h: D.stil.hoehe, gesperrt: true});
+  SE.folie.ebenen = [id].concat(ebenen(SE.folie).filter(x => x !== id));
+  SE.bildId = id; SE.geaendert = true;
+}
+function seAuf(){
+  if (!D || !PROJEKT) return;
+  SE = {akt: akt, folie: JSON.parse(JSON.stringify(slide())), bilder: [], k: 0, geaendert: false, fertig: false};
+  if (!Array.isArray(SE.folie.bloecke)) SE.folie.bloecke = [];
+  seVorbereiten();
+  const e = D.serie && D.serie.einfach;
+  document.getElementById('seHooks').value = e && typeof e.hooks === 'string' ? e.hooks : '';
+  document.getElementById('seTexte').value = e && typeof e.texte === 'string' ? e.texte : '';
+  SE.bilder = e && Array.isArray(e.bilder) ? e.bilder.filter(x => DATEI_OK.test(String(x))).slice(0, SERIE_MAX_ZEILEN) : [];
+  document.getElementById('seName').value = PROJEKT + '-serie';
+  document.getElementById('seHaupt').style.display = '';
+  document.getElementById('seErgebnis').style.display = 'none';
+  document.getElementById('seOk').style.display = '';
+  document.getElementById('seBilderIG').style.display = 'none';
+  document.getElementById('seErweitert').style.display = '';
+  document.getElementById('seFehler').textContent = '';
+  document.getElementById('serieE').style.display = 'flex';
+  seBlockWahl(); seBilderZeichnen(); seGroessen(); seAlles();
+}
+// Arbeitskopie zurueck in die Slide und die Listen in die Vorlage (fuers naechste Mal)
+function seMerken(){
+  if (!SE || SE.fertig || !D.slides[SE.akt]) return;
+  const vorher = JSON.stringify(D);
+  if (SE.geaendert) D.slides[SE.akt] = JSON.parse(JSON.stringify(SE.folie));
+  const h = document.getElementById('seHooks').value, t = document.getElementById('seTexte').value;
+  const alt = D.serie && typeof D.serie === 'object' ? D.serie : {};
+  if (h.trim() || t.trim() || SE.bilder.length)
+    D.serie = Object.assign({}, alt, {einfach: {hooks: h.slice(0, 200000), texte: t.slice(0, 200000), bilder: SE.bilder.slice()}});
+  else if (alt.einfach){ D.serie = Object.assign({}, alt); delete D.serie.einfach; if (!Object.keys(D.serie).length) delete D.serie; }
+  if (JSON.stringify(D) === vorher) return;
+  historie.push(vorher);
+  if (historie.length > 50) historie.shift();
+  zukunft.length = 0;
+  knoepfe(); alles();
+}
+function seZu(){
+  seMerken();
+  SE = null;
+  document.getElementById('serieE').style.display = 'none';
+}
+function seBlockWahl(){
+  const t = seTexte();
+  [['seHookBlock', 'hookId'], ['seTextBlock', 'textId']].forEach(([sel, feld]) => {
+    const s = document.getElementById(sel);
+    s.innerHTML = '';
+    t.forEach(b => { const o = document.createElement('option'); o.value = b.id; o.textContent = 'steht in: ' + nameVon(b); s.appendChild(o); });
+    s.value = SE[feld];
+    s.style.display = t.length > 2 ? '' : 'none';      // nur zeigen, wenn es etwas zu waehlen gibt
+    s.onchange = () => {
+      const anders = feld === 'hookId' ? 'textId' : 'hookId';
+      if (s.value === SE[anders]) SE[anders] = SE[feld];   // tauschen statt doppelt
+      SE[feld] = s.value; seBlockWahl(); seGroessen(); seAlles();
+    };
+  });
+}
+function seGroessen(){
+  [['seHookGr', 'hookId'], ['seTextGr', 'textId']].forEach(([id, feld]) => {
+    const r = document.getElementById(id), b = seBlock(SE[feld]);
+    r.value = b ? Math.round(groesseVon(b, D.stil)) : 60;
+    document.getElementById(id + 'W').textContent = r.value + ' px';
+    r.oninput = () => {
+      const bl = seBlock(SE[feld]);
+      if (!bl) return;
+      bl.groesse = +r.value; SE.geaendert = true;
+      document.getElementById(id + 'W').textContent = r.value + ' px';
+      seVorschauBald();
+    };
+  });
+}
+function seBilderZeichnen(){
+  const L = document.getElementById('seBilder');
+  L.innerHTML = '';
+  SE.bilder.forEach((n, i) => {
+    const d = q('div', {class: 'seBild'});
+    d.style.backgroundImage = bildUrl(n);
+    d.title = n;
+    d.appendChild(q('b', {html: String(i + 1)}));
+    const x = q('button', {html: '&#10005;', title: 'Bild entfernen'});
+    x.onclick = () => { SE.bilder.splice(i, 1); seBilderZeichnen(); seAlles(); };
+    d.appendChild(x);
+    L.appendChild(d);
+  });
+  const neu = q('button', {class: 'seNeu', html: SE.bilder.length ? '+ Bilder' : '+ Bilder wählen oder hierher ziehen'});
+  if (!SE.bilder.length) neu.style.width = 'auto';
+  neu.onclick = () => {
+    const i = document.createElement('input');
+    i.type = 'file'; i.accept = 'image/*'; i.multiple = true;
+    i.onchange = () => seBilderLaden([].slice.call(i.files || []));
+    i.click();
+  };
+  L.appendChild(neu);
+}
+async function seBilderLaden(dateien){
+  dateien = dateien.filter(istBilddatei)
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), 'de', {numeric: true}))
+    .slice(0, SERIE_MAX_ZEILEN - SE.bilder.length);
+  for (let i = 0; i < dateien.length; i++){
+    melde('lade Bild ' + (i + 1) + ' von ' + dateien.length + ' ...', 0);
+    let r, name;
+    try {
+      r = await fetch(mitProjekt('bild?name=' + encodeURIComponent(dateien[i].name || 'bild.png')), {method: 'POST', body: dateien[i]});
+      name = (await r.text()).trim();
+    } catch (e) { melde('Upload fehlgeschlagen.', 6000); return; }
+    if (!r.ok){ melde('Upload fehlgeschlagen: ' + name, 8000); return; }
+    if (!SE) return;
+    SE.bilder.push(name);
+  }
+  if (!SE) return;
+  if (SE.bilder.length) seFotoBlock();
+  melde(dateien.length === 1 ? 'Bild übernommen.' : dateien.length + ' Bilder übernommen.', 3000);
+  seBilderZeichnen(); seAlles();
+}
+function seZaehler(){
+  const l = seListen(), n = seAnzahl(), z = document.getElementById('seZaehler');
+  const teile = [];
+  if (!n){ z.innerHTML = 'Füge rechts Hooks ein (eine pro Zeile), dann siehst du links jedes Bild.'; }
+  else {
+    let warn = '';
+    if (l.hooks.length && l.texte.length && l.hooks.length !== l.texte.length)
+      warn = l.hooks.length > l.texte.length
+        ? ' Ab Bild ' + (l.texte.length + 1) + ' gibt es keinen Text darunter.'
+        : ' Ab Bild ' + (l.hooks.length + 1) + ' gibt es keine Hook.';
+    teile.push('<b>' + n + (n === 1 ? ' Bild' : ' Bilder') + '</b>: ' + l.hooks.length + ' Hooks, ' + l.texte.length + ' Texte, ' +
+      (SE.bilder.length ? SE.bilder.length + (SE.bilder.length === 1 ? ' Foto' : ' Fotos') +
+        (SE.bilder.length < n ? ' (wiederholen sich)' : '') : 'Foto der Slide'));
+    z.innerHTML = teile.join('') + (warn ? '<span class="warn">' + esc(warn) + '</span>' : '');
+  }
+  const ok = document.getElementById('seOk');
+  ok.disabled = !n;
+  ok.textContent = n ? 'Los: ' + n + (n === 1 ? ' Bild' : ' Bilder') + ' erstellen' : 'Los';
+}
+let seTimer = 0;
+function seVorschauBald(){ cancelAnimationFrame(seTimer); seTimer = requestAnimationFrame(seVorschau); }
+function seVorschau(){
+  if (!SE) return;
+  const n = seAnzahl();
+  if (SE.k >= n) SE.k = Math.max(0, n - 1);
+  document.getElementById('seNr').textContent = n ? 'Bild ' + (SE.k + 1) + ' von ' + n : 'Vorlage';
+  document.getElementById('seZurueck').disabled = SE.k <= 0;
+  document.getElementById('seVor').disabled = SE.k >= n - 1;
+  let folie = SE.folie, hinweis = '';
+  if (n){
+    try {
+      const e = serieBauen({stil: D.stil, slides: [SE.folie]}, seAuftrag([seZeile(SE.k)], false));
+      folie = e.karussells[0][0];
+      hinweis = (e.hinweise[0] || '').replace(/^Zeile \d+: /, '');
+    } catch (err) { hinweis = String(err && err.message || err); }
+  }
+  const B = document.getElementById('seBuehne'), w = B.clientWidth || 380, k = w / D.stil.breite;
+  B.style.height = Math.round(D.stil.hoehe * k) + 'px';
+  B.innerHTML = '';
+  const r = renderSlide(folie, D.stil, B);
+  r.el.style.transform = 'scale(' + k + ')';
+  [SE.hookId, SE.textId].forEach(id => { if (r.boxen[id]) r.boxen[id].classList.add('seZiehbar'); });
+  SE.kB = k; SE.layout = r.masse.layout;
+  document.getElementById('seVorschauHinweis').textContent = hinweis;
+}
+function seAlles(){ seZaehler(); seVorschau(); }
+// Ziehen in der Vorschau: verschiebt Hook oder Text der Vorlage, waagerecht rastet die Mitte ein
+(function(){
+  const B = document.getElementById('seBuehne');
+  B.addEventListener('pointerdown', e => {
+    const bx = e.target.closest && e.target.closest('.box');
+    if (!SE || !bx || (bx.dataset.art !== SE.hookId && bx.dataset.art !== SE.textId)) return;
+    e.preventDefault();
+    const b = seBlock(bx.dataset.art);
+    if (!b) return;
+    // Aus dem Raster nehmen wie im Cockpit: alle Bloecke bekommen ihre jetzige Lage
+    (SE.folie.bloecke || []).forEach(x => {
+      const L = SE.layout && SE.layout[x.id];
+      if (x.typ !== 'form' && !frei(x) && L){ x.x = L.x; x.y = L.y; x.w = L.w; if (x.typ === 'bild' && L.h !== undefined) x.h = L.h; }
+    });
+    const x0 = e.clientX, y0 = e.clientY, bx0 = +b.x || 0, by0 = +b.y || 0, k = SE.kB || 1, Bb = D.stil.breite;
+    B.setPointerCapture(e.pointerId);
+    B.classList.add('zieht');
+    const move = ev => {
+      let nx = bx0 + (ev.clientX - x0) / k;
+      const ny = by0 + (ev.clientY - y0) / k, w = +b.w || Bb;
+      if (Math.abs(nx + w / 2 - Bb / 2) < 14) nx = (Bb - w) / 2;
+      b.x = Math.round(nx); b.y = Math.round(ny); SE.geaendert = true;
+      seVorschauBald();
+    };
+    const up = () => {
+      B.removeEventListener('pointermove', move); B.removeEventListener('pointerup', up);
+      B.removeEventListener('pointercancel', up); B.classList.remove('zieht');
+    };
+    B.addEventListener('pointermove', move);
+    B.addEventListener('pointerup', up);
+    B.addEventListener('pointercancel', up);
+  });
+  const L = document.getElementById('seBilder');
+  L.addEventListener('dragover', e => { e.preventDefault(); L.classList.add('ziel'); });
+  L.addEventListener('dragleave', () => L.classList.remove('ziel'));
+  L.addEventListener('drop', e => {
+    e.preventDefault(); L.classList.remove('ziel');
+    if (SE) seBilderLaden([].slice.call((e.dataTransfer && e.dataTransfer.files) || []));
+  });
+  const d = document.getElementById('serieE');
+  d.addEventListener('mousedown', e => { if (e.target.id === 'serieE') seZu(); });
+  d.addEventListener('dragover', e => e.preventDefault());
+  d.addEventListener('drop', e => e.preventDefault());
+  ['seHooks', 'seTexte'].forEach(id => document.getElementById(id).addEventListener('input', () => {
+    clearTimeout(seListenTimer); seListenTimer = setTimeout(() => { if (SE) seAlles(); }, 150);
+  }));
+})();
+let seListenTimer = 0;
+async function seErstellen(){
+  const fehler = document.getElementById('seFehler');
+  fehler.textContent = '';
+  const n = seAnzahl();
+  if (!n){ fehler.textContent = 'Erst Hooks oder Texte einfügen.'; return; }
+  const zeilen = [];
+  for (let i = 0; i < n; i++) zeilen.push(seZeile(i));
+  seMerken();                                         // Look und Listen bleiben in der Vorlage
+  const ok = document.getElementById('seOk');
+  ok.disabled = true;
+  melde('rechne die Serie ...', 0);
+  await new Promise(r => setTimeout(r, 30));
+  let erg;
+  try { erg = serieBauen({stil: D.stil, slides: [SE.folie]}, seAuftrag(zeilen, true)); }
+  catch (e) { ok.disabled = false; melde('', 0); fehler.textContent = String(e && e.message || e); return; }
+  const basis = serieName(document.getElementById('seName').value) || PROJEKT + '-serie';
+  SE.fertig = true;
+  const j = await projektWechsel({aktion: 'serie', von: PROJEKT, karussells: [{name: basis, slides: erg.karussells[0]}]});
+  if (!j.ok){ SE.fertig = false; ok.disabled = false; melde('', 0); fehler.textContent = j.fehler || 'Das ging nicht.'; return; }
+  ok.disabled = false; melde('', 0);
+  document.getElementById('seHaupt').style.display = 'none';
+  document.getElementById('seErgebnis').style.display = 'block';
+  document.getElementById('seFertig').textContent = 'Fertig: ' + erg.karussells[0].length + ' Bilder im neuen Karussell „' + j.name +
+    '“, es ist jetzt offen. Deine Vorlage bleibt, wie sie ist.';
+  const ul = document.getElementById('seHinweise');
+  ul.innerHTML = '';
+  erg.hinweise.forEach(h => { const li = document.createElement('li'); li.textContent = h.replace(/^Zeile /, 'Bild '); ul.appendChild(li); });
+  document.getElementById('seHinweisTitel').style.display = erg.hinweise.length ? '' : 'none';
+  ok.style.display = 'none';
+  document.getElementById('seErweitert').style.display = 'none';
+  document.getElementById('seBilderIG').style.display = '';
+}
+document.getElementById('seAb').onclick = seZu;
+document.getElementById('seOk').onclick = seErstellen;
+document.getElementById('seBilderIG').onclick = () => { seZu(); document.getElementById('rBilder').click(); };
+document.getElementById('seZurueck').onclick = () => { if (SE && SE.k > 0){ SE.k--; seVorschau(); } };
+document.getElementById('seVor').onclick = () => { if (SE && SE.k < seAnzahl() - 1){ SE.k++; seVorschau(); } };
+document.getElementById('seErweitert').onclick = () => { seZu(); serieAuf(); };
+window.addEventListener('resize', () => { if (SE && seOffen()) seVorschauBald(); });
+
+// ------------------------------------------------------------- Verwalten
+// Alle Karussells mit Folie 1 als Vorschau. Loeschen verschiebt in den Papierkorb im
+// Karussell-Ordner (projekt.in_papierkorb), samt fertigen Bildern; zurueckholen geht,
+// bis der User den Papierkorb leert. Endgueltig loescht nur der Knopf hier.
+let PV = {liste: [], wahl: new Set(), reiter: 'karussells', korb: []};
+function pvOffen(){ return document.getElementById('verwalten').style.display === 'flex'; }
+function pvZu(){ document.getElementById('verwalten').style.display = 'none'; }
+async function verwaltenAuf(){
+  PV.wahl = new Set();
+  document.getElementById('pvFehler').textContent = '';
+  document.getElementById('verwalten').style.display = 'flex';
+  await pvReiter('karussells');
+}
+function pvVor(ts){                          // "heute", "gestern", "vor 5 Tagen", Datum
+  if (!ts) return '';
+  const tage = Math.floor((Date.now() / 1000 - ts) / 86400);
+  if (tage < 1) return 'heute';
+  if (tage < 2) return 'gestern';
+  if (tage < 30) return 'vor ' + tage + ' Tagen';
+  return new Date(ts * 1000).toLocaleDateString('de-DE');
+}
+async function pvReiter(t){
+  PV.reiter = t;
+  document.querySelectorAll('#pvReiter button').forEach(b => b.classList.toggle('an', b.dataset.t === t));
+  document.getElementById('pvKarussells').style.display = t === 'karussells' ? '' : 'none';
+  document.getElementById('pvKorb').style.display = t === 'korb' ? '' : 'none';
+  ['pvAlle', 'pvOeffnen', 'pvLoeschen'].forEach(id => { document.getElementById(id).style.display = t === 'karussells' ? '' : 'none'; });
+  document.getElementById('pvLeeren').style.display = t === 'korb' ? '' : 'none';
+  if (t === 'karussells') await pvKarussells(); else await pvKorb();
+}
+async function pvKarussells(){
+  let j = {projekte: []};
+  try { j = await (await fetch('projekte', {cache: 'no-store'})).json(); } catch (e) {}
+  PV.liste = (j.projekte || []).slice().sort((a, b) => (b.geaendert || 0) - (a.geaendert || 0));
+  PV.wahl = new Set([...PV.wahl].filter(n => PV.liste.some(p => p.name === n)));
+  const R = document.getElementById('pvRaster');
+  R.innerHTML = '';
+  PV.liste.forEach(p => {
+    const k = q('div', {class: 'pvKarte' + (PV.wahl.has(p.name) ? ' an' : '')});
+    k.title = 'Klick: auswaehlen. Doppelklick: oeffnen';
+    const mini = q('div', {class: 'pvMini'});
+    mini.style.aspectRatio = (+p.breite || 1080) + ' / ' + (+p.hoehe || 1350);
+    k.appendChild(mini);
+    if (p.name === PROJEKT) k.appendChild(q('span', {class: 'marke', html: 'offen'}));
+    k.appendChild(q('span', {class: 'haken', html: '&#10003;'}));
+    const n = q('b'); n.textContent = p.name; k.appendChild(n);
+    const i = q('span'); i.textContent = (+p.slides || 0) + ' Folien · ' + formatName(p) + ' · ' + pvVor(p.geaendert); k.appendChild(i);
+    k.onclick = () => { if (PV.wahl.has(p.name)) PV.wahl.delete(p.name); else PV.wahl.add(p.name); k.classList.toggle('an'); pvKnoepfe(); };
+    k.ondblclick = () => pvOeffnen(p.name);
+    R.appendChild(k);
+    pvMini(p, mini);
+  });
+  pvKnoepfe();
+}
+// Folie 1 eines anderen Karussells: Bildwege gelten relativ zu dessen Ordner (BASIS)
+async function pvMini(p, ziel){
+  let d;
+  try { d = await (await fetch('projekte/' + encodeURIComponent(p.name) + '/inhalt.json?' + Date.now())).json(); }
+  catch (e) { return; }
+  if (!ziel.isConnected || !d || !Array.isArray(d.slides) || !d.slides.length) return;
+  const alt = BASIS;
+  BASIS = 'projekte/' + encodeURIComponent(p.name) + '/';
+  try {
+    const st = Object.assign({}, STIL_STD, d.stil || {});
+    const r = renderSlide(d.slides[0], st, ziel);
+    r.el.style.transform = 'scale(' + (ziel.clientWidth / st.breite) + ')';
+  } catch (e) {} finally { BASIS = alt; }
+}
+function pvKnoepfe(){
+  const n = PV.wahl.size;
+  const l = document.getElementById('pvLoeschen'), o = document.getElementById('pvOeffnen');
+  l.disabled = !n; o.disabled = n !== 1;
+  l.textContent = n > 1 ? n + ' loeschen' : 'Loeschen';
+  document.getElementById('pvAlle').textContent = n && n === PV.liste.length ? 'Keine auswaehlen' : 'Alle auswaehlen';
+  document.getElementById('pvInfo').textContent = PV.liste.length + (PV.liste.length === 1 ? ' Karussell' : ' Karussells') +
+    (n ? ', ' + n + ' ausgewaehlt' : '');
+}
+async function pvOeffnen(name){
+  name = name || [...PV.wahl][0];
+  if (!name) return;
+  pvZu();
+  if (name !== PROJEKT){ const j = await projektWechsel({aktion: 'oeffnen', name: name}); if (!j.ok) melde(j.fehler || 'Ging nicht.', 6000); }
+}
+async function pvLoeschen(){
+  const namen = [...PV.wahl];
+  if (!namen.length) return;
+  const fehler = document.getElementById('pvFehler');
+  fehler.textContent = '';
+  const offen = namen.indexOf(PROJEKT) >= 0;
+  wechseltGerade = true;
+  let j;
+  try {
+    clearTimeout(sicherTimer);
+    if (offen && schmutzig()) await speichern();          // der letzte Stand kommt mit in den Papierkorb
+    try { j = await (await fetch('projekt', {method: 'POST', body: JSON.stringify({aktion: 'loeschen', namen: namen})})).json(); }
+    catch (e) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+  } finally { wechseltGerade = false; }
+  PV.wahl = new Set();
+  if (!j.ok){ fehler.textContent = j.fehler || 'Das ging nicht.'; await pvKarussells(); await projekteFuellen(); return; }
+  if (offen){
+    if (j.aktuell) await projektLaden(j.aktuell);
+    else { gesicherterStand = JSON.stringify(D); pvZu(); dialogAuf('neu'); melde('Alles im Papierkorb. Leg ein neues Karussell an.', 0); return; }
+  }
+  await projekteFuellen();
+  await pvKarussells();
+  melde(namen.length === 1 ? '„' + namen[0] + '“ liegt im Papierkorb.' : namen.length + ' Karussells liegen im Papierkorb.', 6000);
+}
+async function pvKorb(){
+  let liste = [];
+  try { liste = await (await fetch('papierkorb', {cache: 'no-store'})).json(); } catch (e) {}
+  PV.korb = Array.isArray(liste) ? liste : [];
+  const L = document.getElementById('pvKorbListe');
+  L.innerHTML = '';
+  if (!PV.korb.length) L.appendChild(q('div', {class: 'hint', html: 'Der Papierkorb ist leer.'}));
+  PV.korb.forEach(e => {
+    const z = q('div', {class: 'pvZeile'});
+    const t = q('div'); const b = q('b'); b.textContent = e.name; t.appendChild(b);
+    const s = q('span'); s.textContent = '  ' + (+e.slides || 0) + ' Folien · geloescht ' + (e.geloescht || '') + ' · ' + (+e.mb || 0) + ' MB';
+    t.appendChild(s); z.appendChild(t);
+    const zurueck = knopf('Zurueckholen', 'wieder in die Liste, mit allen Bildern', async () => {
+      let j;
+      try { j = await (await fetch('projekt', {method: 'POST', body: JSON.stringify({aktion: 'zurueckholen', eintrag: e.eintrag})})).json(); }
+      catch (x) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+      if (!j.ok){ document.getElementById('pvFehler').textContent = j.fehler || 'Das ging nicht.'; return; }
+      await projektLaden(j.name);
+      await pvKorb();
+      melde('„' + j.name + '“ ist zurueck und offen.', 5000);
+    });
+    const weg = knopf('Endgueltig loeschen', '', async () => {
+      if (!confirm('„' + e.name + '“ endgueltig loeschen? Das laesst sich nicht rueckgaengig machen.')) return;
+      await pvLeeren([e.eintrag]);
+    });
+    weg.classList.add('gefahr');
+    z.appendChild(zurueck); z.appendChild(weg);
+    L.appendChild(z);
+  });
+  const mb = PV.korb.reduce((s, e) => s + (+e.mb || 0), 0);
+  document.getElementById('pvInfo').textContent = PV.korb.length ? PV.korb.length + ' im Papierkorb, ' + Math.round(mb) + ' MB' : '';
+  document.getElementById('pvLeeren').disabled = !PV.korb.length;
+}
+async function pvLeeren(eintraege){
+  let j;
+  try { j = await (await fetch('projekt', {method: 'POST', body: JSON.stringify({aktion: 'leeren', eintraege: eintraege || null})})).json(); }
+  catch (x) { j = {ok: false, fehler: 'Das Cockpit antwortet nicht.'}; }
+  if (!j.ok){ document.getElementById('pvFehler').textContent = j.fehler || 'Das ging nicht.'; return; }
+  await pvKorb();
+  melde(j.anzahl === 1 ? '1 Karussell endgueltig geloescht.' : j.anzahl + ' Karussells endgueltig geloescht.', 5000);
+}
+document.getElementById('pVerwalten').onclick = verwaltenAuf;
+document.getElementById('pvZu').onclick = pvZu;
+document.getElementById('pvOeffnen').onclick = () => pvOeffnen();
+document.getElementById('pvLoeschen').onclick = pvLoeschen;
+document.getElementById('pvAlle').onclick = () => {
+  PV.wahl = PV.wahl.size === PV.liste.length ? new Set() : new Set(PV.liste.map(p => p.name));
+  document.querySelectorAll('#pvRaster .pvKarte').forEach((k, i) => k.classList.toggle('an', PV.wahl.has(PV.liste[i].name)));
+  pvKnoepfe();
+};
+document.getElementById('pvLeeren').onclick = () => {
+  if (!PV.korb.length) return;
+  if (confirm('Papierkorb endgueltig leeren? ' + PV.korb.length + (PV.korb.length === 1 ? ' Karussell ist' : ' Karussells sind') +
+              ' danach weg, auch ihre fertigen Bilder.')) pvLeeren(null);
+};
+document.querySelectorAll('#pvReiter button').forEach(b => { b.onclick = () => pvReiter(b.dataset.t); });
+document.getElementById('verwalten').addEventListener('mousedown', e => { if (e.target.id === 'verwalten') pvZu(); });
+
+// ------------------------------------------------------------- Story und Reel-Titelbild
+// Aus dieser Slide (oder allen) ein neues Karussell in 9:16. Umgerechnet wird wie bei
+// der Formatwahl (formatUmstellen), das Original bleibt. Die Buehne zeigt danach die
+// Zonen, die Instagram ueberdeckt (ZIEL_ZONEN in render.js).
+function zielOffen(){ return document.getElementById('zielDlg').style.display === 'flex'; }
+function zielEndung(){ return document.querySelector('input[name=zArt]:checked').value === 'reel' ? '-titelbild' : '-story'; }
+function zielAuf(){
+  if (!D || !PROJEKT) return;
+  document.getElementById('zForm').style.display = '';
+  document.getElementById('zErgebnis').style.display = 'none';
+  document.getElementById('zOk').style.display = '';
+  document.getElementById('zAb').textContent = 'Abbrechen';
+  document.getElementById('zFehler').textContent = '';
+  document.getElementById('zAlle').checked = false;
+  document.getElementById('zAlleText').textContent = 'Alle ' + D.slides.length + ' Slides (sonst nur Slide ' + (akt + 1) + ')';
+  document.getElementById('zAlle').parentNode.style.display = D.slides.length > 1 ? '' : 'none';
+  document.querySelector('input[name=zArt][value=story]').checked = true;
+  document.getElementById('zName').value = PROJEKT + zielEndung();
+  document.getElementById('zielDlg').style.display = 'flex';
+}
+function zielZu(){ document.getElementById('zielDlg').style.display = 'none'; }
+function slugWie(s){                       // wie projekt.slug: so heisst der Ordner nachher
+  s = String(s || '').normalize('NFC').trim().toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+  return s.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 55).replace(/-+$/, '');
+}
+async function zielAnlegen(){
+  const fehler = document.getElementById('zFehler'), ok = document.getElementById('zOk');
+  fehler.textContent = '';
+  const art = document.querySelector('input[name=zArt]:checked').value;
+  const alle = document.getElementById('zAlle').checked;
+  if (+D.stil.breite !== 1080){ fehler.textContent = 'Geht nur bei Folien mit 1080 px Breite.'; return; }
+  const basis = slugWie(document.getElementById('zName').value) || slugWie(PROJEKT + zielEndung());
+  ok.disabled = true;
+  melde('rechne auf 9:16 um ...', 0);
+  let e;
+  try {
+    e = await formatUmstellen({stil: Object.assign({}, D.stil),
+                               slides: JSON.parse(JSON.stringify(alle ? D.slides : [D.slides[akt]]))}, 1920);
+  } catch (x) { ok.disabled = false; melde('', 0); fehler.textContent = 'Umrechnen ging nicht: ' + String(x && x.message || x); return; }
+  let namen = [];
+  try { namen = (await (await fetch('projekte', {cache: 'no-store'})).json()).projekte.map(p => p.name); } catch (x) {}
+  let name = basis, i = 2;
+  while (namen.indexOf(name) >= 0) name = basis + '-' + i++;
+  const j = await projektWechsel({aktion: 'duplizieren', name: name, von: PROJEKT});
+  if (!j.ok){ ok.disabled = false; melde('', 0); fehler.textContent = j.fehler || 'Das ging nicht.'; return; }
+  // Die Kopie hat alle Bilder; ihr Inhalt wird die umgerechnete Fassung
+  D = e.daten;
+  D.stil = Object.assign({}, STIL_STD, D.stil || {}, {ziel: art});
+  delete D.serie;
+  akt = 0; sel = null; gemerkteMk = null;
+  alles();
+  await speichern(); knopfStand();
+  ok.disabled = false; melde('', 0);
+  document.getElementById('zForm').style.display = 'none';
+  document.getElementById('zErgebnis').style.display = 'block';
+  document.getElementById('zFertig').textContent = 'Neues Karussell „' + j.name + '“ in 9:16 (' + D.slides.length +
+    (D.slides.length === 1 ? ' Slide' : ' Slides') + '), es ist jetzt offen. Die schraffierten Zonen ueberdeckt Instagram, ' +
+    'dort nichts Wichtiges hinlegen.' + (e.hinweise.length ? ' Bitte ansehen:' : '');
+  const ul = document.getElementById('zHinweise');
+  ul.innerHTML = '';
+  e.hinweise.forEach(h => { const li = document.createElement('li'); li.textContent = h; ul.appendChild(li); });
+  ok.style.display = 'none';
+  document.getElementById('zAb').textContent = 'Schliessen';
+}
+document.getElementById('zAb').onclick = zielZu;
+document.getElementById('zOk').onclick = zielAnlegen;
+document.getElementById('zielDlg').addEventListener('mousedown', e => { if (e.target.id === 'zielDlg') zielZu(); });
+document.querySelectorAll('input[name=zArt]').forEach(r => r.addEventListener('change', () => {
+  const f = document.getElementById('zName');
+  if (/-(story|titelbild)$/.test(f.value)) f.value = f.value.replace(/-(story|titelbild)$/, zielEndung());
+}));
 
 // ------------------------------------------------------------- Instagram-Vorschau
 // So sieht das Karussell auf Instagram aus: als Kachel im Profilraster und beim
@@ -3363,8 +4683,10 @@ function formatUebernehmen(){
 // Folie 1 im Format, das das Profilraster beschneidet (4:5): gestrichelt, was dort
 // wegfaellt. Nur Anzeige, nicht im Bild und nicht in der Canva-Datei.
 function profilLinien(rah){
-  rah.querySelectorAll('.profilrand').forEach(x => x.remove());
-  if (akt !== 0) return;
+  rah.querySelectorAll('.profilrand,.zielzone').forEach(x => x.remove());
+  const ziel = zielVon(D.stil);
+  // Story: kein Profilraster. Reel-Titelbild: das Raster zeigt die Mitte (3:4), auf jeder Slide
+  if ((akt !== 0 && ziel !== 'reel') || ziel === 'story') { zielZonen(rah, ziel); return; }
   const a = profilAusschnitt(D.stil.breite, D.stil.hoehe);
   const linie = (art, pos, wort) => {
     const l = q('div', {class: 'profilrand ' + art});
@@ -3372,8 +4694,25 @@ function profilLinien(rah){
     if (wort) l.appendChild(q('span', {html: wort}));
     rah.appendChild(l);
   };
-  if (a.x >= 1){ linie('senk', a.x, 'Rand im Profil'); linie('senk', D.stil.breite - a.x, ''); }
-  if (a.y >= 1){ linie('waag', a.y, 'Rand im Profil'); linie('waag', D.stil.hoehe - a.y, ''); }
+  const wort = ziel === 'reel' ? 'Im Profil sichtbar ab hier' : 'Rand im Profil';
+  if (a.x >= 1){ linie('senk', a.x, wort); linie('senk', D.stil.breite - a.x, ''); }
+  if (a.y >= 1){ linie('waag', a.y, wort); linie('waag', D.stil.hoehe - a.y, ''); }
+  zielZonen(rah, ziel);
+}
+// Story oder Reel-Titelbild: nur bei 1080 x 1920. Ohne Angabe gilt 9:16 als Story.
+function zielVon(st){
+  if (+st.hoehe !== 1920 || +st.breite !== 1080) return '';
+  return st.ziel === 'reel' || st.ziel === 'aus' ? st.ziel : 'story';
+}
+function zielZonen(rah, ziel){
+  (ZIEL_ZONEN[ziel] || []).forEach(z => {
+    const d = q('div', {class: 'zielzone'});
+    d.style.left = (z.x * k) + 'px'; d.style.top = (z.y * k) + 'px';
+    d.style.width = (z.w * k) + 'px'; d.style.height = (z.h * k) + 'px';
+    if (z.w * k > 90) d.appendChild(q('span', {html: esc(z.name)}));
+    else d.title = z.name;
+    rah.appendChild(d);
+  });
 }
 function projektLabel(){
   const o = document.querySelector('#projekt option:checked');

@@ -15,6 +15,11 @@ Optionen:
     --setzen  Schnittvorschlaege direkt in die projekt.json schreiben.
               NUR wenn der Nutzer "mach fertig" gesagt hat - sonst prueft
               Claude erst den Inhalt (doppelte Aussagen, Versprecher).
+    --lut     Farbtabelle (.cube) fuer Log-Material, z.B. DJI D-Log M ->
+              Rec.709. Wird gleich nach dem Zusammenfuegen in voller
+              Farbtiefe auf das ganze Material gerechnet; Cockpit, Looks und
+              Render arbeiten danach mit normalen Farben. Nur wenn ALLE Clips
+              in diesem Log-Profil gefilmt sind.
 
 WARUM ES DIESES SCRIPT GIBT (gemessen am 23.08.2026): Derselbe Ablauf aus
 Einzelschritten brauchte sieben Minuten - davon rund drei Minuten, in denen
@@ -46,14 +51,16 @@ except Exception:
         return ['-c:v', 'libx264', '-crf', '20', '-preset', 'medium']
 
 # Julians zuletzt gewaehlte Untertitel-Werte - als Startwert, er justiert
-# im Cockpit selbst nach.
+# im Cockpit selbst nach. Schrift seit 06.10.2026 Arial (fett): Das ist der
+# Look, den er im Cockpit immer gesehen hat (Chrome kannte "Arial Rounded MT
+# Bold" nicht und zeigte Arial Bold), und so soll auch das Video aussehen.
 CAPTIONS = {
     "enabled": True,
-    "font": "Arial Rounded MT Bold",
+    "font": "Arial",
     "size": 83,
     "y": 0.494,
     "primary": "FFFFFF",
-    "highlight": "597fd9",
+    "highlight": "007bff",
     "highlight_on": True,
     "group": 3,
     "bold": True,
@@ -178,6 +185,42 @@ def zusammenfuegen(clips, ziel):
     return True
 
 
+def grund_lut(quelle, lut):
+    """Log-Material (D-Log M ...) per Farbtabelle in normale Farben.
+
+    Die Umrechnung laeuft in 10 Bit RGB (DJI-Clips sind HEVC Main 10), erst
+    danach wird auf 8 Bit gerundet. Die Tabelle liegt als grund_lut.cube im
+    Projekt und wird relativ angesprochen: Pfade mit Leerzeichen und
+    Laufwerks-Doppelpunkt muesste lut3d sonst doppelt maskieren.
+    """
+    projdir = os.path.dirname(quelle)
+    shutil.copy2(lut, os.path.join(projdir, 'grund_lut.cube'))
+    log = os.path.join(projdir, 's_log.mp4')
+    os.replace(quelle, log)
+    enc = video_encoder({}, zwischenstufe=True)
+    # Grundlage fuer alles Weitere: etwas feiner als sonstige Zwischenstufen
+    for schalter in ('-global_quality', '-crf', '-cq'):
+        if schalter in enc:
+            enc[enc.index(schalter) + 1] = '14'
+    r = subprocess.run(
+        ['ffmpeg', '-y', '-v', 'error', '-i', 's_log.mp4', '-vf',
+         'scale=in_color_matrix=bt709:in_range=tv,format=gbrp10le,'
+         'lut3d=file=grund_lut.cube:interp=tetrahedral,'
+         'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,'
+         'setparams=range=tv:colorspace=bt709:'
+         'color_primaries=bt709:color_trc=bt709']
+        + enc + ['-c:a', 'copy', 'original.mp4'],
+        cwd=projdir, capture_output=True)
+    if r.returncode != 0:
+        os.replace(log, quelle)
+        print("FEHLER bei der Farbtabelle:")
+        print(r.stderr.decode('utf-8', 'replace')[-500:])
+        return False
+    os.remove(log)
+    print("    Farbtabelle angewendet: " + os.path.basename(lut))
+    return True
+
+
 def script(name, *argumente):
     """Ruft ein Nachbarscript mit demselben Python auf. True = Exit 0."""
     sys.stdout.flush()
@@ -239,6 +282,17 @@ def main():
     if not ok:
         return 1
 
+    lut = arg('--lut')
+    if lut:
+        if not os.path.exists(lut):
+            print("FEHLER: Farbtabelle nicht gefunden: " + lut)
+            return 1
+        ok, d = unterschritt("Farbtabelle (Log -> normal)",
+                             lambda: grund_lut(quelle, lut))
+        zeiten.append(("Farbtabelle", d))
+        if not ok:
+            return 1
+
     dauer = ffdur(quelle)
     if dauer <= 0:
         print("FEHLER: " + quelle + " hat keine lesbare Laenge.")
@@ -257,6 +311,8 @@ def main():
         "texts": [],
         "render": {"crf": 20, "output": "final.mp4"},
     }
+    if lut:
+        projekt["grundlut"] = os.path.basename(lut)   # nur zur Info
     # Format aus dem Material: Querformat bleibt Querformat, Hochkant bleibt
     # Hochkant. Umstellen jederzeit im Cockpit (Reiter Bild → Format) oder
     # per cockpit_befehl.py --format 9:16.

@@ -375,6 +375,12 @@ dann werden die Vorschläge direkt als Schnitte gesetzt und es geht sofort
 zu `pruef_text.py`. Ohne dieses ausdrückliche Okay **nicht** verwenden —
 sonst fällt die inhaltliche Prüfung aus.
 
+**Log-Material (z. B. DJI D-Log M):** `--lut <tabelle.cube>` rechnet das
+flache Log-Bild gleich nach dem Zusammenfügen in normale Farben um (in
+10 Bit, danach 8-Bit-Zwischenstufe). Cockpit, Looks und Render arbeiten
+dann ganz normal weiter. Nur wenn **alle** Clips im Log-Profil sind.
+Kosten gemessen 07.10.2026: ~2 s Rechenzeit je Sekunde 3K-Material.
+
 ### 1b. Schnitt-Analyse — PFLICHTABLAUF (Reihenfolge einhalten!)
 
 Punkt 1 und 2 macht `projekt_starten.py` bereits mit. Einzeln nur nötig,
@@ -645,8 +651,16 @@ Pixel für Pixel auf einem Canvas an (Looks aus `filter_luts.js`, das
 build_editor.py ins Projekt legt; „Farbe behalten" rechnet das Cockpit mit
 derselben Formel). Gemessen 01.10.2026 mit identischen Pixeln: Cockpit vs
 ffmpeg höchstens 2/255. WebGL wäre schneller, ist bei lokal geöffneten
-Dateien aber gesperrt — Canvas 2D funktioniert. Beim Abspielen rechnet die
-Vorschau in 360 px Breite, im Stand in 720 px.
+Dateien aber gesperrt. Beim Abspielen rechnet die Vorschau in 360 px Breite,
+im Stand in 720 px.
+
+> **ACHTUNG (gemessen 07.10.2026):** In Chrome ist auch Canvas 2D gesperrt,
+> solange das Cockpit als `file://` geöffnet ist: `getImageData` auf das
+> Videobild wirft einen SecurityError, das Cockpit blendet den Look still
+> aus. Looks und „Farbe behalten“ sind dann in der Vorschau unsichtbar, nur
+> die CSS-Filter (Farbe & Licht) gehen. Der Render ist nicht betroffen.
+> Bis das Cockpit über `http://localhost` läuft: Looks nicht als „im Cockpit
+> durchklicken“ anbieten.
 
 **Sin City:** Haut liegt im Farbton mitten im Rot (103–138°). Getrennt wird
 über die Sättigung: jede Zielfarbe verlangt mindestens die halbe Sättigung
@@ -801,6 +815,36 @@ Sonderfälle): Untertitel-Stil-Mapping an `animated_captions.py`:
 symmetrisches Viereck um den ganzen Text).
 Wörter dabei IMMER aus `projekt.json` nehmen (Cockpit-Textkorrekturen!),
 nie neu transkribieren.
+
+### 2d. Serie: viele Reels aus EINER Vorlage (wie Massenerstellung in Canva)
+
+Wunsch wie „hier sind Video 1 bis 4, dazu Text 1 bis 10, alle gleich
+aufgebaut": Erst EIN Reel als Vorlage normal anlegen (`projekt_starten.py`)
+und die Texte im Cockpit gestalten (Kachel „Texte": Position, Größe, Breite,
+Kasten, Einblendung, Zeit; mit Breite, damit lange Texte umbrechen). Dann:
+
+```
+<python> scripts/serie_reels.py --felder <vorlage>     # Spalten: Text 1, Text 2 ... nach Startzeit
+<python> scripts/serie_reels.py <vorlage> --videos a.mp4 b.mp4 c.mp4 --tabelle texte.tsv [--name x]
+```
+
+Tabelle: erste Zeile = Spaltennamen (`Text 1`, `Text 2` …, oder das `feld`
+eines Texts), optional Spalte `Video`. Videos laufen der Reihe nach durch
+(4 Videos, 10 Zeilen: 1 2 3 4 1 2 …). Ergebnis: Ordner `<name>-serie/` neben
+der Vorlage mit `videos/` (stumme Clips bekommen eine stille Tonspur, sonst
+scheitert der Render), je Zeile ein normales Projekt `<name>-NN-projekt/`
+(eigenes Cockpit), `serie_vorschau.html` (alle Reels laufen gleichzeitig mit
+ihren Texten, öffnet sich selbst, lädt Änderungen nach; nach Änderungen an
+einem Reel: `serie_reels.py --vorschau <serienordner>`) und
+`alle_rendern.bat`/`.command`. Bei anderen Videos als dem der Vorlage fallen
+Schnitte, Wortliste und Untertitel weg, Abschnitte bis zum Schluss laufen bis
+zum neuen Schluss. Zu lange Texte werden bis 60 % kleiner, bis sie nicht in
+einen anderen Text oder in die Instagram-Zonen laufen (Zeilen gemessen wie im
+Cockpit, mit Chromium über Playwright). **Vorschau zeigen und stoppen**, erst
+nach dem Okay: `<python> scripts/serie_reels.py --rendern <serienordner>
+[--nur 3,5]` (oder der User doppelklickt `alle_rendern`). Fertige Reels in
+`<serienordner>/fertig/`. Hooks für die Tabelle nie selbst erfinden: Quelle
+fragen wie bei jedem Hook.
 
 ### 3. Erneut rendern nach Korrekturen
 

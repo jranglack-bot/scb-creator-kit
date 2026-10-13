@@ -7,3 +7,4 @@ Test*.mp4
 
 # Lokale Sicherungen vor Aenderungen (nicht ausliefern)
 *.backup
+*.vor-*

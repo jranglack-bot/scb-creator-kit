@@ -21,7 +21,7 @@ import { LOGO_SVG } from "./logo.js";
 // Gesamtdauer eines Plans in Sekunden (Liste der Szenen aus plan.json)
 export const dauerGesamt = (szenen) => szenen.reduce((s, z) => s + z.dauer, 0);
 
-const BLAU = 0x597fd9;
+const BLAU = 0x007bff;
 const ORANGE = 0xd97757;
 const SCHRIFTART = '700 {px}px "Arial Rounded MT Bold", "Arial Rounded MT", Arial, sans-serif';
 
@@ -153,7 +153,7 @@ function schild(text, breiteWelt) {
     g.fillStyle = "rgba(8,12,28,0.84)";
     g.fill();
     g.lineWidth = 5;
-    g.strokeStyle = "#597fd9";
+    g.strokeStyle = "#007bff";
     g.stroke();
     g.fillStyle = "#ffffff";
     g.font = SCHRIFTART.replace("{px}", "64");
@@ -459,7 +459,7 @@ function bildschirmTextur() {
   return leinwand(540, 1136, (g, w, h) => {
     const lg = g.createLinearGradient(0, 0, w, h);
     lg.addColorStop(0, "#1b2a66");
-    lg.addColorStop(0.55, "#597fd9");
+    lg.addColorStop(0.55, "#007bff");
     lg.addColorStop(1, "#8b62f0");
     g.fillStyle = lg;
     g.fillRect(0, 0, w, h);
