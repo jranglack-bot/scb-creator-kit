@@ -383,12 +383,18 @@ def main():
                 continue
             zv = float(z.get('zoom', 1.15))
             tx, ty = float(z.get('x', 0.5)), float(z.get('y', 0.5))
-            ri = max(0.03, float(z.get('ramp_in', z.get('ramp', 0.6)) or 0.03))
-            ro = max(0.03, float(z.get('ramp_out', 0.6) or 0.03))
-            ri = min(ri, (e - s) / 2)
-            ro = min(ro, (e - s) / 2)
+            ri_roh = float(z.get('ramp_in', z.get('ramp', 0.6)) or 0)
+            ro_roh = float(z.get('ramp_out', 0.6) or 0)
+            ri = min(max(0.03, ri_roh), (e - s) / 2)
+            ro = min(max(0.03, ro_roh), (e - s) / 2)
+            # Rampe 0 = schon im ERSTEN Bild des Abschnitts voll gezoomt (bzw.
+            # bis zum letzten). Sonst ergibt (t-s)/ri dort 0, und das erste
+            # Bild blitzt ungezoomt auf, sichtbar z.B. bei einem Zoom-Out ab
+            # Videostart (07.10.2026).
+            ps = s - ri if ri_roh <= 0 else s
+            pe = e + ro if ro_roh <= 0 else e
             prog = 'max(0,min(1,min(({t}-{s})/{ri},({e}-{t})/{ro})))'.format(
-                t=tt, s=s, e=e, ri=ri, ro=ro)
+                t=tt, s=ps, e=pe, ri=ri, ro=ro)
             zz = '(1+({zv}-1)*{p})'.format(zv=zv, p=prog)
             li = 'clip(W*{x}-W/(2*{z}),0,W-W/{z})'.format(x=tx, z=zz)
             ob = 'clip(H*{y}-H/(2*{z}),0,H-H/{z})'.format(y=ty, z=zz)
@@ -529,7 +535,14 @@ def main():
 
     # --- Freie Text-Overlays (Hook/Titel, aus text_overlays.py) ------------
     if cfg.get('text_overlays'):
-        post.append('ass={}'.format(os.path.basename(cfg['text_overlays'])))
+        # Kit-Schriften (Zweifachschrift) liegen als Dateien in schriften/
+        # neben der .ass (render_projekt.py legt den Ordner an) — so braucht
+        # es keine installierte Schrift, auf Windows wie auf dem Mac.
+        fd = os.path.join(os.path.dirname(os.path.abspath(
+            cfg['text_overlays'])), 'schriften')
+        post.append('ass={}{}'.format(os.path.basename(cfg['text_overlays']),
+                                      ':fontsdir=schriften'
+                                      if os.path.isdir(fd) else ''))
 
     if post:
         fc.append('{}{}[vout]'.format(vlabel, ','.join(post)))

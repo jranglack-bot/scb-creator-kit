@@ -18,7 +18,9 @@ Aufruf:
 """
 import argparse
 import json
+import os
 import platform
+import re
 
 
 def standard_schrift():
@@ -68,6 +70,89 @@ MODES = {
 MAX_GAP = 0.6      # Sekunden: groessere Luecke beendet die Wortgruppe
 POP_MS = 90        # Dauer der Pop-Animation in Millisekunden
 
+# --- Gleicher Look wie im Cockpit (06.10.2026) -------------------------------
+# Das Cockpit zeigt den Untertitel als CSS. Damit das fertige Video genauso
+# aussieht, gelten hier dieselben Werte wie in templates/editor.html
+# (CAP_SCHEIN, CAP_ZEILENHOEHE). Werte im Pixelraum des fertigen Videos.
+#   Schein: CSS text-shadow "x y r #000"; CSS-Unschaerfe r = Sigma r/2,
+#   libass-\blur n = Sigma 0,86 n (gemessen am 06.10.2026 an einer Kante).
+SCHEIN = [(0, 0, 30), (0, 0, 15), (5, 5, 5)]
+CSS_ZEILENHOEHE = 1.25
+LIBASS_BLUR_SIGMA = 0.86
+# Groesse: CSS meint mit "83 px" das Geviert der Schrift, libass (wie
+# VSFilter) die Hoehe usWinAscent + usWinDescent. Ohne Umrechnung kommt
+# Arial im Video 11,7 % kleiner raus als im Cockpit, Arial Rounded 15,7 %.
+SCHRIFT_FAKTOR_STANDARD = 1.12
+
+
+def _schrift_ordner():
+    s = platform.system()
+    heim = os.path.expanduser('~')
+    if s == 'Windows':
+        win = os.environ.get('WINDIR', r'C:\Windows')
+        return [os.path.join(win, 'Fonts'),
+                os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Microsoft',
+                             'Windows', 'Fonts')]
+    if s == 'Darwin':
+        return ['/System/Library/Fonts', '/System/Library/Fonts/Supplemental',
+                '/Library/Fonts', os.path.join(heim, 'Library', 'Fonts')]
+    return ['/usr/share/fonts', '/usr/local/share/fonts',
+            os.path.join(heim, '.fonts'),
+            os.path.join(heim, '.local', 'share', 'fonts')]
+
+
+def schrift_faktor(name, fett=True):
+    """(usWinAscent + usWinDescent) / unitsPerEm der Schrift, die libass
+    fuer `name` nimmt. Damit wird die Cockpit-Groesse (CSS) in die
+    ASS-Groesse umgerechnet. Ergebnis gemerkt in
+    ~/.scb-creator-kit/schrift_masse.json, der erste Suchlauf dauert einige
+    Sekunden. Ohne fontTools oder ohne Treffer: SCHRIFT_FAKTOR_STANDARD."""
+    cache_pfad = os.path.join(os.path.expanduser('~'), '.scb-creator-kit',
+                              'schrift_masse.json')
+    schluessel = '{}|{}'.format(name.lower(), 'fett' if fett else 'normal')
+    try:
+        with open(cache_pfad, encoding='utf-8') as f:
+            cache = json.load(f)
+    except (OSError, ValueError):
+        cache = {}
+    if schluessel in cache:
+        return cache[schluessel]
+    try:
+        from fontTools.ttLib import TTFont
+    except ImportError:
+        return SCHRIFT_FAKTOR_STANDARD
+    treffer = []
+    for ordner in _schrift_ordner():
+        for wurzel, _, dateien in os.walk(ordner):
+            for d in dateien:
+                if not d.lower().endswith(('.ttf', '.otf')):
+                    continue
+                try:
+                    f = TTFont(os.path.join(wurzel, d), lazy=True)
+                    fam = (f['name'].getDebugName(16)
+                           or f['name'].getDebugName(1) or '')
+                    if fam.lower() != name.lower() and \
+                            (f['name'].getDebugName(1) or '').lower() != name.lower():
+                        continue
+                    os2, upem = f['OS/2'], f['head'].unitsPerEm
+                    ist_fett = bool(os2.fsSelection & 0x20) or os2.usWeightClass >= 600
+                    treffer.append(((os2.usWinAscent + os2.usWinDescent) / upem,
+                                    ist_fett))
+                except Exception:
+                    continue
+    if not treffer:
+        return SCHRIFT_FAKTOR_STANDARD
+    passend = [k for k, b in treffer if b == fett] or [k for k, _ in treffer]
+    faktor = round(passend[0], 4)
+    cache[schluessel] = faktor
+    try:
+        os.makedirs(os.path.dirname(cache_pfad), exist_ok=True)
+        with open(cache_pfad, 'w', encoding='utf-8') as f:
+            json.dump(cache, f, ensure_ascii=False, indent=1)
+    except OSError:
+        pass
+    return faktor
+
 
 def build_cues(words, group_size):
     """Gruppiert Woerter zu Cues (max. group_size, Bruch bei Sprechpausen)."""
@@ -94,7 +179,8 @@ def main():
                     help='Textfarbe als RGB-Hex')
     ap.add_argument('--highlight', default='FFD400')
     ap.add_argument('--outline', type=int, default=0,
-                    help='Konturstaerke in px (0 = automatisch)')
+                    help='harter Rand in px statt des weichen Scheins wie im '
+                         'Cockpit (0 = weicher Schein, Standard seit 06.10.2026)')
     ap.add_argument('--box', action='store_true',
                     help='halbtransparente Box hinter dem Text')
     ap.add_argument('--box-color', default='000000',
@@ -127,15 +213,25 @@ def main():
     size = args.size or mode['size']
     hi = ass_color(args.highlight)
     white = ass_color(args.primary)
+    # Cockpit-Groesse (CSS-Geviert) in ASS-Groesse umrechnen, siehe
+    # schrift_faktor(). Ohne das ist der Untertitel im Video sichtbar kleiner.
+    faktor = schrift_faktor(args.font, not args.no_bold)
+    ass_size = int(round(size * faktor))
+    # Weicher Schein wie im Cockpit, solange keine Box und kein harter Rand
+    # (--outline > 0, alter Look) gewuenscht ist.
+    schein = not args.box and not args.outline
 
     # Position: Das Cockpit speichert die OBERKANTE des Untertitel-Blocks
     # als Anteil der Bildhoehe (captions.y). Damit der Render exakt dort
     # brennt, wo die Vorschau den Text zeigt, ankern wir bei --y OBEN
     # (Alignment 8, MarginV = Abstand von oben) statt unten — sonst
     # wuerde die Blockhoehe (1 vs. 2 Zeilen) die Lage verschieben.
+    # CSS setzt die Schrift mittig in eine Zeile von 1,25 Geviert, libass
+    # direkt an die Oberkante: der halbe Unterschied kommt dazu.
     if args.y >= 0:
         alignment = 8
-        marginv = int(round(min(0.95, max(0.0, args.y)) * args.playresy))
+        marginv = int(round(min(0.95, max(0.0, args.y)) * args.playresy
+                            + (CSS_ZEILENHOEHE - faktor) * size / 2))
     else:
         alignment = 2
         marginv = mode['marginv']
@@ -183,7 +279,7 @@ Style: Cap,{font},{size},{primary},{primary},{outcol},{back},{bold},0,0,0,100,10
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-""".format(px=args.playresx, py=args.playresy, font=args.font, size=size,
+""".format(px=args.playresx, py=args.playresy, font=args.font, size=ass_size,
            primary=white,
            # libass zeichnet die Box je nach BorderStyle aus verschiedenen
            # Farbfeldern (empirisch verifiziert):
@@ -197,9 +293,27 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
            bold=0 if args.no_bold else -1,
            borderstyle=(4 if args.box_style == 'block' else 3) if args.box
                        else 1,
-           shadow=0 if args.box else 2,
-           outline=args.outline or max(4, size // 10), align=alignment,
+           shadow=0 if (args.box or schein) else 2,
+           outline=0 if schein else (args.outline or max(4, size // 10)),
+           align=alignment,
            ml=mode['marginl'], mr=mode['marginr'], mv=marginv)
+
+    def schein_zeilen(start, end, text):
+        """Schwarzer, weichgezeichneter Text unter dem eigentlichen Text,
+        je CSS-Schatten eine Ebene (gleiche Pop-Animation, ohne Farben)."""
+        ohne_farbe = re.sub(r'\{\\1c&H[0-9A-Fa-f]+&\}', '', text)
+        raus = []
+        for ebene, (x, y, r) in enumerate(SCHEIN):
+            blur = round(r / 2 / LIBASS_BLUR_SIGMA, 2)
+            if x or y:
+                # versetzter Schatten: nur der Schatten, Fuellung unsichtbar
+                tags = ('{{\\1a&HFF&\\bord0\\4c&H000000&\\4a&H00&'
+                        '\\xshad{}\\yshad{}\\blur{}}}'.format(x, y, blur))
+            else:
+                tags = '{{\\1c&H000000&\\bord0\\shad0\\blur{}}}'.format(blur)
+            raus.append('Dialogue: {},{},{},Cap,,0,0,0,,{}{}'.format(
+                ebene, fmt_time(start), fmt_time(end), tags, ohne_farbe))
+        return raus
 
     lines = [header]
     cues = build_cues(words, args.group)
@@ -229,8 +343,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             if k == 0:
                 text = ('{{\\fscx118\\fscy118\\t(0,{},\\fscx100\\fscy100)}}'
                         .format(POP_MS)) + text
-            lines.append('Dialogue: 0,{},{},Cap,,0,0,0,,{}'.format(
-                fmt_time(start), fmt_time(end), text))
+            if schein:
+                lines.extend(schein_zeilen(start, end, text))
+            lines.append('Dialogue: {},{},{},Cap,,0,0,0,,{}'.format(
+                len(SCHEIN) if schein else 0, fmt_time(start), fmt_time(end),
+                text))
 
     with open(args.output, 'w', encoding='utf-8-sig') as f:
         f.write('\n'.join(lines) + '\n')

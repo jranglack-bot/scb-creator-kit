@@ -30,7 +30,9 @@ Cockpit zeigt jede Aenderung nach 1,5 s von selbst.
   python k.py auftrag                  Wunsch aus dem Cockpit (Knopf "An Claude")
   python k.py auftrag erledigt         Auftrag abhaken
   python k.py frei 3 b2 [--modell genau]   Hintergrund entfernen (schnell <1 s, genau ~2 Min.)
-  python k.py render [3,5]             Bilder fuer Instagram (alle oder nur diese)
+  python k.py video 3 <pfad>           Video auf Folie 3 (ganze Folie, ganz hinten), wird beim Ausgeben ein MP4
+                                       Danach: setze 3 b9 von=2 bis=14 stumm=1 (Start, Ende, ohne Ton)
+  python k.py render [3,5]             Bilder fuer Instagram (alle oder nur diese, Video-Folien als MP4)
   python k.py marke                    Markenpaket zeigen (Farben, Schriften, Logos, Name)
   python k.py marke farben=#e4572e,#1e1e1e,#ffffff titel=Oswald text=Inter name=deinname
                                        setzen (Farben: 1. Akzent, 2. Dunkel, 3. Hell, dann weitere)
@@ -38,8 +40,16 @@ Cockpit zeigt jede Aenderung nach 1,5 s von selbst.
   python k.py marke anwenden [farben] [schriften] [logo]   offenes Karussell in die Marke bringen
   python k.py logo 3|alle              Logo aus dem Markenpaket auf Folie 3 oder auf alle
   python k.py schrift datei <pfad>     eigene Schriftdatei (TTF, OTF, WOFF), danach ueberall waehlbar
-  python k.py format 3:4|4:5           Format umstellen, Inhalt rueckt mit (wie die Vorschau im Cockpit)
+  python k.py format 3:4|4:5|9:16      Format umstellen, Inhalt rueckt mit (wie die Vorschau im Cockpit)
+  python k.py story [3|alle] [--reel] [--name x]   neues Karussell in 9:16 (Story oder Reel-Titelbild)
+  python k.py serie [3|2-4|alle]       Serie (Massenerstellung): Spalten der Vorlage zeigen
+  python k.py serie 3 tabelle.tsv [--name x] [--anhaengen]   je Tabellenzeile eine Folie nach Folie 3
+                                       (neues Karussell, mit --anhaengen hinten an dieses)
+  python k.py serie alle tabelle.tsv [--name x]               je Zeile ein ganzes Karussell
+  python k.py setze 3 b2 feld=Hook     Text oder Bild als Spalte der Serie (feld= nimmt es raus)
   python k.py projekte | projekt <name>
+  python k.py projekt weg <name> [<name> ...]   in den Papierkorb (nur auf Wunsch des Users)
+  python k.py papierkorb [zurueck <eintrag>]    zeigen oder zurueckholen; leeren nur der User im Cockpit
 
 Ueberall --projekt <name> fuer ein anderes als das offene Projekt.
 Felder: text, rolle (titel|text), groesse, abstand, farbe, font (eingebaut + geladene Google Fonts),
@@ -124,7 +134,7 @@ def zeile(b, voll=False):
     for f, form in (("groesse", "g%s"), ("farbe", "%s"), ("font", "%s"), ("aus", "%s"),
                     ("dreh", "%s Grad"), ("gruppe", "Gruppe %s"), ("maske", "in %s"),
                     ("geraet", "im Rahmen %s"), ("geraetfarbe", "Geraet %s"),
-                    ("bildfuellung", "Bild in der Schrift: %s")):
+                    ("bildfuellung", "Bild in der Schrift: %s"), ("feld", "Feld %s")):
         v = b.get(f)
         if v in (None, ""):
             continue
@@ -137,7 +147,8 @@ def zeile(b, voll=False):
     if b.get("nahtlos"):
         teile.append("nahtlos")
     for f in ("fuellung", "rand", "staerke", "strich", "zeichen", "gross", "umriss", "flaeche",
-              "ausschnitt", "spiegeln", "filter", "deckkraft", "ecken", "rahmen", "schatten", "original"):
+              "ausschnitt", "spiegeln", "filter", "deckkraft", "ecken", "rahmen", "schatten", "original",
+              "von", "bis", "stumm"):
         if f in b:
             w = b[f]
             teile.append("%s=%s" % (f, json.dumps(w, ensure_ascii=False, separators=(",", ":"))
@@ -183,14 +194,15 @@ def _google():
         return set()
 
 
-ZAHLEN = {"x", "y", "w", "h", "groesse", "abstand", "dreh", "deckkraft", "ecken", "zeichen", "staerke"}
+ZAHLEN = {"x", "y", "w", "h", "groesse", "abstand", "dreh", "deckkraft", "ecken", "zeichen", "staerke",
+          "von", "bis"}                       # von/bis: Ausschnitt eines Videos in Sekunden
 WAHL = {"rolle": {"titel", "text", "bild"}, "aus": {"left", "center", "right"},
         "spiegeln": {"h", "v", "hv"}, "strich": {"voll", "gestrichelt", "gepunktet"},
         "form": {"rechteck", "kreis", "dreieck", "raute", "stern", "linie", "pfeil", "icon"},
         "maske": {"kreis", "bogen", "herz", "stern", "sechseck", "blob", "raute", "dreieck"},
         "geraet": {"handy", "tablet", "laptop", "browser"},
         "font": {"Montserrat", "Poppins", "Inter", "Oswald", "Playfair Display", "Lora", "Bebas Neue"} | _google()}
-SCHALTER = {"gesperrt", "fett", "gross", "nahtlos"}
+SCHALTER = {"gesperrt", "fett", "gross", "nahtlos", "stumm"}     # stumm: Video ohne Ton ausgeben
 GRUPPEN = {"ausschnitt": {"z", "x", "y"},
            "filter": {"hell", "kontrast", "saett", "grau", "sepia", "unschaerfe"},
            "rahmen": {"breite", "farbe"}, "rand": {"breite", "farbe"},
@@ -230,8 +242,11 @@ def pruefen(feld, v):
         return v
     if feld in ("text", "gruppe"):
         return str(v)[:4000]
+    if feld == "feld":                         # Spalte der Serie (Massenerstellung)
+        return serie_name(v) or None
     sys.exit("Feld %s gibt es nicht. Erlaubt: %s, Gruppen %s" % (
-        feld, ", ".join(sorted(ZAHLEN | set(WAHL) | SCHALTER | {"farbe", "fuellung", "datei", "icon", "text", "gruppe"})),
+        feld, ", ".join(sorted(ZAHLEN | set(WAHL) | SCHALTER | {"farbe", "fuellung", "datei", "icon", "text", "gruppe",
+                                                                "feld"})),
         ", ".join(g + ".*" for g in sorted(GRUPPEN))))
 
 
@@ -259,6 +274,99 @@ def stil_setzen(stil, paare):
             stil[f] = pruefen("x", wert(roh))
         else:
             stil[f] = pruefen(art, roh)
+
+
+# ------------------------------------------------------------ Serie (Massenerstellung)
+# Wie serieFelder in render.js: gleiche Namen, gleiche Vorschlaege.
+PLATZHALTER = re.compile(r"\{\{([^{}<>\n]{1,60})\}\}")      # ohne \s*: sonst quadratisch bei Leerzeichen
+
+
+def serie_name(v):
+    s = re.sub(r"[\x00-\x1f\x7f<>{}]", "", str("" if v is None else v)[:200])
+    return " ".join(s.split())[:40]
+
+
+def serie_felder(d, folien):
+    """Texte und Bilder der Vorlage-Folien als moegliche Spalten:
+    [{folie, id, typ, art (ganz|stelle), name, an}], an = gilt ohne weiteres Zutun."""
+    aus, mehr, fest, zaehler = [], len(folien) > 1, set(), {}
+
+    def liste(i):
+        bl = d["slides"][i].get("bloecke") or []
+        return [b for b in bl[:200] if isinstance(b, dict) and b.get("id") and b.get("typ") != "form"]
+
+    def stellen(b):
+        aus_ = []
+        for s in PLATZHALTER.findall(str(b.get("text") or "")[:20000]):
+            s = serie_name(s)
+            if s and s not in aus_ and len(aus_) < 10:          # wie SERIE_MAX_STELLEN
+                aus_.append(s)
+        return aus_
+    for i in folien:
+        for b in liste(i):
+            if serie_name(b.get("feld")):
+                fest.add(serie_name(b["feld"]).lower())
+            if b.get("typ") != "bild":
+                fest |= {s.lower() for s in stellen(b)}
+
+    def vorschlag(basis):
+        while True:
+            zaehler[basis] = zaehler.get(basis, 0) + 1
+            n = basis + (" %d" % zaehler[basis] if zaehler[basis] > 1 else "")
+            if n.lower() not in fest:
+                return n
+    for i in folien:
+        vor = "F%d " % (i + 1) if mehr else ""
+        for b in liste(i):
+            n = serie_name(b.get("feld"))
+            if b.get("typ") == "bild":
+                aus.append(dict(folie=i, id=b["id"], typ="bild", art="ganz", name=n or vorschlag(vor + "Bild"), an=bool(n)))
+                continue
+            st = stellen(b)
+            if st:
+                aus += [dict(folie=i, id=b["id"], typ="text", art="stelle", name=s, an=True) for s in st]
+                continue
+            aus.append(dict(folie=i, id=b["id"], typ="text", art="ganz", an=bool(n),
+                            name=n or vorschlag(vor + ("Hook" if b.get("rolle") == "titel" else "Text"))))
+    if not mehr and not any(f["an"] for f in aus):
+        for f in aus:
+            if f["typ"] == "text":
+                f["an"] = True
+    return aus[:400]                                            # wie SERIE_MAX_FELDER
+
+
+def serie_folien(d, wahl):
+    """'3', '2-4' oder 'alle' -> Indizes der Vorlage-Folien"""
+    n = len(d["slides"])
+    if wahl == "alle":
+        return list(range(min(n, 20)))
+    m = re.fullmatch(r"(\d+)(?:-(\d+))?", wahl or "")
+    if not m:
+        sys.exit("Vorlage als Folie (3), Bereich (2-4) oder alle")
+    von, bis = int(m.group(1)), int(m.group(2) or m.group(1))
+    folie(d, von); folie(d, bis)
+    if bis < von or bis - von >= 20:
+        sys.exit("Bereich bitte aufsteigend, hoechstens 20 Folien")
+    return list(range(von - 1, bis))
+
+
+def tabelle_lesen(pfad):
+    """Erste Zeile = Spaltennamen. Getrennt mit Tab (aus Excel, Google Sheets), ; oder ,
+    (wie in der Kopfzeile); eine Spalte allein braucht kein Trennzeichen.
+    Zellen mit Zeilenumbruch oder Trennzeichen in Anfuehrungszeichen."""
+    import csv, io
+    p = Path(pfad)
+    if not p.is_file():
+        sys.exit("Tabelle nicht gefunden: %s" % sauber(str(p)))
+    if p.stat().st_size > 2_000_000:
+        sys.exit("Tabelle zu gross (hoechstens 2 MB)")
+    roh = p.read_text(encoding="utf-8-sig")
+    kopf = roh.lstrip("\r\n").split("\n", 1)[0]
+    trenner = next((t for t in ("\t", ";", ",") if t in kopf), "\t")
+    zeilen = [z for z in csv.reader(io.StringIO(roh), delimiter=trenner) if any(c.strip() for c in z)]
+    if len(zeilen) < 2:
+        sys.exit("Die Tabelle braucht eine Kopfzeile mit den Spaltennamen und darunter mindestens eine Zeile")
+    return [serie_name(c) for c in zeilen[0]], zeilen[1:]
 
 
 def ebenen_von(s):
@@ -377,6 +485,26 @@ def main(args):
         fmt = args[args.index("--format") + 1] if "--format" in args else "45"
         n = P.neu_aus_vorlage(args[2], v) if v else P.neu(args[2], fmt)
         P.setzen(n); print("angelegt und offen:", n); return
+    if befehl == "projekt" and len(args) > 2 and args[1] == "weg":
+        for n in args[2:]:
+            try:
+                print(sauber("im Papierkorb: %s" % P.in_papierkorb(n)))
+            except ValueError as e:
+                sys.exit(sauber("Ging nicht: %s" % e))
+        print(sauber("offen: %s" % (P.aktuelles() or "-")))
+        return
+    if befehl == "papierkorb":
+        if len(args) > 2 and args[1] == "zurueck":
+            try:
+                n = P.setzen(P.zurueckholen(args[2]))
+            except ValueError as e:
+                sys.exit(sauber("Ging nicht: %s" % e))
+            print(sauber("zurueck und offen: %s" % n)); return
+        liste = P.papierkorb()
+        for e in liste:
+            print(sauber("%-40s %s, %d Folien, %.1f MB" % (e["eintrag"], e["geloescht"], e["slides"], e["mb"])))
+        print("leer" if not liste else "Zurueckholen: k.py papierkorb zurueck <eintrag>")
+        return
     if befehl == "projekt":
         P.setzen(args[1]); print("offen:", args[1]); return
     if befehl == "vorlagen":
@@ -662,11 +790,51 @@ def main(args):
             print("  " + zeile(b, voll=bool(a["ids"])))
         return
 
+    if befehl == "video":
+        # Video hochladen (umwandeln, Standbild) und als ganze Folie ganz hinten einsetzen
+        if len(args) < 3:
+            sys.exit("python k.py video 3 <pfad zum video>")
+        s = folie(d, int(args[1]))
+        p = Path(" ".join(args[2:])).expanduser()
+        if not p.is_file():
+            sys.exit(sauber("Video nicht gefunden: %s" % str(p)[:160]))
+        if server_da():
+            from urllib.parse import quote
+            oeffner = request.build_opener(request.ProxyHandler({}))
+            url = "http://127.0.0.1:%d/video?name=%s&projekt=%s" % (PORT, quote(p.name), quote(name))
+            with open(p, "rb") as f:
+                rq = request.Request(url, data=f, method="POST", headers={"Content-Length": str(p.stat().st_size)})
+                with oeffner.open(rq, timeout=3600) as r:
+                    j = json.loads(r.read().decode("utf-8"))
+        else:
+            import video as V
+            try:
+                with open(p, "rb") as f:
+                    j = dict(V.ablegen(P.ordner(name), p.name, f, p.stat().st_size), ok=True)
+            except ValueError as e:
+                j = {"ok": False, "fehler": str(e)}
+        if not j.get("ok"):
+            sys.exit(sauber("Video ging nicht: %s" % j.get("fehler")))
+        d = lesen(name); s = folie(d, int(args[1]))
+        b = {"id": neue_id(d), "typ": "bild", "datei": j["datei"], "x": 0, "y": 0,
+             "w": int(st["breite"]), "h": int(st["hoehe"])}
+        s.setdefault("bloecke", []).append(b)
+        s["ebenen"] = [b["id"]] + [x for x in ebenen_von(s) if x != b["id"]]
+        schreiben(d, name)
+        print(zeile(b))
+        print(sauber("Laenge %.1f s, %d x %d, %s." % (j.get("dauer", 0), j.get("w", 0), j.get("h", 0),
+                                                       "mit Ton" if j.get("ton") else "ohne Ton")
+                     + (" Im Karussell hoechstens 60 s: setze %s %s von=.. bis=.." % (args[1], b["id"])
+                        if j.get("dauer", 0) > 60 else "")))
+        return
+
     if befehl == "frei":
         import freisteller as F
         s = folie(d, int(args[1])); b = element(s, args[2])
         if b.get("typ") != "bild":
             sys.exit("%s ist kein Bild" % args[2])
+        if re.search(r"\.(mp4|m4v|mov|webm)$", str(b.get("datei") or ""), re.I):
+            sys.exit("Hintergrund entfernen geht nur bei Bildern, nicht bei Videos")
         roh = P.datei_ok(b.get("original") or b["datei"])
         if server_da():
             # Ueber den Server, damit nie zwei gruendliche Laeufe (je ~3 GB) zugleich rechnen
@@ -689,7 +857,7 @@ def main(args):
     if befehl == "format":
         # Gleiche Rechnung wie die Formatwahl im Cockpit (render.js, im Browser gemessen)
         if len(args) < 2:
-            sys.exit("python k.py format 3:4   oder   python k.py format 4:5")
+            sys.exit("python k.py format 3:4   oder   4:5   oder   9:16")
         zeilen = lambda t: "\n".join(sauber(z) for z in t.split("\n"))   # sauber() nimmt sonst die Umbrueche
         if server_da():
             print(zeilen(post("format", args[1], name)))
@@ -698,6 +866,130 @@ def main(args):
             srv, port = bauen.server()
             try:
                 print(zeilen(bauen.format_umstellen(port, name, args[1])))
+            except ValueError as e:
+                sys.exit(sauber(str(e)))
+            finally:
+                srv.shutdown()
+        return
+
+    if befehl == "story":
+        # Neues Karussell in 9:16 aus Folie 3 (oder allen), Original bleibt. Wie der Knopf
+        # "Als Story oder Reel-Titelbild" im Cockpit: umgerechnet wie bei k.py format.
+        import shutil
+        reel = "--reel" in args
+        args = [a for a in args if a != "--reel"]
+        neu_name = None
+        if "--name" in args:
+            i = args.index("--name"); neu_name = args[i + 1] if i + 1 < len(args) else ""; del args[i:i + 2]
+        wahl = args[1] if len(args) > 1 else "1"
+        nummern = list(range(1, min(len(d["slides"]), 100) + 1)) if wahl == "alle" else [int(wahl)]
+        for nr in nummern:
+            folie(d, nr)
+        n = P.duplizieren(P.frei_name(neu_name or name + ("-titelbild" if reel else "-story")), name)
+        try:
+            d2 = P.lesen(n)
+            d2["slides"] = [d2["slides"][nr - 1] for nr in nummern]
+            d2.pop("serie", None)
+            P.schreiben(d2, n)
+            if server_da():
+                aus = post("format", "9:16", n)
+            else:
+                import bauen
+                srv, port = bauen.server()
+                try:
+                    aus = bauen.format_umstellen(port, n, "9:16")
+                finally:
+                    srv.shutdown()
+            if aus.startswith("Fehler") or "laeuft schon" in aus:
+                raise ValueError(aus)
+            d3 = P.lesen(n)
+            d3.setdefault("stil", {})["ziel"] = "reel" if reel else "story"
+            P.schreiben(d3, n)
+        except (ValueError, OSError) as e:
+            shutil.rmtree(P.PROJEKTE / n, ignore_errors=True)
+            sys.exit(sauber("Ging nicht: %s" % " ".join(str(e).split())[:300]))
+        P.setzen(n)
+        print(sauber("Neues Karussell %s in 9:16 (%s), ist offen." % (n, "Reel-Titelbild" if reel else "Story")))
+        print("\n".join(sauber(z) for z in aus.split("\n")[1:]))
+        return
+
+    if befehl == "serie":
+        # python k.py serie [3|2-4|alle]                  Felder (Spalten) der Vorlage zeigen
+        # python k.py serie 3 tabelle.tsv [--name x]      je Zeile eine Folie, neues Karussell
+        # python k.py serie 3 tabelle.tsv --anhaengen     je Zeile eine Folie, hinten an dieses
+        # python k.py serie alle tabelle.tsv [--name x]   je Zeile ein ganzes Karussell
+        anhaengen = "--anhaengen" in args
+        args = [x for x in args if x != "--anhaengen"]
+        neu_name = None
+        if "--name" in args:
+            i = args.index("--name"); neu_name = args[i + 1] if i + 1 < len(args) else ""; del args[i:i + 2]
+        folien = serie_folien(d, args[1] if len(args) > 1 else "1")
+        felder = serie_felder(d, folien)
+        if len(args) < 3:
+            nr = lambda f: ("Folie %d " % (f["folie"] + 1)) if len(folien) > 1 else ""
+            an = [f for f in felder if f["an"]]
+            print("Spalten der Serie (Vorlage %s):" % (args[1] if len(args) > 1 else "1"))
+            for f in an:
+                b = element(d["slides"][f["folie"]], f["id"])
+                print(sauber("  %-14s %s%s %s" % (f["name"], nr(f), f["id"], zeile(b)[len(f["id"]):].strip()[:80]
+                                                    + ("  (nur {{%s}})" % f["name"] if f["art"] == "stelle" else ""))))
+            rest = [f for f in felder if not f["an"]]
+            if rest:
+                print(sauber("Nicht dabei: " + ", ".join("%s%s %s" % (nr(f), f["id"], f["typ"]) for f in rest[:12])))
+                print("Dazunehmen: k.py setze <folie> <id> feld=<Name>   (feld= nimmt es wieder raus)")
+            print("Tabelle: erste Zeile = Spaltennamen, getrennt mit Tab, ; oder ,. Bilder: Dateiname im Projekt "
+                  "oder Pfad zu einer Bilddatei. Leere Textzelle = Text faellt weg.")
+            return
+        kopf, zeilen_ = tabelle_lesen(args[2])
+        an = [f for f in felder if f["an"]]
+        bekannt = {f["name"].lower() for f in an}
+        fremd = [k_ for k_ in kopf if k_ and k_.lower() not in bekannt]
+        if fremd:
+            sys.exit(sauber("Spalte ohne Feld: %s. Felder: %s. Dazunehmen: k.py setze <folie> <id> feld=<Name>"
+                            % (", ".join(fremd[:5]), ", ".join(dict.fromkeys(f["name"] for f in an)) or "-")))
+        # Grenzen wie in serieBauen schon hier: sonst landen Bilder fuer eine abgelehnte Serie im Projekt
+        voll = [z for z in zeilen_ if any(c.strip() for c in z)]
+        einzeln = anhaengen or len(folien) == 1
+        if einzeln and len(voll) * len(folien) > 100:
+            sys.exit("Hoechstens 100 Folien auf einmal (%d gewuenscht)" % (len(voll) * len(folien)))
+        if not einzeln and len(voll) > 30:
+            sys.exit("Hoechstens 30 Karussells auf einmal (%d Zeilen)" % len(voll))
+        # Bildspalten: Dateien von ausserhalb ins Projekt holen (verkleinert, ohne Ortsdaten)
+        bildspalten = {i for i, k_ in enumerate(kopf) if any(f["typ"] == "bild" and f["name"].lower() == k_.lower() for f in an)}
+        if bildspalten:
+            import bauen, os
+            ordner = P.ordner(name)
+            for z in zeilen_:
+                for i in bildspalten:
+                    if i >= len(z) or not z[i].strip():
+                        continue
+                    c = z[i].strip()
+                    if P.DATEI.fullmatch(c) and (ordner / c).is_file():
+                        continue
+                    # Nie Netzwerkpfade (\\server\...): Windows wuerde sich dort anmelden
+                    if os.path.splitdrive(c)[0][:2] in ("\\\\", "//") or c[:2] in ("\\\\", "//"):
+                        sys.exit(sauber("Netzwerkpfade gehen nicht, Bild bitte lokal ablegen: %s" % c[:120]))
+                    p = Path(c).expanduser()
+                    if not p.is_file() or p.suffix.lower() not in bauen.BILDARTEN:
+                        sys.exit(sauber("Bild nicht gefunden (weder im Projekt noch als Datei): %s" % c[:120]))
+                    if p.stat().st_size > bauen.MAX_UPLOAD:
+                        sys.exit(sauber("Bild zu gross: %s" % p.name))
+                    try:
+                        z[i] = bauen.bild_ablegen(ordner, re.sub(r"[^A-Za-z0-9_.\-]", "_", p.name).strip(". -")
+                                                  or "bild.jpg", p.read_bytes())
+                    except ValueError as e:
+                        sys.exit(sauber("%s: %s" % (p.name, e)))
+        auftrag = {"folien": folien, "spalten": kopf, "zeilen": zeilen_, "anpassen": True,
+                   "felder": [{k_: f[k_] for k_ in ("folie", "id", "art", "name")} for f in an],
+                   "zusammen": anhaengen or len(folien) == 1}
+        zeilen = lambda t: "\n".join(sauber(z) for z in t.split("\n"))
+        if server_da():
+            print(zeilen(post("serie", json.dumps({"auftrag": auftrag, "anhaengen": anhaengen, "name": neu_name}), name)))
+        else:
+            import bauen
+            srv, port = bauen.server()
+            try:
+                print(zeilen(bauen.serie(port, name, auftrag, anhaengen=anhaengen, neuer_name=neu_name)))
             except ValueError as e:
                 sys.exit(sauber(str(e)))
             finally:

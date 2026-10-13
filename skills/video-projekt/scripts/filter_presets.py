@@ -101,6 +101,8 @@ LOOKS = {
     'golden': 'Golden Hour',
     'moody':  'Moody',
     'bleach': 'Bleach Bypass',
+    'gegenlicht': 'Gegenlicht zähmen',
+    'matrix': 'Matrix (Grün)',
 }
 FARBE = 'farbe'
 FARBE_NAME = 'Farbe behalten (Sin City)'
@@ -157,6 +159,16 @@ def look_rgb(name, r, g, b):
     elif name == 'bleach':                   # halb entsaettigt, harter Kontrast
         c = [k + (y - k) * 0.55 for k in c]
         c = [k * 0.98 for k in _con(c, 1.35)]
+    elif name == 'gegenlicht':               # Fenster im Ruecken: Dunst raus, Lichter runter
+        c = [_clip((k - 0.09) / 0.91) ** 0.86 for k in c]      # Schleier weg, Mitten halten
+        c = [k if k < 0.58 else 0.58 + (k - 0.58) * 0.5 for k in c]
+        c = _sat(c, 1.12)
+    elif name == 'matrix':                   # alles ins Gruene, am staerksten in den Mitten
+        c = _sat(c, 0.6)                     # Eigenfarben zuruecknehmen
+        m = 4 * y * (1 - y)                  # Gewicht: Mitten 1, Schwarz/Weiss 0
+        c = [c[0] * 0.905 - 0.010 * m, c[1] * 1.03 + 0.025 * m,
+             c[2] * 0.86 - 0.007 * m]        # Weiss wird mintgruen, nicht limette
+        c = _con(c, 1.15)                    # tiefe Schwaerzen
     return [_clip(k) for k in c]
 
 

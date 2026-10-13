@@ -20,6 +20,7 @@ Qualitaet steuern (optional, in projekt.json):
 import json
 import os
 import platform
+import shutil
 import subprocess
 import sys
 
@@ -68,7 +69,8 @@ def _ass_zeit(s):
     return int(h) * 3600 + int(m) * 60 + float(rest)
 
 
-def untertitel_y_regionen(ass_pfad, regionen, playresx=1080, playresy=1920):
+def untertitel_y_regionen(ass_pfad, regionen, playresx=1080, playresy=1920,
+                          basis_y=None):
     """Laesst den Untertitel mitfahren, wenn das BILD faehrt.
 
     `captions.y_regions` = [{"von": 4.5, "bis": 49.5, "y": 0.66,
@@ -87,18 +89,27 @@ def untertitel_y_regionen(ass_pfad, regionen, playresx=1080, playresy=1920):
         zeilen = f.read().split('\n')
 
     grund = None
+    mitte_x = playresx // 2
     for z in zeilen:
         if z.startswith('Style: Cap,'):
-            grund = int(z.split(',')[-2])     # MarginV = vorletztes Feld
+            felder = z.split(',')
+            grund = int(felder[-2])           # MarginV = vorletztes Feld
+            # Mitte des Textbereichs (MarginL/MarginR sind ungleich, rechts
+            # bleibt Platz fuer die Instagram-Knoepfe) - fuer \move
+            mitte_x = (int(felder[-4]) + playresx - int(felder[-3])) // 2
             break
     if grund is None:
         return
+    # animated_captions.py rueckt die Schrift um die halbe CSS-Zeilenhoehe
+    # nach unten (wie im Cockpit); dieselbe Korrektur gilt fuer jede Region.
+    korrektur = (grund - int(round(float(basis_y) * playresy))
+                 if basis_y is not None else 0)
 
     def y_bei(t):
         """MarginV zum Zeitpunkt t, mit weicher S-Kurve an den Kanten."""
         for r in regionen:
             von, bis = float(r['von']), float(r['bis'])
-            ziel = int(round(float(r['y']) * playresy))
+            ziel = int(round(float(r['y']) * playresy)) + korrektur
             ra = float(r.get('rampe', 0.6)) or 0.0001
             if von <= t <= bis:
                 p = min(1.0, (t - von) / ra)
@@ -122,7 +133,7 @@ def untertitel_y_regionen(ass_pfad, regionen, playresx=1080, playresy=1920):
         f[7] = str(ya)
         if ya != yb:
             f[9] = '{{\\move({},{},{},{},0,{})}}'.format(
-                playresx // 2, ya, playresx // 2, yb,
+                mitte_x, ya, mitte_x, yb,
                 int(round((b - a) * 1000))) + f[9]
         raus.append(','.join(f))
 
@@ -469,8 +480,14 @@ def main():
         # dahinter, gilt das Wort als erhalten (Start wird auf Schnittende
         # geklemmt), sonst verschwaende es faelschlich aus den Untertiteln.
         words = []
+        # captions.ausblenden = [{von, bis}] in Rohzeit: dort keine
+        # Untertitel (z. B. solange der Hook-Text steht), wie im Cockpit
+        aus = [(float(r['von']), float(r['bis']))
+               for r in (cap.get('ausblenden') or [])]
         for w in pj['words']:
             ws, we = float(w['start']), float(w['end'])
+            if any(a <= ws < b for a, b in aus):
+                continue
             voll_im_schnitt = any(s <= ws and we <= e for s, e in master_cuts)
             if voll_im_schnitt:
                 continue
@@ -509,7 +526,8 @@ def main():
         run(cmd)
         # Untertitel faehrt mit, wenn das Bild fuer eine Grafik wegfaehrt
         untertitel_y_regionen('untertitel.ass', cap.get('y_regions') or [],
-                              playresx=W, playresy=H)
+                              playresx=W, playresy=H,
+                              basis_y=float(cap.get('y', 0.72)))
         cfg['captions'] = 'untertitel.ass'
 
     # --- Freie Text-Overlays ----------------------------------------------
@@ -523,6 +541,17 @@ def main():
         with open('r_texts.json', 'w', encoding='utf-8') as f:
             json.dump({'texts': texts, 'width': cfg['width'],
                        'height': cfg['height']}, f, ensure_ascii=False)
+        # Kit-Schriften neben die .ass legen (prolook reicht den Ordner als
+        # fontsdir an ffmpeg) — dieselben Dateien wie im Cockpit
+        kit_schr = os.path.join(HERE, '..', 'schriften')
+        if os.path.isdir(kit_schr):
+            os.makedirs('schriften', exist_ok=True)
+            for d in os.listdir(kit_schr):
+                if d.lower().endswith(('.ttf', '.otf')):
+                    q, z = os.path.join(kit_schr, d), os.path.join('schriften', d)
+                    if (not os.path.exists(z)
+                            or os.path.getsize(z) != os.path.getsize(q)):
+                        shutil.copyfile(q, z)
         run([sys.executable, TO, 'r_texts.json', 'texte.ass'])
         cfg['text_overlays'] = 'texte.ass'
 

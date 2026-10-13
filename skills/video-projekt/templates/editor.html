@@ -719,6 +719,8 @@ header > .spacer { flex:1; }
       <div class="row"><label>Schrift</label>
         <select id="capFont"><!-- wird aus P._schriften gefuellt: Windows
           und Mac haben komplett verschiedene Schriften --></select></div>
+      <div class="row" id="capFontWarn" style="display:none;color:#f5a623;font-size:11px;line-height:1.35">
+        Diese Schrift kennt der Browser nicht. Die Vorschau zeigt eine Ersatzschrift, im fertigen Video sieht sie anders aus.</div>
       <div class="row"><label>Größe</label><input type="range" id="capSize" min="36" max="110" value="64"><span id="capSizeV">64</span></div>
       <div class="row"><label>Fett</label><input type="checkbox" id="capBold" checked></div>
       <div class="row"><label>Wörter pro Einblendung</label><input type="range" id="capGroup" min="1" max="6" value="3" style="width:70px"><span id="capGroupV">3</span></div>
@@ -890,6 +892,7 @@ header > .spacer { flex:1; }
 <audio id="vo" preload="auto"></audio>
 <script src="waveform_data.js"></script>
 <script src="filter_luts.js"></script>
+<script src="schriften_data.js"></script>
 <script src="projekt_data.js"></script>
 <script>
 let P = window.PROJEKT || {};
@@ -900,6 +903,34 @@ const FONTS = (P._schriften && P._schriften.length) ? P._schriften.slice()
   : ['Arial', 'Arial Black', 'Impact', 'Georgia', 'Verdana', 'Tahoma',
      'Trebuchet MS', 'Times New Roman', 'Courier New', 'Comic Sans MS'];
 const STDFONT = P._standardschrift || FONTS[0];
+// Kit-Schriften (Zweifachschrift: Poppins Black + Playfair Display kursiv)
+// kommen eingebettet aus schriften_data.js — unter file:// laedt Chrome keine
+// Schriftdateien per @font-face. Dieselben Dateien nimmt der Render.
+(window.KIT_SCHRIFTEN || []).forEach(s => {
+  try {
+    const bin = Uint8Array.from(atob(s.data), c => c.charCodeAt(0));
+    const ff = new FontFace(s.family, bin.buffer,
+      { style: s.style || 'normal', weight: s.weight || '400' });
+    document.fonts.add(ff);
+    ff.load().then(() => {
+      for (const k in schriftCache) delete schriftCache[k];
+      if (typeof drawTexts === 'function') drawTexts(true);
+    }).catch(() => {});
+  } catch (e) {}
+});
+// Weicher Schatten fuer Texte ("schatten": "weich"): dunkle Wolke nach
+// unten links, stark verwischt. Anteile der Schriftgroesse — text_overlays.py
+// rechnet mit denselben Zahlen (dort lur = Radius / 2).
+const TX_SCHATTEN = { dx: -0.06, dy: 0.10, r: 0.40, a: 0.65, a_farbig: 0.45 };
+function txSchatten(tx, sf){
+  if (tx.schatten !== 'weich') return '';
+  const g = tx.size * sf;
+  const weiss = /^#?f{6}$/i.test(String(tx.color || 'FFFFFF'));
+  const a = tx.schatten_alpha != null ? tx.schatten_alpha
+    : (weiss ? TX_SCHATTEN.a : TX_SCHATTEN.a_farbig);
+  return (TX_SCHATTEN.dx * g) + 'px ' + (TX_SCHATTEN.dy * g) + 'px '
+    + (TX_SCHATTEN.r * g) + 'px rgba(0,0,0,' + a + ')';
+}
 // aktuell = Schrift aus dem Projekt; stammt es von einem anderen System,
 // wird sie oben angehaengt, damit die Auswahl sie nicht verschluckt.
 function fuelleSchriften(aktuell) {
@@ -1263,6 +1294,39 @@ cap.addEventListener('dblclick', () => {
       inp.select(); } }
 });
 function scaleFactor(){ return stage.clientWidth / fmtInfo().W; }
+// ---------- Untertitel: Vorschau = fertiges Video (06.10.2026) -------------
+// Dieselben Werte stehen in pro-look-editing/scripts/animated_captions.py
+// (SCHEIN, CSS_ZEILENHOEHE, MODES['reel']). Alles im Pixelraum des fertigen
+// Videos, in der Vorschau mit scaleFactor() verkleinert, damit der Schein
+// bei jeder Fenstergroesse gleich aussieht.
+const CAP_SCHEIN = [[0, 0, 30], [0, 0, 15], [5, 5, 5]];   // CSS text-shadow x y r
+const CAP_RAND_L = 55, CAP_RAND_R = 165;   // rechts frei fuer die Instagram-Knoepfe
+// Chrome kennt manche Schriften unter anderem Namen als libass/ffmpeg.
+// 'Arial Rounded MT Bold' ist in Chrome unbekannt und fiel still auf Arial
+// Bold zurueck, waehrend das Video Arial Rounded zeigte.
+const SCHRIFT_CSS = { 'Arial Rounded MT Bold': "'Arial Rounded MT Bold','Arial Rounded MT'" };
+function cssSchrift(name){
+  name = name || 'Segoe UI';
+  return (SCHRIFT_CSS[name] || "'" + name + "'") + ',sans-serif';
+}
+// Kennt der Browser die Schrift? Gegenprobe ueber zwei Ersatzschriften:
+// sind beide Breiten gleich wie ohne die Schrift, wurde sie nicht gefunden.
+const schriftCache = {};
+const schriftCtx = document.createElement('canvas').getContext('2d');
+function schriftDa(name){
+  if (!name) return true;
+  if (name in schriftCache) return schriftCache[name];
+  const fam = (SCHRIFT_CSS[name] || "'" + name + "'");
+  const probe = 'nicht an Noten 0123 WMiil';
+  let da = false;
+  for (const ersatz of ['serif', 'monospace']) {
+    schriftCtx.font = '800 40px ' + ersatz;
+    const ohne = schriftCtx.measureText(probe).width;
+    schriftCtx.font = '800 40px ' + fam + ',' + ersatz;
+    if (Math.abs(schriftCtx.measureText(probe).width - ohne) > 0.5) da = true;
+  }
+  return (schriftCache[name] = da);
+}
 function boxRgba(){
   const h = String(C.box_color || '000000').replace('#', '');
   return 'rgba(' + parseInt(h.slice(0,2),16) + ',' + parseInt(h.slice(2,4),16)
@@ -1271,13 +1335,40 @@ function boxRgba(){
 }
 function drawCap(){
   cap.style.display = (capOn.checked && cues.length) ? 'block' : 'none';
-  cap.style.fontSize = (capSize.value * scaleFactor()) + 'px';
-  cap.style.fontFamily = "'" + (C.font || 'Segoe UI') + "',sans-serif";
+  const sf = scaleFactor();
+  cap.style.fontSize = (capSize.value * sf) + 'px';
+  cap.style.fontFamily = cssSchrift(C.font);
   cap.style.fontWeight = C.bold === false ? '500' : '800';
   cap.style.color = capPrim.value;
-  cap.style.top = (C.y * 100) + '%';
+  // captions.y_regions = [{von, bis, y}] in OUTPUT-Zeit (wie render_projekt.py):
+  // dort steht der Untertitel woanders, z. B. unter dem Kinn einer Nahaufnahme.
+  // Rohzeit -> Output-Zeit: aktive Bildschnitte davor abziehen.
+  let capY = C.y;
+  if ((C.y_regions || []).length) {
+    const tr = masterTime();
+    let o = tr;
+    (P.cuts || []).forEach(c => {
+      if (c.active !== false && (!c.track || c.track === 'both') && c.start < tr)
+        o -= Math.min(c.end, tr) - c.start;
+    });
+    const r = C.y_regions.find(r => o >= +r.von && o <= +r.bis);
+    if (r) capY = +r.y;
+  }
+  cap.style.top = (capY * 100) + '%';
+  // Textbereich wie im Render: links 55 px, rechts 165 px frei
+  cap.style.left = (CAP_RAND_L * sf) + 'px';
+  cap.style.width = ((fmtInfo().W - CAP_RAND_L - CAP_RAND_R) * sf) + 'px';
+  // Weicher Schein wie im Render (mit Box hat der Render keinen Schein)
+  cap.style.textShadow = C.box ? 'none' : CAP_SCHEIN.map(([x, y, r]) =>
+    (x * sf) + 'px ' + (y * sf) + 'px ' + (r * sf) + 'px #000').join(',');
+  const warn = document.getElementById('capFontWarn');
+  if (warn) warn.style.display = schriftDa(C.font) ? 'none' : '';
   const t = masterTime();
-  const cue = cues.find(c => t >= c[0].start && t <= c[c.length-1].end + 0.05);
+  // captions.ausblenden = [{von, bis}] in Rohzeit: dort keine Untertitel
+  // (z. B. solange der Hook-Text steht). Der Render laesst dieselben Woerter weg.
+  const aus = (C.ausblenden || []).some(r => t >= r.von && t < r.bis);
+  const cue = aus ? null
+    : cues.find(c => t >= c[0].start && t <= c[c.length-1].end + 0.05);
   let html = cue ? cue.map(w =>
     (C.highlight_on !== false && t >= w.start
       && (t <= w.end || w === cue[cue.length-1]))
@@ -1319,9 +1410,17 @@ function computeLines(tx){
 }
 function styleStageText(d, tx){
   computeLines(tx);
-  d.style.fontFamily = "'" + (tx.font || 'Segoe UI') + "',sans-serif";
+  d.style.fontFamily = cssSchrift(tx.font);
   d.style.fontSize = (tx.size * scaleFactor()) + 'px';
   d.style.fontWeight = tx.bold === false ? '500' : '800';
+  d.style.fontStyle = tx.italic ? 'italic' : 'normal';
+  d.style.textShadow = txSchatten(tx, scaleFactor());
+  // Feiner schwarzer Rand ("rand" in px, nur mit weichem Schatten): libass
+  // zeichnet die Kontur ganz nach aussen, CSS mittig auf die Kante — darum
+  // doppelt so breit und die Fuellung oben drauf (paint-order).
+  const rand = tx.schatten === 'weich' && !tx.box ? +(tx.rand || 0) : 0;
+  d.style.webkitTextStroke = rand ? (2 * rand * scaleFactor()) + 'px #000' : '';
+  d.style.paintOrder = rand ? 'stroke fill' : '';
   d.style.color = '#' + String(tx.color || 'FFFFFF').replace('#', '');
   d.style.left = (tx.x * 100) + '%';
   d.style.top = (tx.y * 100) + '%';
@@ -2298,9 +2397,13 @@ function drawZoomFx(){
     // EXAKT dieselbe Formel wie im Render (prolook): reinfahren -> halten
     // -> rausfahren. ramp 0 = sofortiger, harter Zoom.
     const half = (z.end - z.start) / 2;
-    const ri = Math.min(Math.max(0.03, zRampIn(z)), half);
-    const ro = Math.min(Math.max(0.03, zRampOut(z)), half);
-    const prog = Math.max(0, Math.min(1, (t - z.start) / ri, (z.end - t) / ro));
+    const riRoh = zRampIn(z), roRoh = zRampOut(z);
+    const ri = Math.min(Math.max(0.03, riRoh), half);
+    const ro = Math.min(Math.max(0.03, roRoh), half);
+    // Rampe 0 = schon im ersten (bzw. bis zum letzten) Bild voll gezoomt
+    const ps = riRoh <= 0 ? z.start - ri : z.start;
+    const pe = roRoh <= 0 ? z.end + ro : z.end;
+    const prog = Math.max(0, Math.min(1, (t - ps) / ri, (pe - t) / ro));
     const f = 1 + ((z.zoom || 1.15) - 1) * prog;
     // Zielpunkt (x,y) kommt in die MITTE — exakt wie im Render:
     // erst verschieben, dann vergroessern; Verschiebung am Rand begrenzt.
@@ -2358,7 +2461,15 @@ function renderTextList(){
         <span style="font-size:11px;min-width:26px">${tx.size}</span></div>
       <div class="row"><label style="font-size:11px">Farbe / Fett</label>
         <input type="color" class="tcol" value="#${String(tx.color || 'FFFFFF').replace('#','')}">
-        <input type="checkbox" class="tbold" ${tx.bold !== false ? 'checked' : ''} title="Fett"></div>
+        <input type="checkbox" class="tbold" ${tx.bold !== false ? 'checked' : ''} title="Fett">
+        <label style="font-size:11px" title="Kursiv">K</label>
+        <input type="checkbox" class="tital" ${tx.italic ? 'checked' : ''} title="Kursiv"></div>
+      <div class="row"><label style="font-size:11px">Weicher Schatten</label>
+        <input type="checkbox" class="tschatten" ${tx.schatten === 'weich' ? 'checked' : ''}
+          title="Dunkle, verwischte Wolke hinter dem Text (Zweifachschrift)">
+        <label style="font-size:11px" title="Feiner schwarzer Rand in Pixeln (0 = aus)">Rand</label>
+        <input type="number" class="trand" min="0" max="8" step="0.5" value="${tx.rand || 0}"
+          style="width:46px" title="Feiner schwarzer Rand in Pixeln (0 = aus)"></div>
       <div class="row"><label style="font-size:11px">Hintergrund</label>
         <input type="checkbox" class="tboxon" ${tx.box ? 'checked' : ''}>
         <input type="color" class="tboxcol" value="#${String(tx.box_color).replace('#','')}"></div>
@@ -2383,6 +2494,11 @@ function renderTextList(){
       ev.target.nextElementSibling.textContent = ev.target.value; upd(); };
     d.querySelector('.tcol').oninput = ev => { tx.color = ev.target.value; upd(); };
     d.querySelector('.tbold').oninput = ev => { tx.bold = ev.target.checked; upd(); };
+    d.querySelector('.tital').oninput = ev => { tx.italic = ev.target.checked; upd(); };
+    d.querySelector('.tschatten').oninput = ev => {
+      tx.schatten = ev.target.checked ? 'weich' : ''; upd(); };
+    d.querySelector('.trand').oninput = ev => {
+      tx.rand = Math.max(0, +ev.target.value || 0); upd(); };
     d.querySelector('.tboxon').oninput = ev => { tx.box = ev.target.checked; upd(); };
     d.querySelector('.tboxcol').oninput = ev => {
       tx.box_color = ev.target.value.replace('#',''); upd(); };

@@ -92,7 +92,7 @@ def ordner_setzen(pfad):
 
 
 def _pfade(daten):
-    global DATEN, PROJEKTE, AKTUELL, EXPORT, VORLAGEN, SCHRIFTEN, AUFTRAEGE, MODELLE
+    global DATEN, PROJEKTE, AKTUELL, EXPORT, VORLAGEN, SCHRIFTEN, AUFTRAEGE, MODELLE, PAPIERKORB
     DATEN     = daten
     PROJEKTE  = DATEN / "projekte"
     AKTUELL   = PROJEKTE / "aktuell.txt"
@@ -101,6 +101,7 @@ def _pfade(daten):
     SCHRIFTEN = DATEN / "schriften"                # google.css, google.json, google/<ordner>/
     AUFTRAEGE = DATEN / ".auftraege"               # nie im Projektordner: kein Projekt bringt einen mit
     MODELLE   = [DATEN / "modelle", KIT_HOME / "modelle"]
+    PAPIERKORB = DATEN / "papierkorb"              # geloeschte Karussells samt Ausgabe, zurueckholbar
 
 
 _pfade(_datenordner())
@@ -121,7 +122,7 @@ def geraet(teil):
     return bool(GERAET.fullmatch(str(teil).rstrip(" .")))
 # Was beim Kopieren (Duplizieren, Vorlagen) mitgeht: nur Daten, keine Seiten
 # oder Skripte, keine Verknuepfungen
-DATENARTEN = {".json", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".txt"}
+DATENARTEN = {".json", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".txt", ".mp4"}   # .mp4: Videos (video.py)
 
 
 def datei_ok(roh):
@@ -137,7 +138,8 @@ STIL_STD = {"breite": 1080, "hoehe": 1350, "bg": "#dee3e7", "text": "#313538",
 
 # Breite und Schriftgroessen bleiben, nur Hoehe und Abstaende gehen mit.
 FORMATE = {"45": {"hoehe": 1350, "randOben": 354, "randUnten": 94},
-           "34": {"hoehe": 1440, "randOben": 377, "randUnten": 100}}
+           "34": {"hoehe": 1440, "randOben": 377, "randUnten": 100},
+           "916": {"hoehe": 1920, "randOben": 420, "randUnten": 330}}     # Story, Reel-Titelbild
 
 
 def slug(roh):
@@ -319,6 +321,200 @@ def duplizieren(name, von=None):
     return n
 
 
+SERIE_MAX = 30          # Karussells je Serie, wie SERIE_MAX_KARUSSELLS in render.js
+
+
+def frei_name(name):
+    """Wie _frei, vergibt aber selbst den naechsten freien Namen (name, name-2, name-3 ...)."""
+    basis = slug(name)[:55].strip("-")
+    if not basis:
+        raise ValueError("Bitte einen Namen eingeben.")
+    for i in range(1, 1000):
+        n = basis if i == 1 else "%s-%d" % (basis, i)
+        if not (PROJEKTE / n).exists():
+            return n
+    raise ValueError("Kein freier Name fuer %s" % basis)
+
+
+def serie_anlegen(von, karussells):
+    """Massenerstellung: je Eintrag {"name", "slides"} ein neues Karussell mit Look und
+    Bildern der Vorlage (von) und den fertig gerechneten Folien (render.js, serieBauen).
+    Gibt die angelegten Namen zurueck. Geht eins schief, kommen alle wieder weg."""
+    if not isinstance(karussells, list) or not 1 <= len(karussells) <= SERIE_MAX:
+        raise ValueError("1 bis %d Karussells je Serie" % SERIE_MAX)
+    for k in karussells:
+        if not (isinstance(k, dict) and isinstance(k.get("name"), str) and isinstance(k.get("slides"), list)
+                and 1 <= len(k["slides"]) <= 100 and all(isinstance(s, dict) for s in k["slides"])):
+            raise ValueError("ungueltige Serie")
+    quelle = ordner(von)
+    # Alles ausser Folien, Tabelle und Vorlagen-Info kommt aus der Vorlage (stil ...)
+    kopf = {k: v for k, v in lesen(von).items() if k not in ("slides", "serie", "vorlage")}
+    namen = []
+    try:
+        for k in karussells:
+            n = frei_name(k["name"])
+            ziel = PROJEKTE / n
+            ziel.mkdir()                       # exklusiv: ab hier gehoert der Ordner dieser Serie
+            namen.append(n)
+            daten = dict(kopf, slides=k["slides"])
+            benutzt = set()
+            _texte_in(daten, benutzt)
+            daten_filter = _nur_daten(".raster", "schriftprobe.png", "auftrag.json")
+
+            def weg(ordner_, namen_, benutzt=benutzt, daten_filter=daten_filter):
+                # Nur Bilder mitnehmen, die das neue Karussell auch zeigt (die Vorlage
+                # sammelt die Bilder aller Zeilen), alle anderen Daten wie beim Duplizieren
+                aus = set(daten_filter(ordner_, namen_))
+                rel = Path(ordner_).relative_to(quelle)
+                for x in namen_:
+                    p = Path(ordner_) / x
+                    r = (rel / x).as_posix()
+                    if r.endswith('.mp4.jpg') and r[:-4] in benutzt:
+                        continue                   # Standbild eines benutzten Videos
+                    if p.suffix.lower() in BILDARTEN and p.is_file() and r not in benutzt:
+                        aus.add(x)
+                return aus
+            shutil.copytree(quelle, ziel, ignore=weg, dirs_exist_ok=True)
+            schreiben(daten, n)
+    except BaseException:
+        for n in namen:
+            shutil.rmtree(PROJEKTE / n, ignore_errors=True)
+        raise
+    return namen
+
+
+BILDARTEN = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".mp4"}
+
+
+def _texte_in(o, aus, tiefe=0):
+    """Alle Zeichenketten in verschachtelten Daten: Bilddateien stehen in verschiedenen
+    Feldern (datei, original, bildfuellung, hg.datei ...)."""
+    if tiefe > 40:
+        return
+    if isinstance(o, str):
+        aus.add(o)
+    elif isinstance(o, dict):
+        for v in o.values():
+            _texte_in(v, aus, tiefe + 1)
+    elif isinstance(o, list):
+        for v in o:
+            _texte_in(v, aus, tiefe + 1)
+
+
+# ------------------------------------------------------------ Papierkorb
+# Loeschen verschiebt nur: papierkorb/<name>__<zeit>/ mit projekt/, export/ (falls da)
+# und info.json. Zurueckholen geht, bis der User den Papierkorb im Cockpit leert.
+
+EINTRAG = re.compile(r"[a-z0-9][a-z0-9-]{0,59}__\d{8}-\d{6}(-\d{1,3})?")
+
+
+def in_papierkorb(name):
+    """Ein Karussell samt seinen fertigen Bildern in den Papierkorb. Gibt den Eintrag zurueck."""
+    quelle = ordner(name)                       # nur gueltige, vorhandene Projekte
+    if _verknuepft(quelle):
+        raise ValueError("%s ist eine Verknuepfung" % quelle.name)
+    try:
+        slides = len(lesen(quelle.name).get("slides") or [])
+    except (OSError, ValueError, AttributeError):
+        slides = 0
+    PAPIERKORB.mkdir(parents=True, exist_ok=True)
+    basis = "%s__%s" % (quelle.name, time.strftime("%Y%m%d-%H%M%S"))
+    eintrag, n = basis, 2
+    while (PAPIERKORB / eintrag).exists():
+        eintrag = "%s-%d" % (basis, n); n += 1
+    ziel = PAPIERKORB / eintrag
+    ziel.mkdir()
+    try:
+        shutil.move(str(quelle), str(ziel / "projekt"))
+    except OSError:
+        shutil.rmtree(ziel, ignore_errors=True)
+        raise ValueError("%s laesst sich gerade nicht verschieben (ist eine Datei daraus noch offen?)" % quelle.name)
+    ex = EXPORT / quelle.name
+    if ex.is_dir() and not _verknuepft(ex):
+        try:
+            shutil.move(str(ex), str(ziel / "export"))
+        except OSError:
+            pass                                # dann bleiben nur die fertigen Bilder liegen
+    try:
+        (AUFTRAEGE / (quelle.name + ".json")).unlink()
+    except OSError:
+        pass
+    (ziel / "info.json").write_text(json.dumps({"name": quelle.name, "slides": slides,
+                                                "geloescht": time.strftime("%Y-%m-%d %H:%M")},
+                                               ensure_ascii=False), encoding="utf-8")
+    try:
+        if AKTUELL.read_text(encoding="utf-8").strip() == quelle.name:
+            rest = liste()
+            if rest:
+                AKTUELL.write_text(rest[0], encoding="utf-8")
+            else:
+                AKTUELL.unlink()
+    except OSError:
+        pass
+    return eintrag
+
+
+def _eintrag_ordner(eintrag):
+    if not isinstance(eintrag, str) or not EINTRAG.fullmatch(eintrag):
+        raise ValueError("unbekannter Eintrag im Papierkorb")
+    o = PAPIERKORB / eintrag
+    if not o.is_dir() or _verknuepft(o):
+        raise ValueError("Eintrag gibt es nicht mehr")
+    return o
+
+
+def papierkorb():
+    """[{eintrag, name, slides, geloescht, mb}], neueste zuerst."""
+    if not PAPIERKORB.is_dir():
+        return []
+    aus = []
+    for o in PAPIERKORB.iterdir():
+        if not (o.is_dir() and EINTRAG.fullmatch(o.name)) or _verknuepft(o):
+            continue
+        try:
+            i = json.loads((o / "info.json").read_text(encoding="utf-8"))
+            i = i if isinstance(i, dict) else {}
+        except (OSError, ValueError):
+            i = {}
+        groesse = 0
+        for wurzel, _, dateien in os.walk(o):
+            for d in dateien:
+                try:
+                    groesse += os.path.getsize(os.path.join(wurzel, d))
+                except OSError:
+                    pass
+        aus.append({"eintrag": o.name, "name": kurztext(i.get("name"), 60) or o.name.split("__")[0],
+                    "slides": int(i.get("slides") or 0) if str(i.get("slides", "")).isdigit() else 0,
+                    "geloescht": kurztext(i.get("geloescht"), 20), "mb": round(groesse / 1e6, 1)})
+    return sorted(aus, key=lambda x: x["eintrag"].split("__")[-1], reverse=True)
+
+
+def zurueckholen(eintrag):
+    """Zurueck nach projekte/ (bei Namensgleichheit mit -2 ...), fertige Bilder wieder nach export/."""
+    o = _eintrag_ordner(eintrag)
+    if not (o / "projekt" / "inhalt.json").is_file():
+        raise ValueError("Im Eintrag fehlt das Karussell")
+    n = frei_name(eintrag.split("__")[0])
+    shutil.move(str(o / "projekt"), str(PROJEKTE / n))
+    if (o / "export").is_dir() and not (EXPORT / n).exists():
+        EXPORT.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.move(str(o / "export"), str(EXPORT / n))
+        except OSError:
+            pass
+    shutil.rmtree(o, ignore_errors=True)
+    return n
+
+
+def papierkorb_leeren(eintraege=None):
+    """Endgueltig loeschen: alle oder die genannten Eintraege. Nur auf Wunsch des Users."""
+    ziele = [_eintrag_ordner(e) for e in eintraege] if eintraege else \
+            [_eintrag_ordner(x["eintrag"]) for x in papierkorb()]
+    for o in ziele:
+        shutil.rmtree(o, ignore_errors=True)
+    return len(ziele)
+
+
 # ------------------------------------------------------------ Vorlagen
 # Eine Vorlage ist ein Projekt plus .vorschau.png (Folie 1, 270 px breit).
 # Mitgelieferte liegen beim Code (vorlagen/), eigene im Karussell-Ordner.
@@ -379,9 +575,10 @@ def _ohne_vorlagen_info(o):
     p = o / "inhalt.json"
     try:
         d = json.loads(p.read_text(encoding="utf-8-sig"))
-        if not (isinstance(d, dict) and "vorlage" in d):
+        if not (isinstance(d, dict) and ("vorlage" in d or "serie" in d)):
             return
-        del d["vorlage"]
+        d.pop("vorlage", None)
+        d.pop("serie", None)                    # Tabelle einer Serie: Inhalt, kein Teil der Vorlage
         sicher_schreiben(p, json_bytes(d))
     except Exception:
         pass

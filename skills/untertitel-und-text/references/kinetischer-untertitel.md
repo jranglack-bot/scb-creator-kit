@@ -43,7 +43,7 @@ kaum genutzt.
 
 Drei Varianten wechseln sich ab:
 
-- **Volltonfarbe** — weiß, oder Julians Blau `597fd9`.
+- **Volltonfarbe** — weiß, oder Julians Blau `007bff`.
 - **Farbverlauf** — violett nach blau über das Wort hinweg.
 - **Negativ des Videos** — das Wort hat keine eigene Farbe, sondern zeigt
   das invertierte Bild dahinter. Erkennbar daran, dass die Schrift über

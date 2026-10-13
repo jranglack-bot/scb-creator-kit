@@ -158,16 +158,17 @@ def vorschau_bauen(port, vorlage, ordner=None):
 
 FERTIG = "() => window.FERTIG === true"      # Funktionsform: die Seiten-CSP verbietet eval
 
-FORMAT_ZIEL = {"3:4": 1440, "34": 1440, "1440": 1440, "4:5": 1350, "45": 1350, "1350": 1350}
+FORMAT_ZIEL = {"3:4": 1440, "34": 1440, "1440": 1440, "4:5": 1350, "45": 1350, "1350": 1350,
+               "9:16": 1920, "916": 1920, "1920": 1920}
 
 
 def format_umstellen(port, name, ziel):
-    """Karussell auf 3:4 oder 4:5 umstellen (k.py format). Gerechnet wird mit
-    formatUmstellen aus render.js in vorlage.html, mit den echten Schriften,
+    """Karussell auf 3:4, 4:5 oder 9:16 umstellen (k.py format, k.py story). Gerechnet
+    wird mit formatUmstellen aus render.js in vorlage.html, mit den echten Schriften,
     damit k.py genau dasselbe tut wie die Formatwahl im Cockpit."""
     hoehe = FORMAT_ZIEL.get(str(ziel).strip())
     if not hoehe:
-        raise ValueError("Format bitte als 3:4 oder 4:5")
+        raise ValueError("Format bitte als 3:4, 4:5 oder 9:16")
     ordner = P.ordner(name)
     ziel_datei = ordner / "inhalt.json"
     if ziel_datei.is_symlink() or P._verknuepft(ordner):     # wie beim Speichern: nie durch Links schreiben
@@ -175,7 +176,7 @@ def format_umstellen(port, name, ziel):
     vorher = stand_von(name)
     d = P.lesen(name)
     B, H = format_ok(P.stil(d))
-    wort = "3:4" if hoehe == 1440 else "4:5"
+    wort = {1440: "3:4", 1350: "4:5", 1920: "9:16"}[hoehe]
     if B != 1080:
         raise ValueError("Umstellen geht nur bei Folien mit 1080 px Breite")
     if len(d.get("slides") or []) > 100:
@@ -203,6 +204,59 @@ def format_umstellen(port, name, ziel):
     zeilen = ["Umgestellt auf %s (%d x %d)." % (wort, B, hoehe)]
     hinweise = [h for h in (hinweise if isinstance(hinweise, list) else []) if isinstance(h, str)][:40]
     # je Hinweis genau eine Zeile: Umbrueche aus Projektdaten duerfen keine eigenen Zeilen bauen
+    zeilen += ["Bitte ansehen:"] + ["  " + " ".join(h.split())[:200] for h in hinweise] if hinweise else ["Alles passt."]
+    return "\n".join(zeilen)
+
+
+def serie(port, name, auftrag, anhaengen=False, neuer_name=None):
+    """Massenerstellung (k.py serie): je Tabellenzeile eine Folie oder ein Karussell nach
+    der Vorlage. Gerechnet wird mit serieBauen aus render.js in vorlage.html, mit den echten
+    Schriften, damit zu lange Texte genauso kleiner werden wie im Cockpit."""
+    if not isinstance(auftrag, dict):
+        raise ValueError("ungueltiger Auftrag")
+    auftrag = dict(auftrag)
+    ordner = P.ordner(name)
+    if (ordner / "inhalt.json").is_symlink() or P._verknuepft(ordner):
+        raise ValueError("inhalt.json oder der Projektordner ist eine Verknuepfung")
+    vorher = stand_von(name)
+    d = P.lesen(name)
+    B, H = format_ok(P.stil(d))
+    if anhaengen:
+        auftrag["zusammen"] = True
+        auftrag["startId"] = 1 + max([int(m.group(1)) for s in d.get("slides") or [] if isinstance(s, dict)
+                                      for b in s.get("bloecke") or [] if isinstance(b, dict)
+                                      for m in [re.fullmatch(r"b(\d{1,9})", str(b.get("id", "")))] if m] or [0])
+    with sync_playwright() as pw:
+        b = _browser(pw)
+        try:
+            pg = b.new_page(viewport={"width": B, "height": H})
+            pg.goto(f"http://127.0.0.1:{port}/vorlage.html?projekt={name}&serie=1")
+            pg.wait_for_function(FERTIG, timeout=60000)
+            e = pg.evaluate("(a) => window.serieRechnen(a)", auftrag)
+        finally:
+            b.close()
+    if not isinstance(e, dict) or e.get("fehler"):
+        raise ValueError(" ".join(str((e or {}).get("fehler", "keine Antwort")).split())[:300])
+    k = e.get("karussells")
+    if not (isinstance(k, list) and k and all(isinstance(x, list) and x and all(isinstance(s, dict) for s in x)
+                                              for x in k)):
+        raise ValueError("Serie ging nicht: unerwartetes Ergebnis")
+    if anhaengen:
+        if stand_von(name) != vorher:          # inzwischen im Cockpit gesichert: nichts ueberschreiben
+            raise ValueError("Das Karussell wurde gerade geaendert. Bitte noch einmal.")
+        alt = len(d["slides"])
+        d["slides"].extend(k[0])
+        P.schreiben(d, name)
+        zeilen = ["%d Folien hinten angehaengt: Folie %d bis %d." % (len(k[0]), alt + 1, len(d["slides"]))]
+    else:
+        basis = neuer_name or (name + "-serie")
+        liste = [{"name": basis, "slides": k[0]}] if len(k) == 1 else \
+                [{"name": "%s-%02d" % (basis, i + 1), "slides": x} for i, x in enumerate(k)]
+        namen = P.serie_anlegen(name, liste)
+        P.setzen(namen[0])
+        zeilen = (["Neues Karussell %s mit %d Folien, ist offen." % (namen[0], len(k[0]))] if len(namen) == 1 else
+                  ["%d Karussells angelegt: %s. Offen ist %s." % (len(namen), ", ".join(namen), namen[0])])
+    hinweise = [h for h in (e.get("hinweise") if isinstance(e.get("hinweise"), list) else []) if isinstance(h, str)][:40]
     zeilen += ["Bitte ansehen:"] + ["  " + " ".join(h.split())[:200] for h in hinweise] if hinweise else ["Alles passt."]
     return "\n".join(zeilen)
 
@@ -502,12 +556,31 @@ def _skript_hashes(weg):
     return _HASHES[weg][1]
 
 
+class _Teil:
+    """Liest aus einer Datei hoechstens n Bytes (Antwort auf eine Range-Anfrage)."""
+    def __init__(self, f, n):
+        self.f, self.rest = f, n
+
+    def read(self, n=-1):
+        if self.rest <= 0:
+            return b""
+        b = self.f.read(self.rest if n is None or n < 0 else min(n, self.rest))
+        self.rest -= len(b)
+        return b
+
+    def close(self):
+        self.f.close()
+
+
 class Kanal(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
     def end_headers(self):
-        self.send_header("Cache-Control", "no-store")
+        # Videos und ihre Standbilder darf der Browser behalten und nur nachfragen (304):
+        # sonst laedt die Buehne bei jedem Neuzeichnen das ganze Video neu
+        medien = re.search(r"\.(mp4|m4v|mov|webm)(\.jpg)?$", urlsplit(self.path).path, re.I)
+        self.send_header("Cache-Control", "no-cache" if medien else "no-store")
         self.send_header("X-Frame-Options", "DENY")          # nicht in fremde Seiten einrahmbar
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")   # fremde Seiten betten nichts ein
@@ -548,6 +621,39 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
             self._text("verboten", 403); return
         super().do_HEAD()
 
+    def send_head(self):
+        """Teilanfragen (Range) fuer Videos: ohne sie kann der Browser nicht spulen und
+        keinen Ausschnitt (Start/Ende) abspielen. Alles andere wie bisher."""
+        bereich = self.headers.get("Range")
+        pfad = self.translate_path(self.path)
+        if not bereich or not os.path.isfile(pfad) or not re.search(r"\.(mp4|m4v|mov|webm)$", pfad, re.I):
+            return super().send_head()
+        m = re.fullmatch(r"\s*bytes=(\d*)-(\d*)\s*", bereich)
+        groesse = os.path.getsize(pfad)
+        if not m or not (m.group(1) or m.group(2)):
+            return super().send_head()
+        if m.group(1):
+            von = int(m.group(1))
+            bis = min(int(m.group(2)), groesse - 1) if m.group(2) else groesse - 1
+        else:
+            von, bis = max(0, groesse - int(m.group(2))), groesse - 1
+        if von >= groesse or von > bis:
+            self.send_response(416)
+            self.send_header("Content-Range", "bytes */%d" % groesse)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
+        f = open(pfad, "rb")
+        f.seek(von)
+        self.send_response(206)
+        self.send_header("Content-Type", self.guess_type(pfad))
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Range", "bytes %d-%d/%d" % (von, bis, groesse))
+        self.send_header("Content-Length", str(bis - von + 1))
+        self.send_header("Last-Modified", self.date_time_string(int(os.path.getmtime(pfad))))
+        self.end_headers()
+        return _Teil(f, bis - von + 1)
+
     def _text(self, txt, code=200, art="text/plain"):
         b = txt.encode("utf-8")
         self.send_response(code)
@@ -581,6 +687,12 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
             return
         if weg == "projekte":
             self._text(projekte_json(), art="application/json")
+            return
+        if weg == "papierkorb":
+            self._text(json.dumps(P.papierkorb(), ensure_ascii=False), art="application/json")
+            return
+        if weg == "codestand":
+            self._text(CODE_STAND)
             return
         if weg == "vorlagen":
             self._text(vorlagen_json(), art="application/json")
@@ -631,7 +743,7 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
                 self._text("Fehler: %s" % e, 404); return
             puffer = io.BytesIO()
             with zipfile.ZipFile(puffer, "w", zipfile.ZIP_DEFLATED) as z:
-                for p in sorted(ordner.glob("slide-*.png")):
+                for p in sorted(list(ordner.glob("slide-*.png")) + list(ordner.glob("slide-*.mp4"))):
                     if re.fullmatch(r"slide-\d+", p.stem):     # keine Finder-/Explorer-Kopien
                         z.write(p, p.name)
             daten = puffer.getvalue()
@@ -650,15 +762,35 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
             self._text("verboten", 403); return
         weg, qs = self._weg()
         n = int(self.headers.get("Content-Length", 0) or 0)
+        if weg == "video":
+            # Videos koennen gross sein: in Stuecken auf die Platte statt in den Speicher
+            import video as V
+            try:
+                ordner = P.ordner(qs.get("projekt") or P.aktuelles())
+                if P._verknuepft(ordner):
+                    raise ValueError("Projektordner ist eine Verknuepfung")
+                aus = dict(V.ablegen(ordner, qs.get("name") or "video.mp4", self.rfile, n), ok=True)
+            except Exception as e:
+                aus = {"ok": False, "fehler": " ".join(str(e).split())[:300]}
+            self._text(json.dumps(aus, ensure_ascii=False), art="application/json")
+            return
         if n < 0 or n > MAX_UPLOAD:
             self._text("Fehler: zu gross", 413); return
         koerper = self.rfile.read(n)
         try:
             name = qs.get("projekt") or P.aktuelles()
-            if weg not in ("projekt", "marke", "markelogo", "schriftdatei"):
+            if weg not in ("projekt", "marke", "markelogo", "schriftdatei", "beenden"):
                 P.ordner(name)          # wirft bei unbekanntem Projekt
         except ValueError as e:
             self._text("Fehler: %s" % e, 404); return
+        if weg == "beenden":
+            # Start ueber die Verknuepfung hat neueren Code: dieser Server macht Platz.
+            # Nie mitten in einer Ausgabe (Bilder, PDF, Format, Serie).
+            if SPERRE.locked():
+                self._text("laeuft gerade"); return
+            self._text("ok")
+            threading.Thread(target=lambda: (time.sleep(0.4), os._exit(0)), daemon=True).start()
+            return
         if weg == "speichern":
             try:
                 d = json.loads(koerper.decode("utf-8-sig"))
@@ -726,6 +858,19 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
                                             koerper.decode("utf-8", "ignore")))
             except Exception as e:
                 self._text("Fehler: %s" % e)
+            finally:
+                SPERRE.release()
+        elif weg == "serie":
+            # k.py serie: {"auftrag": {...}, "anhaengen": bool, "name": "..."}
+            if not SPERRE.acquire(blocking=False):
+                self._text("laeuft schon"); return
+            try:
+                a = json.loads(koerper.decode("utf-8-sig") or "{}")
+                neu = a.get("name") if isinstance(a.get("name"), str) else None
+                self._text(serie(self.server.server_address[1], name, a.get("auftrag"),
+                                 anhaengen=a.get("anhaengen") is True, neuer_name=neu))
+            except Exception as e:
+                self._text("Fehler: %s" % " ".join(str(e).split())[:300])
             finally:
                 SPERRE.release()
         elif weg == "marke":
@@ -859,6 +1004,28 @@ class Kanal(http.server.SimpleHTTPRequestHandler):
                     return
                 elif aktion == "duplizieren":
                     neu = P.setzen(P.duplizieren(a.get("name", ""), a.get("von") or None))
+                elif aktion == "loeschen":
+                    # in den Papierkorb, nichts endgueltig. {"namen": [...]}
+                    namen = a.get("namen") if isinstance(a.get("namen"), list) else []
+                    if not 1 <= len(namen) <= 200:
+                        raise ValueError("Nichts ausgewaehlt")
+                    weg_ = [P.in_papierkorb(str(n)) for n in namen]
+                    self._text(json.dumps({"ok": True, "eintraege": weg_, "aktuell": P.aktuelles()},
+                                          ensure_ascii=False), art="application/json")
+                    return
+                elif aktion == "zurueckholen":
+                    neu = P.setzen(P.zurueckholen(a.get("eintrag")))
+                elif aktion == "leeren":
+                    e_ = a.get("eintraege") if isinstance(a.get("eintraege"), list) else None
+                    self._text(json.dumps({"ok": True, "anzahl": P.papierkorb_leeren(e_)}), art="application/json")
+                    return
+                elif aktion == "serie":
+                    # Massenerstellung aus dem Cockpit: Folien sind dort schon gerechnet
+                    namen = P.serie_anlegen(a.get("von") or None, a.get("karussells"))
+                    neu = P.setzen(namen[0])
+                    self._text(json.dumps({"ok": True, "name": neu, "namen": namen, "stand": stand_von(neu)},
+                                          ensure_ascii=False), art="application/json")
+                    return
                 else:
                     raise ValueError("unbekannte Aktion")
                 self._text(json.dumps({"ok": True, "name": neu, "stand": stand_von(neu)}),
@@ -875,6 +1042,13 @@ class Server(socketserver.ThreadingTCPServer):
     # Unter Windows erlaubt SO_REUSEADDR einem zweiten Server denselben Port,
     # dann griffe der Ausweich auf einen freien Port nie.
     allow_reuse_address = os.name != "nt"
+
+    def handle_error(self, request, client_address):
+        # Ein Browser bricht eine Anfrage ab (Seite zu, Messen fertig, bevor ein Foto
+        # geladen war): kein Fehler, nur ein langer Traceback im Terminal
+        if isinstance(sys.exc_info()[1], (ConnectionAbortedError, ConnectionResetError, BrokenPipeError)):
+            return
+        super().handle_error(request, client_address)
 
 
 def server(port=8720):
@@ -983,6 +1157,8 @@ def braucht_raster(b):
         return True                     # Geraete-Rahmen, auch leer (Bildschirm bleibt schwarz)
     if not b.get("datei"):
         return False                    # leerer Rahmen: auf der Folie nicht sichtbar
+    if re.search(r"\.(mp4|m4v|mov|webm)$", str(b.get("datei")), re.I):
+        return True                     # Video: der Browser zeichnet das Standbild
     if isinstance(b.get("maske"), str) and b["maske"] in MASKEN:
         return True
     if str(b.get("datei", "")).lower().endswith(".svg"):
@@ -1094,15 +1270,33 @@ def messen(slides, stil, port, bilder=True, nur=None, name=None, raster=False):
                     seite.goto(url)
                     seite.wait_for_function(FERTIG, timeout=20000)
             m = (pg or rp).evaluate("() => window.MASSE")
+            m["nr"] = i + 1
             m["gaeste"] = _gaeste_pruefen((pg or rp).evaluate("() => (window.GAESTE || []).slice(0, 200)"), len(slides))
             if bilder:
-                pg.screenshot(path=str(ziel / f"slide-{i+1:02d}.png"))
+                png, mp4 = ziel / f"slide-{i+1:02d}.png", ziel / f"slide-{i+1:02d}.mp4"
+                pg.screenshot(path=str(png))
+                import video as V
+                if any(V.ist_video(x) for x in slides[i].get("bloecke") or []):
+                    # Folie mit Video: MP4 statt Bild. Das Standbild wandert nach standbilder/
+                    # (Kontaktbogen), damit in bilder/ je Folie genau eine Datei zum Posten liegt.
+                    try:
+                        m["video"] = V.folie_mp4(pg, slides[i], P.ordner(name), mp4, B, H)
+                    except Exception as e:
+                        m["video"] = {"ok": False, "hinweis": "Video ging nicht (%s), die Folie bleibt ein Bild"
+                                      % " ".join(str(e).split())[:160]}
+                    if m["video"].get("ok"):
+                        (aus / "standbilder").mkdir(exist_ok=True)
+                        os.replace(png, aus / "standbilder" / png.name)
+                    elif mp4.exists():
+                        mp4.unlink()
+                elif mp4.exists():
+                    mp4.unlink()                      # frueher ein Video, jetzt ein Bild
             if raster:
                 m["raster"] = _rastern(rp, slides[i], i + 1, rordner, m["gaeste"], slides)
             masse.append(m)
         b.close()
     if bilder and not nur:
-        for a in sorted(ziel.glob("slide-*.png")):
+        for a in sorted(list(ziel.glob("slide-*.png")) + list(ziel.glob("slide-*.mp4"))):
             m = re.fullmatch(r"slide-(\d+)", a.stem)          # "slide-01 Kopie.png" nicht anfassen
             if m and int(m.group(1)) > len(slides):
                 a.unlink()
@@ -1404,7 +1598,10 @@ def kontaktbogen(n, stil, name=None, spalten=4):
     for i in range(n):
         x = luft + (i % spalten) * (kb + luft)
         y = luft + (i // spalten) * (kh + fuss + luft)
-        s = Image.open(aus / "bilder" / f"slide-{i+1:02d}.png").resize((kb, kh), Image.LANCZOS)
+        p = aus / "bilder" / f"slide-{i+1:02d}.png"
+        if not p.exists():                       # Video-Folie: Standbild
+            p = aus / "standbilder" / p.name
+        s = Image.open(p).convert("RGB").resize((kb, kh), Image.LANCZOS)
         bild.paste(s, (x, y))
         d.text((x + 2, y + kh + 4), f"{i+1} / {n}", font=fnt, fill="#ffffff")
     bild.save(aus / "kontaktbogen.png")
@@ -1425,9 +1622,18 @@ def komplett(port, art="alles", nur=None, name=None):
         kontaktbogen(len(slides), stil, name)
     if art == "pptx":
         return "Canva-Datei fertig (karussell.pptx)"
+    # Video-Folien: welche als MP4 rausgingen, und was dabei auffiel
+    vid = [m for m in masse if isinstance(m.get("video"), dict)]
+    ok = [m["nr"] for m in vid if m["video"].get("ok")]
+    zusatz = ""
+    if ok:
+        zusatz = ", als Video: Folie " + ", ".join(map(str, ok)) + " (slide-..mp4)"
+    hin = ["Folie %d: %s" % (m["nr"], m["video"]["hinweis"]) for m in vid if m["video"].get("hinweis")]
+    if hin:
+        zusatz += ". " + "; ".join(hin)
     if nur:
-        return f"Slide {', '.join(str(n) for n in nur)} neu ({stil['breite']}x{stil['hoehe']})"
-    return f"{len(slides)} Bilder fertig ({stil['breite']}x{stil['hoehe']})"
+        return f"Slide {', '.join(str(n) for n in nur)} neu ({stil['breite']}x{stil['hoehe']}){zusatz}"
+    return f"{len(slides)} {'Folien' if ok else 'Bilder'} fertig ({stil['breite']}x{stil['hoehe']}){zusatz}"
 
 
 def belegt(port):
@@ -1438,12 +1644,87 @@ def belegt(port):
         return s.connect_ex(("127.0.0.1", port)) == 0
 
 
+def _code_stand():
+    """Kennung des Python-Codes (Name, Groesse, Zeit): aendert sich mit jedem Kit-Update."""
+    h = hashlib.sha1()
+    for p in sorted(HIER.glob("*.py")):
+        try:
+            st = p.stat()
+            h.update(("%s|%d|%d;" % (p.name, st.st_size, int(st.st_mtime))).encode())
+        except OSError:
+            pass
+    return h.hexdigest()[:12]
+
+
+CODE_STAND = _code_stand()      # Stand, mit dem dieser Prozess laeuft
+
+
+def _still():
+    """Start ohne Terminalfenster (Verknuepfung bzw. Mac-App, siehe einrichten.startdatei):
+    Meldungen in ~/.scb-creator-kit/karussell-cockpit.log, und unter Windows bekommt kein
+    Unterprogramm (Browser zum Rendern, ffmpeg, Freisteller) ein eigenes Konsolenfenster."""
+    log = P.KIT_HOME / "karussell-cockpit.log"
+    try:
+        P.KIT_HOME.mkdir(parents=True, exist_ok=True)
+        if log.exists() and log.stat().st_size > 2_000_000:
+            log.unlink()
+        f = open(log, "a", encoding="utf-8", buffering=1)
+        sys.stdout = sys.stderr = f
+        print("---- Start %s" % time.strftime("%Y-%m-%d %H:%M:%S"))
+    except OSError:
+        pass
+    if os.name == "nt":
+        alt = subprocess.Popen.__init__
+
+        def ohne_fenster(self, *a, **k):
+            k["creationflags"] = (k.get("creationflags") or 0) | 0x08000000      # CREATE_NO_WINDOW
+            alt(self, *a, **k)
+        subprocess.Popen.__init__ = ohne_fenster
+
+
+def _laufender_stand(port=8720):
+    """Code-Stand des laufenden Cockpits, None wenn es nicht antwortet, '' bei sehr alten."""
+    from urllib import request, error
+    try:
+        oeffner = request.build_opener(request.ProxyHandler({}))
+        with oeffner.open("http://127.0.0.1:%d/codestand" % port, timeout=3) as r:
+            return r.read().decode("utf-8", "ignore").strip()
+    except error.HTTPError:
+        return ""
+    except Exception:
+        return None
+
+
+def _abloesen(port=8720):
+    """Laufendes Cockpit mit altem Code beenden lassen. True, wenn der Port frei wurde."""
+    from urllib import request
+    try:
+        oeffner = request.build_opener(request.ProxyHandler({}))
+        with oeffner.open(request.Request("http://127.0.0.1:%d/beenden" % port, data=b"", method="POST"),
+                          timeout=5) as r:
+            if r.read().decode("utf-8", "ignore").strip() != "ok":
+                return False
+    except Exception:
+        return False
+    for _ in range(50):
+        if not belegt(port):
+            return True
+        time.sleep(0.1)
+    return False
+
+
 if __name__ == "__main__":
+    if "--still" in sys.argv or sys.stdout is None:
+        _still()
     # Zweiter Start soll kein zweites Cockpit aufmachen, sondern das offene zeigen.
+    # Laeuft dort noch alter Code (Kit-Update), macht es Platz fuer den neuen.
     if "--cockpit" in sys.argv and belegt(8720):
-        print("Cockpit laeuft bereits: http://127.0.0.1:8720/cockpit.html")
-        browser_auf("http://127.0.0.1:8720/cockpit.html")
-        sys.exit()
+        stand = _laufender_stand()
+        if not (stand and stand != CODE_STAND and _abloesen()):
+            print("Cockpit laeuft bereits: http://127.0.0.1:8720/cockpit.html")
+            browser_auf("http://127.0.0.1:8720/cockpit.html")
+            sys.exit()
+        print("Altes Cockpit (Code %s) abgeloest durch %s" % (stand, CODE_STAND))
 
     if "--cockpit" in sys.argv:
         if P.einstellungen_kaputt():
@@ -1467,7 +1748,8 @@ if __name__ == "__main__":
         seite = "cockpit.html" if "--cockpit" in sys.argv else "vorlage.html"
         url = f"http://127.0.0.1:{port}/{seite}"
         print(url)
-        print("Laeuft. Fenster offen lassen, %s beendet." % ("ctrl+C" if sys.platform == "darwin" else "Strg+C"))
+        if "--still" not in sys.argv:
+            print("Laeuft. Fenster offen lassen, %s beendet." % ("ctrl+C" if sys.platform == "darwin" else "Strg+C"))
         browser_auf(url)
         try:
             threading.Event().wait()

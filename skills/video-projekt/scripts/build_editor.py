@@ -68,6 +68,40 @@ def schriften():
     return liste, std
 
 
+# Schriften, die das Kit selbst mitbringt (Ordner schriften/). Datei ->
+# (Familie, Stil, Gewicht). Die Familie ist genau der Name, unter dem libass
+# die Datei beim Einbrennen findet (Name-Tabelle der Datei, nameID 1).
+KIT_SCHRIFTEN = [
+    ('Poppins-Black.ttf', 'Poppins Black', 'normal', '100 900'),
+    ('PlayfairDisplay-Italic.ttf', 'Playfair Display', 'italic', '400'),
+]
+KIT_SCHRIFT_ORDNER = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                  '..', 'schriften')
+
+
+def kit_schriften_js(projdir):
+    """schriften_data.js schreiben (Schriften als base64, denn unter file://
+    laedt Chrome keine Schriftdateien per @font-face) und die Familien
+    zurueckgeben. Nur neu, wenn eine Kit-Schrift neuer ist als die Datei."""
+    import base64
+    ziel = os.path.join(projdir, 'schriften_data.js')
+    da = [(os.path.join(KIT_SCHRIFT_ORDNER, d), fam, st, gw)
+          for d, fam, st, gw in KIT_SCHRIFTEN
+          if os.path.exists(os.path.join(KIT_SCHRIFT_ORDNER, d))]
+    neu = (not os.path.exists(ziel) or any(
+        os.path.getmtime(p) > os.path.getmtime(ziel) for p, _, _, _ in da))
+    if neu:
+        eintraege = []
+        for p, fam, st, gw in da:
+            with open(p, 'rb') as f:
+                b64 = base64.b64encode(f.read()).decode('ascii')
+            eintraege.append({'family': fam, 'style': st, 'weight': gw,
+                              'data': b64})
+        with open(ziel, 'w', encoding='utf-8') as f:
+            f.write('window.KIT_SCHRIFTEN = ' + json.dumps(eintraege) + ';\n')
+    return [fam for _, fam, _, _ in da]
+
+
 def waveform_peaks(path, buckets=600):
     """Lautstaerke-Peaks (0-100) fuer die Tonspur-Anzeige im Cockpit."""
     raw = subprocess.run(
@@ -540,6 +574,11 @@ def main():
     if dauern and all(d > 0 for d in dauern):
         projekt['duration'] = round(sum(dauern), 2)
     projekt['_schriften'], projekt['_standardschrift'] = schriften()
+    # Kit-Schriften (Zweifachschrift fuer Hooks): ins Cockpit eingebettet,
+    # damit sie auch ohne Installation im Browser erscheinen
+    for fam in kit_schriften_js(projdir):
+        if fam not in projekt['_schriften']:
+            projekt['_schriften'].append(fam)
     # Soundeffekt-Library fuer die 🔊-Spur (Anzeige-Info wie _dateien; das
     # Cockpit speichert sie nicht zurueck)
     projekt['_sfxlib'], sfx_wellen = build_sfxlib(projekt, projdir)

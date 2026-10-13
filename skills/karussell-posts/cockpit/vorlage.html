@@ -59,6 +59,15 @@ async function bilderBereit(){
     window.FERTIG=true;
     return;
   }
+  if(new URLSearchParams(location.search).get('serie')){
+    // k.py serie: den Auftrag reicht bauen.py herein, gerechnet wie im Cockpit
+    window.serieRechnen=a=>{
+      try{ return serieBauen(d,a); }
+      catch(e){ return {fehler:String(e&&e.message||e).slice(0,300)}; }
+    };
+    window.FERTIG=true;
+    return;
+  }
   if(new URLSearchParams(location.search).get('platzhalter')) document.body.classList.add('platzhalter');
   const nr=new URLSearchParams(location.search).get('render');
   if(nr!==null){
