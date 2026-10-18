@@ -8,7 +8,7 @@ description: |
   "build me an avatar", "learn my appearance", "create a character of me",
   "set up identity for video", "I want my face in generated images".
   Chain: train Soul (one-time, returns reference_id) → use in
-  higgsfield-generate via `--soul-id <id>` with models like
+  higgsfield-generate via `--soul-id REFERENCE_ID` with models like
   `text2image_soul_v2` or `soul_cinema_studio`.
   NOT for: one-shot face swaps (use higgsfield-generate with --image),
   named-character / non-photo avatars (use higgsfield-generate with prompt).
