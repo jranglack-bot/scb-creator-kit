@@ -22,6 +22,9 @@ const STIL_STD = {
 // Ordner des offenen Projekts, z. B. "projekte/kompass/". Bilddateien in
 // inhalt.json sind relativ dazu. Cockpit und vorlage.html setzen ihn beim Laden.
 let BASIS = '';
+// Jede Datei-Adresse (Bilder, Icons, Vorschauen) laeuft hier durch. Im Cockpit unveraendert;
+// die Demo ohne Server (tools/karussell_demo/bauen.py) liefert hier ihre eigenen Adressen.
+let dateiUrl = p => p;
 const BILD_MIN = 0.22;   // Anteil der Slidehoehe, den ein fliessendes Bild behaelt
 
 const FORMATE = ['b', 'i', 'u', 'm', 'c', 'f', 'd'];
@@ -204,7 +207,7 @@ function blockBauen(b){
       // Icon als Farbmaske: jede Farbe moeglich, Datei bleibt unveraendert
       const z = document.createElement('div'); z.className = 'zeichen';
       if (ICON_OK.test(b.icon || '')){
-        const u = 'url("bib/' + b.icon + '.svg")';
+        const u = 'url("' + dateiUrl('bib/' + b.icon + '.svg') + '")';
         z.style.webkitMaskImage = u; z.style.maskImage = u;
       }
       z.style.backgroundColor = farbeOder(b.fuellung, '#7fb3a3');
@@ -232,7 +235,7 @@ function istGeraet(b){ return !!b && typeof b.geraet === 'string' && Object.prot
 function istMaske(b){ return !!b && typeof b.maske === 'string' && MASKEN.indexOf(b.maske) >= 0; }
 function zahlOder(v, std){ const n = +v; return (v !== null && v !== '' && isFinite(n)) ? n : std; }
 // Bilddatei nur mit harmlosen Zeichen in eine CSS-url (wie P.DATEI in projekt.py)
-function bildUrl(d){ return DATEI_OK.test(String(d || '')) ? 'url("' + BASIS + d + '")' : 'none'; }
+function bildUrl(d){ return DATEI_OK.test(String(d || '')) ? 'url("' + dateiUrl(BASIS + d) + '")' : 'none'; }
 
 function eingepasst(punkte, w, h, s){
   const xs = punkte.map(p => p[0]), ys = punkte.map(p => p[1]);
@@ -471,7 +474,7 @@ function textWirkung(el, b){
   // als drop-shadow, text-shadow laege sonst ueber dem Bild. Flaeche entfaellt.
   const bf = typeof b.bildfuellung === 'string' && DATEI_OK.test(b.bildfuellung) ? b.bildfuellung : '';
   el.classList.toggle('bildschrift', !!bf);
-  el.style.backgroundImage = bf ? 'url("' + BASIS + bf + '")' : '';
+  el.style.backgroundImage = bf ? 'url("' + dateiUrl(BASIS + bf) + '")' : '';
   el.style.webkitBackgroundClip = el.style.backgroundClip = bf ? 'text' : '';
   if (bf){
     el.style.webkitTextFillColor = 'transparent';
@@ -488,7 +491,7 @@ function hintergrundCss(hg, st, basis){
     return 'linear-gradient(' + (hg.winkel === undefined ? 180 : +hg.winkel) + 'deg, ' +
            farbeOder(hg.farbe, st.bg) + ', ' + farbeOder(hg.farbe2, '#000000') + ')';
   if (hg.art === 'bild' && DATEI_OK.test(hg.datei || ''))
-    return farbeOder(hg.farbe, st.bg) + ' url("' + basis + hg.datei + '") center / cover no-repeat';
+    return farbeOder(hg.farbe, st.bg) + ' url("' + dateiUrl(basis + hg.datei) + '") center / cover no-repeat';
   return farbeOder(hg.farbe, '');
 }
 
@@ -571,7 +574,7 @@ function videoBauen(fl, b){
   v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
   const a = ausschnittVon(b), z = videoBereich(b);
   v.style.objectPosition = a.x + '% ' + a.y + '%';
-  v.src = BASIS + b.datei;
+  v.src = dateiUrl(BASIS + b.datei);
   const merk = VIDEO_ZEIT[b.datei];
   const start = (merk >= z.von && (!z.bis || merk < z.bis)) ? merk : z.von;
   v.addEventListener('loadedmetadata', () => { try { v.currentTime = start; } catch (e) {} v.play().catch(() => {}); }, {once: true});
@@ -835,7 +838,7 @@ function bildVerhaeltnis(url){
     const i = new Image(), uhr = setTimeout(() => fertig(0), 3000);
     i.onload = () => { clearTimeout(uhr); fertig(i.naturalWidth && i.naturalHeight ? i.naturalWidth / i.naturalHeight : 0); };
     i.onerror = () => { clearTimeout(uhr); fertig(0); };
-    i.src = url;
+    i.src = dateiUrl(url);
   });
 }
 const MAX_FOLIEN_UMSTELLEN = 100;                // Instagram erlaubt 20; fremde Dateien bremsen sonst

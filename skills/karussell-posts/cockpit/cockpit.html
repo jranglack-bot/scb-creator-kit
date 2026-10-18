@@ -1192,7 +1192,7 @@ function bildMasseLaden(url){
     const i = new Image();
     i.onload = () => { bildMasse[url] = {w: i.naturalWidth, h: i.naturalHeight}; fertig(bildMasse[url]); };
     i.onerror = () => fertig({w: 0, h: 0});
-    i.src = url;
+    i.src = dateiUrl(url);
   });
 }
 
@@ -1250,7 +1250,7 @@ async function geistZeigen(){
     sp.style.width = w + 'px'; sp.style.height = h + 'px';
   } else sp.style.inset = rand + 'px';
   const bildEl = document.createElement('img');
-  bildEl.src = BASIS + b.datei + (istVideo(b) ? '.jpg' : '');
+  bildEl.src = dateiUrl(BASIS + b.datei + (istVideo(b) ? '.jpg' : ''));
   bildEl.style.cssText = 'position:absolute;left:' + g.L + 'px;top:' + g.T + 'px;width:' + g.W +
                          'px;height:' + g.H + 'px;filter:' + (el.querySelector('.bildflaeche').style.filter || 'none');
   sp.appendChild(bildEl); geist.appendChild(sp);
@@ -1625,7 +1625,7 @@ function iconsZeigen(){
   liste.forEach(name => {
     const b = q('button', {class: 'iconwahl', title: name});
     const z = q('div', {class: 'iconbild'});
-    z.style.webkitMaskImage = z.style.maskImage = 'url("bib/' + name + '.svg")';
+    z.style.webkitMaskImage = z.style.maskImage = 'url("' + dateiUrl('bib/' + name + '.svg') + '")';
     b.appendChild(z);
     b.onclick = () => { const e = elementeErsetzen; elementeZu(); iconEinfuegen(name, e); };
     g.appendChild(b);
@@ -2186,7 +2186,7 @@ function bloeckeRegler(){
       v.className = 'vorschau form';
       if (b.form === 'icon' && ICON_OK.test(b.icon || '')){
         const z = q('div', {class: 'iconbild'});
-        z.style.webkitMaskImage = z.style.maskImage = 'url("bib/' + b.icon + '.svg")';
+        z.style.webkitMaskImage = z.style.maskImage = 'url("' + dateiUrl('bib/' + b.icon + '.svg') + '")';
         z.style.backgroundColor = farbeOder(b.fuellung, '#7fb3a3');
         v.appendChild(z);
       } else v.style.background = b.fuellung === 'keine' ? 'transparent' : farbeOder(b.fuellung, '#7fb3a3');
@@ -3283,7 +3283,7 @@ async function galerieZeigen(){
        .sort((a, b) => (a.eigen === b.eigen ? String(a.titel || a.name).localeCompare(String(b.titel || b.name), 'de')
                                              : a.eigen ? 1 : -1))
        .forEach(v => karte(v.name, v.titel || v.name,
-                           v.vorschau ? 'vorlagen/' + v.name + '/.vorschau.png?' + jetzt : null, v.beschreibung || ''));
+                           v.vorschau ? dateiUrl('vorlagen/' + v.name + '/.vorschau.png?' + jetzt) : null, v.beschreibung || ''));
   // Gewaehlte Vorlage: was sie ist und alle Folien auf einen Blick
   const det = document.getElementById('dDetail');
   det.style.display = gewaehlt ? 'block' : 'none';
@@ -3296,7 +3296,7 @@ async function galerieZeigen(){
     st.innerHTML = '';
     if (gewaehlt.folien){
       const i = document.createElement('img');
-      i.src = 'vorlagen/' + gewaehlt.name + '/.folien.png?' + jetzt; i.alt = '';
+      i.src = dateiUrl('vorlagen/' + gewaehlt.name + '/.folien.png?' + jetzt); i.alt = '';
       st.appendChild(i);
     }
   }
@@ -3849,7 +3849,10 @@ function seFelder(){
   return f;
 }
 function seAuftrag(zeilen, zusammen){
-  return {folien: [0], felder: seFelder(), spalten: ['Hook', 'Text', 'Bild'], zeilen: zeilen,
+  // Folie ohne Foto: keine Spalte Bild, sonst bricht serieBauen ab (Spalte ohne Feld)
+  const mitBild = !!SE.bildId;
+  return {folien: [0], felder: seFelder(), spalten: mitBild ? ['Hook', 'Text', 'Bild'] : ['Hook', 'Text'],
+          zeilen: mitBild ? zeilen : zeilen.map(z => z.slice(0, 2)),
           zusammen: zusammen, anpassen: document.getElementById('seAnpassen').checked, startId: 1};
 }
 // Bloecke der Slide finden: festgelegtes feld, sonst die groesste Ueberschrift bzw. der
@@ -4511,7 +4514,7 @@ function igNamenSetzen(wo){
   wo.querySelectorAll('.igAvatar').forEach(x => {
     if (logo){                              // Profilbild: erstes Logo aus dem Markenpaket
       x.textContent = '';
-      x.style.background = '#ffffff url("marke/' + encodeURIComponent(logo) + '") center/72% no-repeat';
+      x.style.background = '#ffffff url("' + dateiUrl('marke/' + encodeURIComponent(logo)) + '") center/72% no-repeat';
     } else {
       x.style.background = '';
       x.textContent = n.charAt(0).toUpperCase();
@@ -4836,7 +4839,7 @@ function markeZeichnen(){
     const k = q('div', {class: 'mLogo'});
     k.title = 'Klick: auf die aktuelle Folie setzen';
     const img = document.createElement('img');
-    img.src = 'marke/' + encodeURIComponent(l) + '?' + Date.now(); img.alt = '';
+    img.src = dateiUrl('marke/' + encodeURIComponent(l) + '?' + Date.now()); img.alt = '';
     const weg = q('button', {class: 'weg', html: '&times;', title: 'Logo entfernen'});
     weg.onclick = async ev => {
       ev.stopPropagation();

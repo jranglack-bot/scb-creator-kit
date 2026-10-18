@@ -1719,12 +1719,14 @@ if __name__ == "__main__":
     # Zweiter Start soll kein zweites Cockpit aufmachen, sondern das offene zeigen.
     # Laeuft dort noch alter Code (Kit-Update), macht es Platz fuer den neuen.
     if "--cockpit" in sys.argv and belegt(8720):
-        stand = _laufender_stand()
-        if not (stand and stand != CODE_STAND and _abloesen()):
+        # Eigener Name: Hier oben auf Modulebene wuerde "stand" die Funktion stand()
+        # ueberschreiben, dann scheitert GET /stand und das Cockpit sieht nichts von aussen
+        alter_stand = _laufender_stand()
+        if not (alter_stand and alter_stand != CODE_STAND and _abloesen()):
             print("Cockpit laeuft bereits: http://127.0.0.1:8720/cockpit.html")
             browser_auf("http://127.0.0.1:8720/cockpit.html")
             sys.exit()
-        print("Altes Cockpit (Code %s) abgeloest durch %s" % (stand, CODE_STAND))
+        print("Altes Cockpit (Code %s) abgeloest durch %s" % (alter_stand, CODE_STAND))
 
     if "--cockpit" in sys.argv:
         if P.einstellungen_kaputt():
