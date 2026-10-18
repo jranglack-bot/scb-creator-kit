@@ -1,4 +1,5 @@
 ---
+name: video-schneiden
 description: >
   Schneidet Instagram-Kursvideos vollautomatisch: erkennt Versprecher, verbale Fehlersignale,
   doppelte Erklärungen, Füllwörter (äh, ähm) und lange Pausen – mit tiefer KI-Transkriptanalyse.

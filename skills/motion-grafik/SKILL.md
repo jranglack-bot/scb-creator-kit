@@ -374,7 +374,7 @@ festgenagelt — was sie reproduzierbar hielt.
 
 ## Stufe 3: Freistellung („Text hinter mir")
 
-`scripts/freistellen.py` erkennt die Person in jedem Bild und legt sie als
+`<kit>/skills/pro-look-editing/scripts/freistellen.py` erkennt die Person in jedem Bild und legt sie als
 eigene Ebene mit Alphakanal ab. Damit lässt sich Grafik **zwischen** Video und
 Person schieben.
 
@@ -393,12 +393,12 @@ der Grafikkarte (auch Intel-Onboard), gemessen ~2× schneller bei identischer
 Alphamaske. Das Script erkennt das selbst und fällt sonst auf die CPU zurück —
 auf macOS bleibt es beim normalen `onnxruntime`.
 
-Beide Modelle liegen im Kit unter `models/`: `selfie_segmenter.tflite`
+Beide Modelle liegen daneben unter `scripts/models/`: `selfie_segmenter.tflite`
 (244 KB, Apache 2.0) und `rvm_mobilenetv3_fp32.onnx` (14 MB, Robust Video
 Matting). Kein Download, kein Konto, kein Netzzugriff zur Laufzeit.
 
 ```bash
-<python> freistellen.py <geschnittenes_video> <zielbasis> [von_sek] [bis_sek]
+<python> <kit>/skills/pro-look-editing/scripts/freistellen.py <geschnittenes_video> <zielbasis> [von_sek] [bis_sek]
 ```
 
 ### Zwei Verfahren — und wann welches

@@ -1,6 +1,6 @@
 {
   "name": "scb-creator-kit",
-  "version": "0.63.0",
+  "version": "0.63.1",
   "description": "Das Creator-Toolkit der SCB Community: KI-Reels generieren (Kling 3.0, Seedance, Higgsfield), Videos automatisch schneiden, Bewegtgrafik mit 3D-Look und „Text hinter mir\"-Effekt, echte 3D-Effekte (Three.js), Hook-Formeln, Aufzählungs-Reels, Karussell-Cockpit wie Canva mit Vorlagen, Markenpaket und Instagram-Vorschau, Reel-Serien aus einer Vorlage und Auto-Posting mit Airtable + Make — inklusive Setup-Assistent (scb-setup).",
   "author": {
     "name": "Julian Ranglack"
