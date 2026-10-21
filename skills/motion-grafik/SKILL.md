@@ -24,18 +24,19 @@ bleibt das Cockpit (`video-projekt`).
 | 1 | **Cockpit** (`video-projekt`) | Schnitt, Untertitel, Musik, **einfache Texte und Hooks** | 0 Token, er ändert selbst |
 | 2a | **Motion Canvas** | animierte Grafik — schneller gebaut und geändert | jede Änderung = eine Coderunde |
 | 2b | **Remotion** | animierte Grafik — mehr möglich, u. a. echtes 3D | mehr Bauzeit je Runde |
+| 2c | **HyperFrames** | animierte Grafik in HTML/CSS/JS — prüft vor dem Render, rendert am stabilsten | Bauzeit wie Remotion |
 
-**Zwischen 2a und 2b wählt der NUTZER**, nicht du — siehe Pflichtfrage unten.
+**Zwischen 2a, 2b und 2c wählt der NUTZER**, nicht du — siehe Pflichtfrage unten.
 | 3 | **Freistellung** (`freistellen.py`) | alles, was **hinter** der Person liegt | zusätzlich Rechenzeit |
 
-### 2a oder 2b? — das entscheidet IMMER der Nutzer, nie du
+### 2a, 2b oder 2c? — das entscheidet IMMER der Nutzer, nie du
 
 **Sobald animierte Grafik gewünscht ist, MUSST du fragen** — mit
 AskUserQuestion, genau einmal, bevor irgendetwas gebaut wird. Nicht
-selbst wählen, auch dann nicht, wenn eines der beiden offensichtlich
+selbst wählen, auch dann nicht, wenn eines der drei offensichtlich
 besser passt.
 
-> **Frage:** „Für die animierte Grafik habe ich zwei Werkzeuge. Womit
+> **Frage:** „Für die animierte Grafik habe ich drei Werkzeuge. Womit
 > soll ich arbeiten?"
 >
 > **Antwort A — Motion Canvas (schneller):** Schneller gebaut und
@@ -46,6 +47,18 @@ besser passt.
 > **Antwort B — Remotion (schönere Effekte):** Kann deutlich mehr,
 > unter anderem echtes 3D mit Räumen, Kamerafahrten und Beleuchtung.
 > Dafür dauert jede Runde länger.
+>
+> **Antwort C — HyperFrames (am stabilsten):** Grafik in HTML/CSS/JS,
+> ähnlich viel möglich wie Remotion. Prüft vor dem Render auf Fehler
+> (`hyperframes check`) und rendert auch auf Rechnern mit wenig
+> Arbeitsspeicher zuverlässig. Bauzeit wie Remotion.
+
+Gemessen am 21.10.2026 mit derselben Grafik (Keynote-Split, Video in der
+Karte, Rechner mit 8 GB): HyperFrames rund 7 Bilder/s ohne Abbruch,
+Remotion 2–4 Bilder/s mit mehreren abgebrochenen Starts. Eine fertige
+Remotion-Grafik muss dafür nicht neu gebaut werden: die Komposition als
+React-Bündel einbinden und bei jedem `hf-seek` neu zeichnen (Muster unter
+„Stufe 2c: HyperFrames").
 
 **Antwort merken** und für dieses Projekt beibehalten — nicht bei jeder
 Grafik neu fragen.
@@ -63,6 +76,8 @@ aber als Empfehlung, nicht als Entscheidung:
 | 3D-Logo, Logo-Wurf mit Glasriss, 3D-Bildschirme, Explosionsansicht, Ebenen-Effekt | fertige Vorlagen im Skill `3d-effekte` (Remotion ODER HyperFrames) |
 | Viele gleichzeitig bewegte Elemente mit Tiefenstaffelung | Remotion |
 | Ein Motion-Canvas-Versuch ist bereits gescheitert | Remotion |
+| Wenig Arbeitsspeicher (8 GB) oder Remotion-Render bricht ab | HyperFrames |
+| Fehler sollen vor dem Render auffallen, nicht im fertigen Clip | HyperFrames |
 
 **Bei Remotion vor dem Start einmal die Lizenz erwähnen:** kostenlos für
 Einzelpersonen, Firmen bis 3 Mitarbeiter und Non-Profits, größere Firmen
@@ -83,7 +98,7 @@ Danach die Stufen **einzeln nacheinander** abarbeiten, mit Freigabe
 dazwischen. Nicht alles auf einmal bauen.
 
 **Sagt er ja zu animierter Grafik, folgt sofort die zweite Pflichtfrage:
-Motion Canvas oder Remotion** (siehe oben). Erst danach wird gebaut.
+Motion Canvas, Remotion oder HyperFrames** (siehe oben). Erst danach wird gebaut.
 
 ## Stufe 2a: Motion Canvas
 
@@ -313,6 +328,21 @@ Zwei echte Vorteile gegenüber Remotion:
   `<video>` ohne `id` friert im Export ein — `check` meldet das vorher.
   Immer laufen lassen, bevor gerendert wird.
 - **Alpha ist ein Schalter:** `--format mov` (ProRes) oder `--format webm`.
+
+**Fertige Remotion-Grafik übertragen, ohne sie neu zu bauen** (21.10.2026,
+erprobt mit einem 3-Minuten-Kursvideo): Die Remotion-Datei kopieren, die
+Remotion-Bausteine (`AbsoluteFill`, `Img`, `staticFile`, Schriften) durch
+eine kleine Ersatzdatei ersetzen, `interpolate`/`Easing`/`random` aus dem
+echten `remotion`-Paket lassen. Mit esbuild zu einer `grafik.js` bündeln.
+In der HyperFrames-Seite zeichnet React die Ebenen bei jedem
+`hf-seek`-Ereignis neu (`flushSync`); das Video ist ein echtes `<video>`,
+dessen Karte per Stil verschoben wird. Dazu ein leerer pausierter
+GSAP-Zeitstrahl unter `window.__timelines[id]` (sonst meldet `lint`
+`missing_timeline_registry`). Schriften lokal als woff2 mit `@font-face`
+und vorab per `document.fonts.load` anfordern. Das Video in der Karte mit
+`-g 24` kodieren, sonst warnt der Compiler vor „sparse keyframes"
+(stehende Bilder). Ein Projekt darf nur EINE Wurzel-Komposition haben:
+für mehrere Abschnitte je Abschnitt ein eigenes Projekt.
 
 Zwei Fallstricke, beide gemessen:
 
